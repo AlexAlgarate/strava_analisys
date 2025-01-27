@@ -18,9 +18,13 @@ def run_async_streams():
     )
 
 
+def show_one_activity():
+    access_token = get_access_token()
+    print(ActivitiesManager(access_token).get_one_activity(13200148363))
+
+
 def show_last_200_activities():
     access_token = get_access_token()
-
     print(ActivitiesManager(access_token).get_last_200_activities())
 
 
@@ -28,7 +32,7 @@ def print_options():
     print("\nElije una opción")
 
     print("\nStrava - Opciones:")
-    print("1. Mostrar la información de la última actividad subida a Strava")
+    print("1. Mostrar la información de una actividad concreta")
     print("2. Mostrar la información de las últimas 10 actividades")
     print("3. Mostrar las actividades de la semana en curso")
     print("4. Mostrar los streams de una actividad")
@@ -45,16 +49,18 @@ def main():
 
         match choice:
             case "1":
-                print("NO HAS CORRIDO")
+                show_one_activity()
 
             case "2":
                 print("NO HAS CORRIDO")
             case "3":
                 show_last_200_activities()
+
             case "4":
                 print("NO HAS CORRIDO")
             case "5":
                 print(run_async_streams())
+
             case "6":
                 print("NO HAS CORRIDO")
             case "7":
