@@ -1,3 +1,8 @@
+test/
+src/interfaces.py
+read_zones.py
+prueba.py
+analisys_zones.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

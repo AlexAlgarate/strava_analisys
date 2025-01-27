@@ -1,0 +1,9 @@
+ruff
+python-dotenv
+supabase
+pandas
+black
+matplotlib
+PyQt6
+requests
+pytest
