@@ -7,3 +7,4 @@ matplotlib
 PyQt6
 requests
 pytest
+pytest-mock
