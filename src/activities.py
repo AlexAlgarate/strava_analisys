@@ -79,9 +79,9 @@ class ActivitiesManager:
 
         return start_of_week_epoch, end_of_week_epoch
 
-    def get_activity_range(self) -> List[dict]:
+    def get_activity_range(self, previous_week: bool = False) -> List[dict]:
         url = self._get_url("/activities")
-        monday, sunday = self.get_epoch_times_for_week()
+        monday, sunday = self.get_epoch_times_for_week(previous_week=previous_week)
         params = {
             "per_page": 200,
             "page": 1,
@@ -95,7 +95,7 @@ class ActivitiesManager:
         self, keys: List[str], previous_week: bool = False
     ) -> List[dict]:
         url = self._get_url("/activities")
-        monday, sunday = self.get_epoch_times_for_week(previous_week)
+        monday, sunday = self.get_epoch_times_for_week(previous_week=previous_week)
         params = {
             "per_page": 200,
             "page": 1,
