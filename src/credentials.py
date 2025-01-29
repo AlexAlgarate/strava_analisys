@@ -24,16 +24,19 @@ def get_env_variable(var_name: str, default_value: str = None) -> str:
 
 
 class StravaSecrets:
-    STRAVA_CLIENT_ID = get_env_variable("STRAVA_CLIENT_ID")
-    STRAVA_SECRET_KEY = get_env_variable("STRAVA_SECRET_KEY")
+    def __init__(self):
+        self.STRAVA_CLIENT_ID = get_env_variable("STRAVA_CLIENT_ID")
+        self.STRAVA_SECRET_KEY = get_env_variable("STRAVA_SECRET_KEY")
 
 
 class SupabaseSecrets:
-    SUPABASE_URL = get_env_variable("SUPABASE_URL")
-    SUPABASE_API_KEY = get_env_variable("SUPABASE_API_KEY")
-    SUPABASE_TABLE = get_env_variable("SUPABASE_TABLE")
+    def __init__(self):
+        self.SUPABASE_URL = get_env_variable("SUPABASE_URL")
+        self.SUPABASE_API_KEY = get_env_variable("SUPABASE_API_KEY")
+        self.SUPABASE_TABLE = get_env_variable("SUPABASE_TABLE")
 
 
 class FernetSecrets:
-    FERNET_KEY = get_env_variable("FERNET_KEY", Fernet.generate_key().decode())
-    CIPHER = Fernet(FERNET_KEY.encode())
+    def __init__(self):
+        self.FERNET_KEY = get_env_variable("FERNET_KEY", Fernet.generate_key().decode())
+        self.CIPHER = Fernet(self.FERNET_KEY.encode())
