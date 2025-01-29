@@ -3,9 +3,9 @@ from typing import Dict, Optional, Union
 
 from src import utils as utils
 from src.credentials import StravaSecrets
+from src.database import SupabaseClient
 from src.encryptor import DataEncryptor
-from src.oauth_code import OAuthHelper
-from src.supabase_db import SupabaseClient
+from src.oauth_code import GetOauthCode
 from src.token_manager import TokenManager
 
 
@@ -57,7 +57,7 @@ class TokenHandler:
         self, table: str
     ) -> Optional[Dict[str, Union[int, str]]]:
         try:
-            oauth_helper = OAuthHelper()
+            oauth_helper = GetOauthCode()
             code = oauth_helper.get_authorization_code(
                 utils.base_url_oauth,
                 {

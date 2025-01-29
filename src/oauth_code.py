@@ -4,9 +4,7 @@ from typing import Dict
 from urllib import parse
 
 
-class OAuthHelper:
-    """Gestiona el flujo para obtener el código de autorización."""
-
+class GetOauthCode:
     @staticmethod
     def _create_full_url(base_url: str, params: Dict[str, str]) -> str:
         url_parts = list(parse.urlparse(base_url))
@@ -18,7 +16,7 @@ class OAuthHelper:
     def _extract_code(url: str) -> str:
         full_code = re.search(r"&code=([\w]+)&", url)
         if not full_code:
-            raise ValueError("No authorization code found in the URL.")
+            raise ValueError("No authorization code found in the URL")
         return full_code.group(1)
 
     def get_authorization_code(self, base_url: str, params: Dict[str, str]) -> str:
