@@ -4,8 +4,8 @@ from typing import Dict, Optional, Union
 from dotenv import load_dotenv
 
 from src.credentials import FernetSecrets, StravaSecrets, SupabaseSecrets
+from src.database import SupabaseClient
 from src.encryptor import DataEncryptor
-from src.supabase_db import SupabaseClient
 from src.token_handler import TokenHandler
 from src.token_manager import TokenManager
 
@@ -102,7 +102,7 @@ class FernetEncryptorAdapter(IEncryptor):
         return self.encryptor.decrypt_value(value)
 
 
-def get_access_token() -> str:
+def get_access_token_abc() -> str:
     load_dotenv()
 
     supabase_credentials = SupabaseSecrets
@@ -184,3 +184,28 @@ def get_access_token() -> str:
 #     # Process token and get the access token
 #     token_service.token_manager.process_token(supabase_credentials.SUPABASE_TABLE)
 #     return token_service.get_access_token(supabase_credentials.SUPABASE_TABLE)
+
+
+def get_access_token() -> str:
+    load_dotenv()
+
+    supabase_credentials = SupabaseSecrets()
+    strava_credentials = StravaSecrets()
+    fernet_credentials = FernetSecrets()
+
+    database_client = SupabaseClient(
+        supabase_credentials.SUPABASE_URL, supabase_credentials.SUPABASE_API_KEY
+    )
+    token_manager = TokenManager(
+        strava_credentials.STRAVA_CLIENT_ID, strava_credentials.STRAVA_SECRET_KEY
+    )
+    encryptor = DataEncryptor(fernet_credentials.CIPHER)
+
+    token_service = TokenHandler(database_client, token_manager, encryptor)
+
+    token_service.process_token(supabase_credentials.SUPABASE_TABLE)
+
+    access_token = database_client.fetch_latest_record(
+        supabase_credentials.SUPABASE_TABLE, "access_token", "access_token"
+    )
+    return encryptor.decrypt_value(access_token)
