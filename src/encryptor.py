@@ -1,15 +1,8 @@
-import logging
-from datetime import datetime
 from typing import Dict, Union
 
 from cryptography.fernet import Fernet, InvalidToken
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-logger = logging.getLogger(__name__)
+from src import utils as utils
 
 
 class DataEncryptor:
@@ -21,11 +14,12 @@ class DataEncryptor:
 
         Args:
             cipher (Fernet): An instance of the Fernet encryption class used for encryption/decryption.
-
-
         """
+
+        if not isinstance(cipher, Fernet):
+            raise ValueError("Cipher must be an instance of Fernet.")
         self.cipher = cipher
-        self.time_logger_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.logger = utils.Logger().setup_logger()
 
     def encrypt_data(self, data: Dict[str, Union[str, int]]) -> Dict[str, str]:
         """
@@ -42,14 +36,16 @@ class DataEncryptor:
             ValueError: If encryption fails for any reason.
         """
         try:
-            encrypted_data = {
-                key: self.cipher.encrypt(str(value).encode()).decode()
-                for key, value in data.items()
-            }
-            logger.info(f"Data encrypted successfully at {self.time_logger_now}")
+            encrypted_data = {}
+            for key, value in data.items():
+                if not isinstance(value, (str, int)):
+                    raise ValueError(f"Invalid data type for {key}: {type(value)}")
+                encrypted_data[key] = self.cipher.encrypt(str(value).encode()).decode()
+            self.logger.info("Data encrypted successfully.")
             return encrypted_data
+
         except Exception as e:
-            logger.error(f"Error encrypting data: {e}", exc_info=True)
+            self.logger.error(f"Error encrypting data: {e}", exc_info=True)
             raise ValueError("Encryptation failed due to an error") from e
 
     def decrypt_data(
@@ -68,25 +64,31 @@ class DataEncryptor:
             ValueError: If decryption fails for any reason.
         """
         try:
-            decrypted_data = {}
-            for key, value in data.items():
-                if isinstance(value, str):
-                    decrypted_data[key] = self.cipher.decrypt(value.encode()).decode()
-                else:
-                    decrypted_data[key] = value
-            logger.info(f"Data decrypted successfully at {self.time_logger_now}")
+            decrypted_data = {
+                key: (
+                    self.cipher.decrypt(value.encode()).decode()
+                    if isinstance(value, str)
+                    else value
+                )
+                for key, value in data.items()
+            }
+            self.logger.info("Data decrypted successfully.")
             return decrypted_data
 
         except InvalidToken:
-            logger.error("Decryption failed: invalid token detected.")
+            self.logger.error("Decryption failed: invalid token detected.")
             raise ValueError("Decryption failed: invalid token detected.")
 
         except Exception as e:
-            logger.error(f"Error decrypting data: {e}", exc_info=True)
+            self.logger.error(f"Error decrypting data: {e}", exc_info=True)
             raise ValueError("Decryption failed due to an error.") from e
 
-    def decrypt_value(
-        self, data_to_decrypt: dict, value: str = "access_token"
-    ) -> Union[str, int]:
-        decrypted_data = self.decrypt_data(data_to_decrypt)
-        return decrypted_data[value]
+    def decrypt_value(self, data_to_decrypt: dict, value: str) -> Union[str, int]:
+        try:
+            decrypted_data = self.decrypt_data(data_to_decrypt)
+            return decrypted_data[value]
+        except Exception as e:
+            self.logger.error(f"Error decripting the value: {e}", exc_info=True)
+            raise KeyError(
+                f"Decryption failed, {decrypted_data[value]} doesn't exist."
+            ) from e

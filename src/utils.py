@@ -2,6 +2,28 @@ import logging
 import time
 
 
+class Logger:
+    @staticmethod
+    def setup_logger():
+        """Configures and returns the logger."""
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+        return logging.getLogger(__name__)
+
+
+def setup_logger():
+    """Configures and returns the logger."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    return logging.getLogger(__name__)
+
+
 def func_time_execution(func):
     async def wraper(*args, **kwargs):
         start = time.time()
@@ -19,16 +41,6 @@ base_url_oauth = "https://www.strava.com/oauth/authorize"
 base_url_access_token = "https://www.strava.com/oauth/token"
 
 activities_url = "https://www.strava.com/api/v3/activities"
-
-
-def setup_logger():
-    """Configures and returns the logger."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    return logging.getLogger(__name__)
 
 
 activity_detailed_keys = [

@@ -1,14 +1,29 @@
-import logging
 import time
+from dataclasses import dataclass
+from enum import Enum
 from typing import Dict, Optional, Union
 
 import requests
-from requests.exceptions import RequestException
 
 from src import utils as utils
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+TokenResponse = Dict[str, Union[str, int]]
+RequestData = Dict[str, str]
+
+
+class GranType(Enum):
+    REFRESH_TOKEN = "refresh_token"
+    AUTHORIZATION_CODE = "authorization_code"
+
+
+@dataclass
+class Credentials:
+    client_id: str
+    secret_key: str
+
+
+class TokenException(Exception):
+    pass
 
 
 class TokenManager:
@@ -22,25 +37,45 @@ class TokenManager:
             client_id (str): The client ID.
             secret_key (str): The client secret key.
         """
-        self.client_id = client_id
-        self.secret_key = secret_key
+
+        self.credentials = Credentials(client_id, secret_key)
+        self.logger = utils.Logger().setup_logger()
 
     @staticmethod
     def token_has_expired(expires_at: int) -> bool:
         """
-        Checks if the token has expired.
+        Checks if a token has expired.
 
         Args:
             expires_at (int): The expiration timestamp of the token.
 
         Returns:
-            bool: True if the token has expired, False otherwise.
+            bool: True if token has expired, False otherwise.
         """
+
         return int(expires_at) < int(time.time())
 
-    def _send_token_request(
-        self, data: Dict[str, str]
-    ) -> Optional[Dict[str, Union[str, int]]]:
+    def _prepare_request_data(self, gran_type: GranType, **kwargs) -> RequestData:
+        """
+        Prepare the request data for token operations.
+
+        Args:
+            grant_type: Type of grant request
+            **kwargs: Additional parameters for the request
+
+        Returns:
+            Dict of requests parameters
+        """
+
+        data = {
+            "client_id": self.credentials.client_id,
+            "client_secret": self.credentials.secret_key,
+            "grant_type": gran_type.value,
+        }
+        data.update(kwargs)
+        return data
+
+    def _send_token_request(self, data: Dict[str, str]) -> Optional[TokenResponse]:
         """
         Sends a token request to the API.
 
@@ -50,17 +85,17 @@ class TokenManager:
         Returns:
             Optional[Dict[str, Union[str, int]]]: The JSON response from the API, or None in case of an error.
         """
+
         try:
             response = requests.post(utils.base_url_access_token, data=data)
             response.raise_for_status()
             return response.json()
-        except RequestException as e:
-            logger.error(f"Error fetching initial tokens: {e}", exc_info=True)
+
+        except TokenException as e:
+            self.logger.error(f"Error fetching initial tokens: {e}", exc_info=True)
             return None
 
-    def refresh_access_token(
-        self, refresh_token: str
-    ) -> Optional[Dict[str, Union[str, int]]]:
+    def refresh_access_token(self, refresh_token: str) -> Optional[TokenResponse]:
         """
         Refreshes the access token using a refresh token.
 
@@ -70,29 +105,27 @@ class TokenManager:
         Returns:
             Optional[Dict[str, Union[str, int]]]: The new access token, or None if an error occurs.
         """
-        data = {
-            "client_id": self.client_id,
-            "client_secret": self.secret_key,
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token,
-        }
+
+        data = self._prepare_request_data(
+            gran_type=GranType.REFRESH_TOKEN,
+            refresh_token=refresh_token,
+        )
 
         return self._send_token_request(data)
 
-    def get_initial_tokens(self, code: str) -> Optional[Dict[str, Union[str, int]]]:
+    def get_initial_tokens(self, code: str) -> Optional[TokenResponse]:
         """
-        Obtains the initial tokens using an authorization code.
+        Get initial access and refresh token.
 
         Args:
-            code (str): The authorization code.
+            code (str): The authorization code from OAuth.
 
         Returns:
-            Optional[Dict[str, Union[str, int]]]: The initial tokens, or None if an error occurs.
+            Initial tokens if successfull, None otherwise..
         """
-        data = {
-            "client_id": self.client_id,
-            "client_secret": self.secret_key,
-            "code": code,
-            "grant_type": "authorization_code",
-        }
+
+        data = self._prepare_request_data(
+            gran_type=GranType.AUTHORIZATION_CODE,
+            code=code,
+        )
         return self._send_token_request(data)

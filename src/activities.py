@@ -8,7 +8,9 @@ import aiohttp
 import pandas as pd
 import requests
 
-from . import utils as utils
+from src import utils as utils
+
+logger = utils.Logger().setup_logger()
 
 
 class ActivitiesManager:
@@ -153,7 +155,7 @@ class ActivitiesManager:
         zones_dict = dict(zip(self.ZONES_KEY, zones))
         if save_zones:
             if not self._check_path("json_zones_files/"):
-                print("\nCreando la carpeta")
+                logger.info("\nCreating folder...")
             file_path = f"json_zones_files/zones_{self.id_activity}.json"
             with open(file_path, "w") as f:
                 json.dump(zones_dict, f, indent=4)

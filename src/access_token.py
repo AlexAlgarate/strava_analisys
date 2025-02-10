@@ -197,15 +197,21 @@ def get_access_token() -> str:
         supabase_credentials.SUPABASE_URL, supabase_credentials.SUPABASE_API_KEY
     )
     token_manager = TokenManager(
-        strava_credentials.STRAVA_CLIENT_ID, strava_credentials.STRAVA_SECRET_KEY
+        client_id=strava_credentials.STRAVA_CLIENT_ID,
+        secret_key=strava_credentials.STRAVA_SECRET_KEY,
     )
     encryptor = DataEncryptor(fernet_credentials.CIPHER)
 
-    token_service = TokenHandler(database_client, token_manager, encryptor)
+    token_service = TokenHandler(
+        supabase_client=database_client,
+        token_manager=token_manager,
+        encryptor=encryptor,
+        client_id=strava_credentials.STRAVA_CLIENT_ID,
+    )
 
     token_service.process_token(supabase_credentials.SUPABASE_TABLE)
 
     access_token = database_client.fetch_latest_record(
         supabase_credentials.SUPABASE_TABLE, "access_token", "access_token"
     )
-    return encryptor.decrypt_value(access_token)
+    return encryptor.decrypt_value(data_to_decrypt=access_token, value="access_token")
