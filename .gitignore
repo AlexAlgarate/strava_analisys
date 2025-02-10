@@ -1,4 +1,6 @@
-test/
+test/conftest.py
+test/test_database.py
+test/test_token_manager.py
 src/interfaces.py
 read_zones.py
 prueba.py
