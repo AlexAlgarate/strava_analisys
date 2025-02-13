@@ -8,3 +8,6 @@ PyQt6
 requests
 pytest
 pytest-mock
+aioresponses
+pytest-asyncio  
+requests-mock

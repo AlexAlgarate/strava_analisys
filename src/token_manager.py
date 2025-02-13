@@ -23,6 +23,8 @@ class Credentials:
 
 
 class TokenException(Exception):
+    """Custom exception for token-related errors."""
+
     pass
 
 
@@ -60,7 +62,7 @@ class TokenManager:
         Prepare the request data for token operations.
 
         Args:
-            grant_type: Type of grant request
+            grant_type (GranType): Type of grant request
             **kwargs: Additional parameters for the request
 
         Returns:
@@ -83,7 +85,7 @@ class TokenManager:
             data (Dict[str, str]): The data to send in the request.
 
         Returns:
-            Optional[Dict[str, Union[str, int]]]: The JSON response from the API, or None in case of an error.
+            Optional[TokenResponse]: The JSON response from the API, or None in case of an error.
         """
 
         try:
@@ -103,7 +105,7 @@ class TokenManager:
             refresh_token (str): The refresh token.
 
         Returns:
-            Optional[Dict[str, Union[str, int]]]: The new access token, or None if an error occurs.
+            Optional[TokenResponse]: The new access token, or None if an error occurs.
         """
 
         data = self._prepare_request_data(
