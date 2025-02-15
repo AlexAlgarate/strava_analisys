@@ -2,7 +2,6 @@ ruff
 python-dotenv
 supabase
 pandas
-matplotlib
 PyQt6
 requests
 pytest
