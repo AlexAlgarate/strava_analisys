@@ -30,7 +30,6 @@ def mock_logger():
 
 @pytest.fixture
 def mock_successful_response():
-    """Fixture for successful API response."""
     return {
         "access_token": TEST_ACCESS_TOKEN,
         "refresh_token": TEST_REFRESH_TOKEN,
@@ -39,32 +38,25 @@ def mock_successful_response():
 
 
 class TestTokenManager:
-    """Test TokenManager initialization."""
-
     def test_init_creates_credentials(self):
-        """Test that credentials are properly initialized."""
         manager = TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY)
         assert isinstance(manager.credentials, Credentials)
         assert manager.credentials.client_id == TEST_CLIENT_ID
         assert manager.credentials.secret_key == TEST_SECRET_KEY
 
     def test_init_sets_up_logger(self, mock_logger):
-        """Test that logger is properly initialized."""
         TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY)
         mock_logger.error.assert_not_called()
 
     def test_token_has_expired_with_expired_token(self):
-        """Test detection of expired token."""
-        token_has_expired = int(time.time()) - 3600  # 1 hour ago
+        token_has_expired = int(time.time()) - 3600
         assert TokenManager.token_has_expired(expires_at=token_has_expired) is True
 
     def test_token_has_expired_with_valid_token(self):
-        """Test detection of valid token."""
-        token_has_not_expired = int(time.time()) + 3600  # 1 hour from now
+        token_has_not_expired = int(time.time()) + 3600
         assert TokenManager.token_has_expired(expires_at=token_has_not_expired) is False
 
     def test_prepare_request_data_refresh_token(self, token_manager):
-        """Test preparation of refresh token request data."""
         data = token_manager._prepare_request_data(
             GranType.REFRESH_TOKEN, refresh_token=TEST_REFRESH_TOKEN
         )
@@ -76,7 +68,6 @@ class TestTokenManager:
         }
 
     def test_prepare_request_data_authorization_code(self, token_manager):
-        """Test preparation of authorization code request data."""
         data = token_manager._prepare_request_data(
             GranType.AUTHORIZATION_CODE, code=TEST_AUTHORIZATION_CODE
         )
@@ -91,7 +82,6 @@ class TestTokenManager:
     def test_send_token_request_success(
         self, mock_post, token_manager, mock_successful_response
     ):
-        """Test successful token request."""
         mock_post.return_value.json.return_value = mock_successful_response
         mock_post.return_value.raise_for_status.return_value = None
 
@@ -118,7 +108,6 @@ class TestTokenManager:
     def test_get_initial_tokens_success(
         self, mock_post, token_manager, mock_successful_response
     ):
-        """Test successful initial token acquisition."""
         mock_post.return_value.json.return_value = mock_successful_response
         mock_post.return_value.raise_for_status.return_value = None
 
@@ -137,7 +126,6 @@ class TestTokenManager:
 
     @patch("requests.post")
     def test_get_initial_tokens_failure(self, mock_post, mock_logger, token_manager):
-        """Test failed initial token acquisition."""
         mock_post.side_effect = TokenException("API ERROR")
 
         result = token_manager.get_initial_tokens(TEST_AUTHORIZATION_CODE)
@@ -151,7 +139,6 @@ class TestTokenManager:
     def test_refresh_access_token_success(
         self, mock_post, token_manager, mock_successful_response
     ):
-        """Test successful token refresh."""
         mock_post.return_value.json.return_value = mock_successful_response
         mock_post.return_value.raise_for_status.return_value = None
 
@@ -170,7 +157,6 @@ class TestTokenManager:
 
     @patch("requests.post")
     def test_refresh_access_token_failure(self, mock_post, mock_logger, token_manager):
-        """Test failed token refresh."""
         mock_post.side_effect = TokenException("API ERROR")
 
         result = token_manager.refresh_access_token(TEST_REFRESH_TOKEN)

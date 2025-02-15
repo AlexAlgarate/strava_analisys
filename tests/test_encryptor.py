@@ -18,7 +18,6 @@ class TestEncryptor:
 
     @pytest.fixture
     def sample_data(self):
-        """Fixture providing sample data for testing."""
         return {
             "access_token": "qwerty12345",
             "refresh_token": "12345qwerty",
@@ -27,26 +26,21 @@ class TestEncryptor:
         }
 
     def test_init_with_valid_cipher(self, cipher):
-        """Test initialization with valid Fernet cipher."""
         encryptor = DataEncryptor(cipher)
         assert isinstance(encryptor.cipher, Fernet)
 
     def test_init_with_invalid_cipher(self):
-        """Test initialization with invalid cipher type."""
         with pytest.raises(ValueError, match="Cipher must be an instance of Fernet."):
             DataEncryptor("invalid_cipher")
 
     def test_encrypt_data(self, encryptor, sample_data):
         encrypted_data = encryptor.encrypt_data(sample_data)
 
-        # Expected dict
         assert isinstance(encrypted_data, dict)
         assert set(encrypted_data.keys()) == set(sample_data.keys())
 
-        # Verify types
         for value in encrypted_data.values():
             assert isinstance(value, Union[str, int])
-            # Verify values not in sample data == Successfully encryptation
             assert value not in sample_data.values()
 
     def test_encrypt_data_with_empty_dict(self, encryptor):
@@ -70,7 +64,6 @@ class TestEncryptor:
         assert all(isinstance(value, (str, int)) for value in decrypted_data.values())
 
     def test_decrypt_data_with_mixed_values(self, encryptor, sample_data):
-        """Test decryption with mixed encrypted and non-encrypted values."""
         encrypted_data = encryptor.encrypt_data(sample_data)
 
         mixed_data = {
@@ -87,7 +80,6 @@ class TestEncryptor:
         assert decrypted_data["access_token_creation"] == "2025-01-30 08:40:21"
 
     def test_decrypt_data_invalid_token(self, encryptor):
-        """Test decryption with invalid token."""
         invalid_data = {"key": "invalid_encrypted_value"}
 
         with pytest.raises(
@@ -111,7 +103,6 @@ class TestEncryptor:
             encryptor.decrypt_value(encrypted_data, "non_existent_key")
 
     def test_large_data_handling(self, encryptor):
-        """Test handling of large data sets."""
         large_data = {f"key_{i}": f"value_{i}" for i in range(10000)}
         encrypted = encryptor.encrypt_data(large_data)
         decrypted = encryptor.decrypt_data(encrypted)

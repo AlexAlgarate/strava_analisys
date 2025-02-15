@@ -1,7 +1,7 @@
 import asyncio
 
 from src import utils as utils
-from src.access_token import get_access_token
+from src.access_token import GetAccessToken
 from src.activities import ActivitiesManager
 
 
@@ -36,7 +36,7 @@ def show_last_200_activities(access_token: str):
 
 
 def print_options():
-    print("\Choose an option:")
+    print("\nChoose an option:")
 
     print("\nStrava - Options:")
     print("1. Show information for a specific activity")
@@ -50,7 +50,7 @@ def print_options():
 
 
 def main():
-    access_token = get_access_token()
+    access_token = GetAccessToken().get_access_token()
 
     while True:
         print_options()
