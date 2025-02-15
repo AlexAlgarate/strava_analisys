@@ -12,3 +12,4 @@ aioresponses
 pytest-asyncio  
 requests-mock
 pytest-cov
+cryptography
