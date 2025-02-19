@@ -95,3 +95,14 @@ streams_keys = [
 ]
 
 id_activities = [13200148363, 13181274603, 13229661332, 13200144518, 13150752938]
+
+print_options_main = {
+    "1": "Show information for a specific activity",
+    "2": "Show detailed information for a specific activity",
+    "3": "Show the last 200 activities",
+    "4": "Show information for activities from the current week",
+    "5": "Show information for activities from the previous week",
+    "6": "Show streams for activities from the current week",
+    "7": "Show a graph of time in zone for a specific activity",
+    "8": "Exit",
+}

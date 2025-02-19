@@ -1,14 +1,22 @@
 import asyncio
+from typing import Dict
 
 from src import utils as utils
 from src.access_token import GetAccessToken
-from src.activities import ActivitiesManager
+from src.activities import (
+    Activity,
+    GetActivityDetails,
+    GetActivityRange,
+    GetLast200Activities,
+    GetOneActivity,
+)
+from src.strava_api import InterfaceStravaAPI, StravaAPI
 
 
 def run_async_streams(access_token: str):
     print(
         asyncio.run(
-            ActivitiesManager.get_multiple_activities_streams(
+            Activity.get_multiple_activities_streams(
                 access_token,
                 utils.id_activities,
                 utils.streams_keys,
@@ -17,69 +25,71 @@ def run_async_streams(access_token: str):
     )
 
 
-def run_async_activity_range(access_token: str, previous_week: bool = False):
+def run_async_activity_range(api: InterfaceStravaAPI, previous_week: bool = False):
     print(
         asyncio.run(
-            ActivitiesManager(access_token).get_activity_range_async(
-                previous_week=previous_week
+            GetActivityRange(api=api).fetch_activity_data(previous_week=previous_week)
+        )
+    )
+
+
+def show_activity_details(api: InterfaceStravaAPI, previous_week: bool = False):
+    print(
+        asyncio.run(
+            GetActivityDetails(api=api).fetch_activity_data(
+                keys=utils.activity_detailed_keys,
+                previuos_week=previous_week,
             )
         )
     )
 
 
-def show_one_activity(access_token: str):
-    print(ActivitiesManager(access_token).get_one_activity(13200148363))
+def show_one_activity(api: InterfaceStravaAPI):
+    print(GetOneActivity(api=api, id_activity=13654451097).fetch_activity_data())
 
 
-def show_last_200_activities(access_token: str):
-    print(ActivitiesManager(access_token).get_last_200_activities())
+def show_last_200_activities(api: InterfaceStravaAPI):
+    print(GetLast200Activities(api=api).fetch_activity_data())
 
 
-def print_options():
+def print_options(options: Dict[str, str]) -> None:
     print("\nChoose an option:")
 
-    print("\nStrava - Options:")
-    print("1. Show information for a specific activity")
-    print("2. Show information for activities from the current week")
-    print("3. Show the last 200 activities")
-    print("4. Show information for activities from the previous week")
-    print("5. Show streams for activities from the current week")
-    print("6. Show a graph of time in zone for a specific activity")
-    print("7. Show commit history")
-    print("8. Exit")
+    for key, value in options.items():
+        print(f"{key}. {value}")
 
 
 def main():
     access_token = GetAccessToken().get_access_token()
-
+    Strava_API = StravaAPI(access_token=access_token)
     while True:
-        print_options()
-        choice = input("Choose an option: (1 to 8) ")
+        print_options(utils.print_options_main)
+        choice = input(f"Choose an option: (1 to {len(utils.print_options_main)}) ")
 
         match choice:
             case "1":
-                show_one_activity(access_token)
+                show_one_activity(api=Strava_API)
 
             case "2":
-                run_async_activity_range(access_token, previous_week=False)
+                show_activity_details(api=Strava_API, previous_week=True)
 
             case "3":
-                show_last_200_activities(access_token)
+                show_last_200_activities(api=Strava_API)
 
             case "4":
-                run_async_activity_range(access_token, previous_week=True)
+                run_async_activity_range(api=Strava_API, previous_week=False)
 
             case "5":
-                run_async_streams(access_token)
+                run_async_activity_range(api=Strava_API, previous_week=True)
 
             case "6":
-                print("Feature not implemented yet.")
+                run_async_streams(access_token)
 
             case "7":
                 print("Feature not implemented yet.")
 
             case "8":
-                print("Goodbye!")
+                print("\nGoodbye!")
                 break
             case _:
                 print("Not valid option.")

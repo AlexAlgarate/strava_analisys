@@ -11,3 +11,5 @@ pytest-asyncio
 requests-mock
 pytest-cov
 cryptography
+fastapi
+uvicorn
