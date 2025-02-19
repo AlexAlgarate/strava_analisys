@@ -1,14 +1,90 @@
 import asyncio
 import json
+from abc import ABC, abstractmethod
 from typing import Dict, List
 
 import pandas as pd
 
 from src import utils as utils
-from src.strava_api import StravaAPI
+from src.strava_api import InterfaceStravaAPI, StravaAPI
 
 
-class ActivitiesManager:
+class InterfaceActivitiesStrava(ABC):
+    def __init__(self, api: InterfaceStravaAPI, id_activity: int = None):
+        self.api = api
+        self.id_activity = id_activity
+        self.logger = utils.Logger().setup_logger()
+
+    @abstractmethod
+    def fetch_activity_data(self, *args, **kwargs):
+        pass
+
+
+class GetOneActivity(InterfaceActivitiesStrava):
+    def fetch_activity_data(self) -> dict:
+        if not self.id_activity:
+            raise ValueError("Activity ID is required for this operation.")
+        return self.api.make_request(f"/activities/{self.id_activity}")
+
+
+class GetLast200Activities(InterfaceActivitiesStrava):
+    def fetch_activity_data(self) -> dict:
+        params = {"per_page": 200, "page": 1}
+        return self.api.make_request(endpoint="/activities", params=params)
+
+
+class GetActivityRange(InterfaceActivitiesStrava):
+    @utils.func_time_execution
+    async def fetch_activity_data(self, previous_week: bool = False) -> List[dict]:
+        monday, sunday = utils.get_epoch_times_for_week(previous_week=previous_week)
+        params = {
+            "per_page": 200,
+            "page": 1,
+            "after": str(monday),
+            "before": str(sunday),
+        }
+        return await self.api.make_request_async(endpoint="/activities", params=params)
+
+
+class GetActivityDetails(InterfaceActivitiesStrava):
+    async def fetch_activity_data(
+        self, keys: List[str], previuos_week: bool = False
+    ) -> List[dict]:
+        activities = await GetActivityRange(self.api).fetch_activity_data(
+            previous_week=previuos_week
+        )
+        if not activities:
+            raise ValueError("No activities found.")
+
+        activity_ids = [activity["id"] for activity in activities]
+        detailed_activity = await self._fetch_all_activity_details(activity_ids)
+
+        return [
+            self._filter_activity_keys(activity, keys) for activity in detailed_activity
+        ]
+
+    async def _fetch_all_activity_details(self, activity_ids: List[int]) -> List[dict]:
+        """Fetch detailed data for multiple activities asynchronously."""
+        tasks = [
+            self._get_activity_details(activity_id) for activity_id in activity_ids
+        ]
+        return await asyncio.gather(*tasks)
+
+    async def _get_activity_details(self, activity_id: int) -> dict:
+        """Fetch detailed data for a single activity."""
+        try:
+            return self.api.make_request(f"/activities/{activity_id}")
+        except Exception as e:
+            print(f"⚠️ Error fetching activity {activity_id}: {e}")
+            return {}
+
+    @staticmethod
+    def _filter_activity_keys(activity: dict, keys: List[str]) -> dict:
+        """Filter only the selected keys from an activity dictionary."""
+        return {k: activity[k] for k in keys if k in activity}
+
+
+class Activity:
     ZONES_KEY = [
         "Zone_1",
         "Zone_2",
@@ -22,13 +98,15 @@ class ActivitiesManager:
         self.id_activity = id_activity
         self.logger = utils.Logger().setup_logger()
 
-    def get_one_activity(self, id_activity: int) -> dict:
-        return self.api.make_request(f"/activities/{id_activity}")
-
-    def get_last_200_activities(self) -> List[Dict]:
-        """Fetch the last 200 activities for the authenticated user."""
-        params = {"per_page": 200, "page": 1}
-        return self.api.make_request("/activities", params)
+    def get_one_activity_detailed(self, id_activity: int, keys: List[str]) -> dict:
+        activities = self.api.make_request(f"/activities/{id_activity}")
+        id_activities = [activity["id"] for activity in activities]
+        results = []
+        for id in id_activities:
+            detailed_activity = self.get_one_activity(id)
+            activity_details = {k: detailed_activity[k] for k in keys}
+            results.append(activity_details)
+        return results
 
     def get_activity_range(self, previous_week: bool = False) -> List[dict]:
         monday, sunday = utils.get_epoch_times_for_week(previous_week=previous_week)
@@ -50,6 +128,9 @@ class ActivitiesManager:
             "before": str(sunday),
         }
         return await self.api.make_request_async("/activities", params)
+
+    def get_one_activity():
+        pass
 
     def get_detailed_activity_range(
         self, keys: List[str], previous_week: bool = False
@@ -74,18 +155,7 @@ class ActivitiesManager:
 
         return results
 
-    def get_one_activity_detailed(self, id_activity: int, keys: List[str]) -> dict:
-        activities = self.api.make_request(f"/activities/{id_activity}")
-        id_activities = [activity["id"] for activity in activities]
-        results = []
-        for id in id_activities:
-            detailed_activity = self.get_one_activity(id)
-            activity_details = {k: detailed_activity[k] for k in keys}
-            results.append(activity_details)
-        return results
-
     def get_activities_zones(self, save_zones: bool = False) -> Dict:
-        """Fetch activity zones for a specific activity."""
         if not self.id_activity:
             raise ValueError("Activity ID is required for this operation.")
         response_zones = self.api.make_request(f"/activities/{self.id_activity}/zones")
@@ -104,7 +174,6 @@ class ActivitiesManager:
         return zones_dict
 
     async def get_streams_asyncio(self, stream_keys: List[str]) -> pd.DataFrame:
-        """Fetch activity streams asynchronously."""
         if not self.id_activity:
             raise ValueError("Activity ID is required for this operation.")
         params = {"keys": ",".join(stream_keys), "key_by_type": "true"}

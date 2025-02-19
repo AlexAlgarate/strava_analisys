@@ -1,10 +1,21 @@
+from abc import ABC, abstractmethod
 from typing import Dict
 
 import aiohttp
 import requests
 
 
-class StravaAPI:
+class InterfaceStravaAPI(ABC):
+    @abstractmethod
+    def make_request(self, endpoint: str, params: dict = None) -> dict:
+        pass
+
+    @abstractmethod
+    async def make_request_async(self, endpoint: str, params: dict = None) -> dict:
+        pass
+
+
+class StravaAPI(InterfaceStravaAPI):
     BASE_URL = "https://www.strava.com/api/v3"
 
     def __init__(self, access_token: str):
@@ -40,4 +51,6 @@ class StravaAPI:
                 if response.status == 429:
                     raise Exception("Too Many Requests. Wait and try again later.")
                 response.raise_for_status()
+                if await response.json() == []:
+                    raise Exception("No activities found.")
                 return await response.json()
