@@ -47,7 +47,7 @@ class TestEncryptor:
         encrypted_data = encryptor.encrypt_data({})
         assert encrypted_data == {}
 
-    @patch("src.utils.Logger.setup_logger")
+    @patch("src.utils.helpers.Logger.setup_logger")
     def test_encrypt_data_error(self, mock_logger, encryptor):
         invalid_data = {"key": object()}
 
