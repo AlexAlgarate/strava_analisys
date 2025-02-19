@@ -2,7 +2,7 @@ from typing import Dict, Union
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from src.utils import helpers as helper
+from src.utils import helper
 
 
 class DataEncryptor:
