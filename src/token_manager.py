@@ -5,7 +5,8 @@ from typing import Dict, Optional, Union
 
 import requests
 
-from src import utils as utils
+from src.utils import constants as constant
+from src.utils import helpers as helper
 
 TokenResponse = Dict[str, Union[str, int]]
 RequestData = Dict[str, str]
@@ -41,7 +42,7 @@ class TokenManager:
         """
 
         self.credentials = Credentials(client_id, secret_key)
-        self.logger = utils.Logger().setup_logger()
+        self.logger = helper.Logger().setup_logger()
 
     @staticmethod
     def token_has_expired(expires_at: int) -> bool:
@@ -89,7 +90,7 @@ class TokenManager:
         """
 
         try:
-            response = requests.post(utils.base_url_access_token, data=data)
+            response = requests.post(constant.URL_GET_ACCESS_TOKEN, data=data)
             response.raise_for_status()
             return response.json()
 

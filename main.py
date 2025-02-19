@@ -1,7 +1,6 @@
 import asyncio
 from typing import Dict
 
-from src import utils as utils
 from src.access_token import GetAccessToken
 from src.activities import (
     Activity,
@@ -11,6 +10,7 @@ from src.activities import (
     GetOneActivity,
 )
 from src.strava_api import InterfaceStravaAPI, StravaAPI
+from src.utils import constants as constant
 
 
 def run_async_streams(access_token: str):
@@ -18,8 +18,8 @@ def run_async_streams(access_token: str):
         asyncio.run(
             Activity.get_multiple_activities_streams(
                 access_token,
-                utils.id_activities,
-                utils.streams_keys,
+                constant.EXAMPLE_ID_ACTIVITIES,
+                constant.ACTIVITY_STREAMS_KEYS,
             )
         )
     )
@@ -37,7 +37,7 @@ def show_activity_details(api: InterfaceStravaAPI, previous_week: bool = False):
     print(
         asyncio.run(
             GetActivityDetails(api=api).fetch_activity_data(
-                keys=utils.activity_detailed_keys,
+                keys=constant.ACTIVITY_DETAILED_KEYS,
                 previuos_week=previous_week,
             )
         )
@@ -63,8 +63,8 @@ def main():
     access_token = GetAccessToken().get_access_token()
     Strava_API = StravaAPI(access_token=access_token)
     while True:
-        print_options(utils.print_options_main)
-        choice = input(f"Choose an option: (1 to {len(utils.print_options_main)}) ")
+        print_options(constant.print_options_main)
+        choice = input(f"Choose an option: (1 to {len(constant.print_options_main)}) ")
 
         match choice:
             case "1":

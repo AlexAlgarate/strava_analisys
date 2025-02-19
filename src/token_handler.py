@@ -3,11 +3,11 @@ from datetime import datetime
 from functools import wraps
 from typing import Dict, Optional, Union
 
-from src import utils as utils
 from src.database import SupabaseClient
 from src.encryptor import DataEncryptor
 from src.oauth_code import GetOauthCode
 from src.token_manager import TokenManager
+from src.utils import constant, helper
 
 TokenResponse = Dict[str, Union[int, str]]
 
@@ -48,7 +48,7 @@ class TokenHandler:
         self.supabase_client = supabase_client
         self.token_manager = token_manager
         self.encryptor = encryptor
-        self.logger = utils.Logger().setup_logger()
+        self.logger = helper.Logger().setup_logger()
         self.credentials = Credentials(client_id)
 
     def process_token(self, table: str):
@@ -80,7 +80,7 @@ class TokenHandler:
     def _handle_initial_token_flow(self, table: str) -> Optional[TokenResponse]:
         oauth_helper = GetOauthCode()
         code = oauth_helper.get_authorization_code(
-            utils.base_url_oauth,
+            constant.OAUTH_URL,
             {
                 "client_id": self.credentials.client_id,
                 "response_type": "code",

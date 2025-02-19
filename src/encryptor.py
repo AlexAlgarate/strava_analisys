@@ -2,7 +2,7 @@ from typing import Dict, Union
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from src import utils as utils
+from src.utils import helpers as helper
 
 
 class DataEncryptor:
@@ -19,7 +19,7 @@ class DataEncryptor:
         if not isinstance(cipher, Fernet):
             raise ValueError("Cipher must be an instance of Fernet.")
         self.cipher = cipher
-        self.logger = utils.Logger().setup_logger()
+        self.logger = helper.Logger().setup_logger()
 
     def encrypt_data(self, data: Dict[str, Union[str, int]]) -> Dict[str, str]:
         """
