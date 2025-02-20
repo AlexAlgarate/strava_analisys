@@ -1,0 +1,2 @@
+class DatabaseOperationError(Exception):
+    pass

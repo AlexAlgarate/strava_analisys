@@ -6,20 +6,14 @@ from typing import Dict, List
 import pandas as pd
 
 from src.strava_api import InterfaceStravaAPI, StravaAPI
-from src.utils.helpers import (
-    Logger,
-    check_path,
-    func_time_execution,
-    get_epoch_times_for_week,
-    process_streams,
-)
+from src.utils import helper
 
 
 class InterfaceActivitiesStrava(ABC):
     def __init__(self, api: InterfaceStravaAPI, id_activity: int = None):
         self.api = api
         self.id_activity = id_activity
-        self.logger = Logger().setup_logger()
+        self.logger = helper.Logger().setup_logger()
 
     @abstractmethod
     def fetch_activity_data(self, *args, **kwargs):
@@ -40,9 +34,9 @@ class GetLast200Activities(InterfaceActivitiesStrava):
 
 
 class GetActivityRange(InterfaceActivitiesStrava):
-    @func_time_execution
+    @helper.func_time_execution
     async def fetch_activity_data(self, previous_week: bool = False) -> List[dict]:
-        monday, sunday = get_epoch_times_for_week(previous_week=previous_week)
+        monday, sunday = helper.get_epoch_times_for_week(previous_week=previous_week)
         params = {
             "per_page": 200,
             "page": 1,
@@ -102,7 +96,7 @@ class Activity:
     def __init__(self, access_token: str, id_activity: int = None):
         self.api = StravaAPI(access_token)
         self.id_activity = id_activity
-        self.logger = Logger().setup_logger()
+        self.logger = helper.Logger().setup_logger()
 
     def get_one_activity_detailed(self, id_activity: int, keys: List[str]) -> dict:
         activities = self.api.make_request(f"/activities/{id_activity}")
@@ -115,7 +109,7 @@ class Activity:
         return results
 
     def get_activity_range(self, previous_week: bool = False) -> List[dict]:
-        monday, sunday = get_epoch_times_for_week(previous_week=previous_week)
+        monday, sunday = helper.get_epoch_times_for_week(previous_week=previous_week)
         params = {
             "per_page": 200,
             "page": 1,
@@ -124,9 +118,9 @@ class Activity:
         }
         return self.api.make_request("/activities", params)
 
-    @func_time_execution
+    @helper.func_time_execution
     async def get_activity_range_async(self, previous_week: bool = False) -> List[dict]:
-        monday, sunday = get_epoch_times_for_week(previous_week=previous_week)
+        monday, sunday = helper.get_epoch_times_for_week(previous_week=previous_week)
         params = {
             "per_page": 200,
             "page": 1,
@@ -141,7 +135,7 @@ class Activity:
     def get_detailed_activity_range(
         self, keys: List[str], previous_week: bool = False
     ) -> List[dict]:
-        monday, sunday = get_epoch_times_for_week(previous_week=previous_week)
+        monday, sunday = helper.get_epoch_times_for_week(previous_week=previous_week)
         params = {
             "per_page": 200,
             "page": 1,
@@ -171,7 +165,7 @@ class Activity:
 
         zones_dict = dict(zip(self.ZONES_KEY, zones))
         if save_zones:
-            if not check_path("json_zones_files/"):
+            if not helper.check_path("json_zones_files/"):
                 self.logger.info("\nCreating folder...")
             file_path = f"json_zones_files/zones_{self.id_activity}.json"
             with open(file_path, "w") as f:
@@ -186,10 +180,10 @@ class Activity:
         response_json = await self.api.make_request_async(
             f"/activities/{self.id_activity}/streams", params
         )
-        return process_streams(response_json, self.id_activity)
+        return helper.process_streams(response_json, self.id_activity)
 
     @classmethod
-    @func_time_execution
+    @helper.func_time_execution
     async def get_multiple_activities_streams(
         cls, access_token: str, list_id_activities: List[int], stream_keys: List[str]
     ) -> pd.DataFrame:

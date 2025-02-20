@@ -3,11 +3,9 @@ from typing import Any, Dict, Optional, TypeVar, Union
 
 from supabase import Client, create_client
 
+from src.utils import exception
+
 T = TypeVar("T", bound=Dict[str, Any])
-
-
-class DatabaseOperationError(Exception):
-    pass
 
 
 class DatabaseInterface(ABC):
@@ -37,7 +35,7 @@ class SupabaseClient(DatabaseInterface):
             return result.data[0] if result and result.data else None
 
         except Exception as e:
-            raise DatabaseOperationError(f"Failed to fetch data: {e}")
+            raise exception.DatabaseOperationError(f"Failed to fetch data: {e}")
 
     def insert_record(self, table: str, data: Dict[str, Union[str, int]]) -> bool:
         try:
@@ -45,4 +43,4 @@ class SupabaseClient(DatabaseInterface):
             return bool(result and result.data)
 
         except Exception as e:
-            raise DatabaseOperationError(f"Failed to insert data: {e}")
+            raise exception.DatabaseOperationError(f"Failed to insert data: {e}")

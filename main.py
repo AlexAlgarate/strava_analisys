@@ -3,7 +3,7 @@ from typing import Dict
 
 from src.access_token import GetAccessToken
 from src.strava_api import StravaAPI
-from src.utils import constant, printer
+from src.utils import constant, helper, printer
 
 
 def print_options(options: Dict[str, str]) -> None:
@@ -16,7 +16,7 @@ def print_options(options: Dict[str, str]) -> None:
 def main():
     access_token = GetAccessToken().get_access_token()
     Strava_API = StravaAPI(access_token=access_token)
-
+    logger = helper.Logger().setup_logger()
     while True:
         print_options(constant.print_options_main)
         choice = getpass.getpass(
@@ -36,7 +36,7 @@ def main():
             try:
                 action()
             except Exception as e:
-                print(f"Error executing option: {e}")
+                logger.error(f"Error executing option: {e}")
         else:
             print("\nNot a valid option.")
 

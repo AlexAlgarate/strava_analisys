@@ -9,8 +9,7 @@ from src.activities import (
     GetOneActivity,
 )
 from src.strava_api import InterfaceStravaAPI
-
-from . import constants as constant
+from src.utils import constant
 
 
 async def run_async_streams(access_token: str):
@@ -50,7 +49,7 @@ def show_last_200_activities(api: InterfaceStravaAPI):
     print(result)
 
 
-def get_function_map(api, access_token) -> Dict[str, Callable]:
+def get_function_map(api, access_token: str) -> Dict[str, Callable]:
     return {
         "1": lambda: show_one_activity(api),
         "2": lambda: asyncio.run(show_activity_details(api, previous_week=True)),
