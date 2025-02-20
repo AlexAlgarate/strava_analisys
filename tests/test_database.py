@@ -3,7 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.database import DatabaseOperationError, SupabaseClient
+from src.database import SupabaseClient
+from src.utils import exception
 
 
 class TestSupabaseClient:
@@ -59,7 +60,7 @@ class TestSupabaseClient:
         )
 
         with pytest.raises(
-            DatabaseOperationError, match="Failed to fetch data: Fetch error"
+            exception.DatabaseOperationError, match="Failed to fetch data: Fetch error"
         ):
             supabase_client.fetch_latest_record(
                 "test_table", "access_token", "expires_at"
@@ -106,6 +107,7 @@ class TestSupabaseClient:
         )
 
         with pytest.raises(
-            DatabaseOperationError, match="Failed to insert data: Insert error"
+            exception.DatabaseOperationError,
+            match="Failed to insert data: Insert error",
         ):
             supabase_client.insert_record("test_table", {"access_token": "test_token"})
