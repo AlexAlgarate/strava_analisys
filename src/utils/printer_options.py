@@ -51,7 +51,6 @@ def show_last_200_activities(api: InterfaceStravaAPI):
 
 
 def get_function_map(api, access_token) -> Dict[str, Callable]:
-    """Map user input options to corresponding functions."""
     return {
         "1": lambda: show_one_activity(api),
         "2": lambda: asyncio.run(show_activity_details(api, previous_week=True)),

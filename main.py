@@ -1,4 +1,4 @@
-import asyncio
+import getpass
 from typing import Dict
 
 from src.access_token import GetAccessToken
@@ -19,7 +19,9 @@ def main():
 
     while True:
         print_options(constant.print_options_main)
-        choice = input(f"Choose an option: (1 to {len(constant.print_options_main)}) ")
+        choice = getpass.getpass(
+            f"Choose an option: (1 to {len(constant.print_options_main)}) "
+        )
 
         function_map = printer.get_function_map(
             api=Strava_API, access_token=access_token
@@ -28,7 +30,7 @@ def main():
         if choice == "8":
             print("\nGoodbye!")
             break
-
+        print(f"\nOption choosen --> {choice}. {constant.print_options_main[choice]}")
         action = function_map.get(choice)
         if action:
             try:
