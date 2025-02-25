@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import wraps
 from typing import Dict, Optional, Union
 
-from src.database import SupabaseClient
+from src.database import SupabaseReader, SupabaseWriter
 from src.encryptor import DataEncryptor
 from src.oauth_code import GetOauthCode
 from src.token_manager import TokenManager
@@ -40,19 +40,21 @@ class Credentials:
 class TokenHandler:
     def __init__(
         self,
-        supabase_client: SupabaseClient,
+        supabase_reader: SupabaseReader,
+        supabase_writer: SupabaseWriter,
         token_manager: TokenManager,
         encryptor: DataEncryptor,
         client_id: str,
     ):
-        self.supabase_client = supabase_client
+        self.supabase_reader = supabase_reader
+        self.supabase_writer = supabase_writer
         self.token_manager = token_manager
         self.encryptor = encryptor
         self.logger = helper.Logger().setup_logger()
         self.credentials = Credentials(client_id)
 
     def process_token(self, table: str):
-        record = self.supabase_client.fetch_latest_record(table, "*", "expires_at")
+        record = self.supabase_reader.fetch_latest_record(table, "*", "expires_at")
 
         if not record:
             self.logger.info(
@@ -110,7 +112,7 @@ class TokenHandler:
         data_to_insert = self._prepare_token_data(tokens)
         encrypted_data = self.encryptor.encrypt_data(data_to_insert)
 
-        if not self.supabase_client.insert_record(table, encrypted_data):
+        if not self.supabase_writer.insert_record(table, encrypted_data):
             raise TokenError("Failed to store tokens in database")
 
         return data_to_insert
