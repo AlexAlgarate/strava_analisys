@@ -26,11 +26,10 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest tests/ 
-        # pytest tests/ --doctest-modules --junitxml=test-results.xml --cov=src --cov-report=xml --cov-report=html
+          pytest tests/ -v
 
       - name: Lint code with Ruff
-        run: ruff check --output-format=github --target-version=py39
+        run: ruff check . --fix
 
       - name: Check code formatting with Ruff
         run: ruff format --diff --target-version=py39
