@@ -28,6 +28,9 @@ def main():
         )
 
         if choice == "8":
+            print(
+                f"\nOption choosen --> {choice}. {constant.print_options_main[choice]}"
+            )
             print("\nGoodbye!")
             break
         print(f"\nOption choosen --> {choice}. {constant.print_options_main[choice]}")
@@ -35,6 +38,9 @@ def main():
         if action:
             try:
                 action()
+                print(
+                    f"\nOption choosen --> {choice}. {constant.print_options_main[choice]}"
+                )
             except Exception as e:
                 logger.error(f"Error executing option: {e}")
         else:
