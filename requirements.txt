@@ -1,4 +1,4 @@
-ruff==0.9.7
+ruff==0.9.9
 python-dotenv==1.0.1
 supabase==2.13.0
 pandas==2.2.3
