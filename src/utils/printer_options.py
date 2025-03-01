@@ -52,11 +52,11 @@ def show_last_200_activities(api: InterfaceStravaAPI):
 def get_function_map(api, access_token: str) -> Dict[str, Callable]:
     return {
         "1": lambda: show_one_activity(api),
-        "2": lambda: asyncio.run(show_activity_details(api, previous_week=True)),
-        "3": lambda: show_last_200_activities(api),
-        "4": lambda: asyncio.run(run_async_activity_range(api, previous_week=False)),
-        "5": lambda: asyncio.run(run_async_activity_range(api, previous_week=True)),
-        "6": lambda: asyncio.run(run_async_streams(access_token)),
-        "7": lambda: print("Feature not implemented yet."),
-        "8": lambda: print("\nGoodbye!"),
+        "2": lambda: asyncio.run(show_activity_details(api, previous_week=False)),
+        "3": lambda: asyncio.run(show_activity_details(api, previous_week=True)),
+        "4": lambda: show_last_200_activities(api),
+        "5": lambda: asyncio.run(run_async_activity_range(api, previous_week=False)),
+        "6": lambda: asyncio.run(run_async_activity_range(api, previous_week=True)),
+        "7": lambda: asyncio.run(run_async_streams(access_token)),
+        "8": lambda: asyncio.run(run_async_streams(access_token)),
     }
