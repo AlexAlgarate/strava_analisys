@@ -1,18 +1,9 @@
-from abc import ABC, abstractmethod
 from typing import Dict
 
 import aiohttp
 import requests
 
-
-class InterfaceStravaAPI(ABC):
-    @abstractmethod
-    def make_request(self, endpoint: str, params: dict = None) -> dict:
-        pass
-
-    @abstractmethod
-    async def make_request_async(self, endpoint: str, params: dict = None) -> dict:
-        pass
+from src.interfaces.strava_api import InterfaceStravaAPI
 
 
 class StravaAPI(InterfaceStravaAPI):

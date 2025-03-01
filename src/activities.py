@@ -1,23 +1,12 @@
 import asyncio
 import json
-from abc import ABC, abstractmethod
 from typing import Dict, List
 
 import pandas as pd
 
-from src.strava_api import InterfaceStravaAPI, StravaAPI
+from src.interfaces.activities import InterfaceActivitiesStrava
+from src.strava_api import StravaAPI
 from src.utils import helper
-
-
-class InterfaceActivitiesStrava(ABC):
-    def __init__(self, api: InterfaceStravaAPI, id_activity: int = None):
-        self.api = api
-        self.id_activity = id_activity
-        self.logger = helper.Logger().setup_logger()
-
-    @abstractmethod
-    def fetch_activity_data(self, *args, **kwargs):
-        pass
 
 
 class GetOneActivity(InterfaceActivitiesStrava):

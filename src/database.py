@@ -1,25 +1,15 @@
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, TypeVar, Union
+from typing import Dict, Optional, Union
 
 from supabase import Client
 
+from src.interfaces.database import (
+    DatabaseReaderInterface,
+    DatabaseWriterInterface,
+)
+from src.interfaces.database import (
+    T as type_T,
+)
 from src.utils import exception
-
-T = TypeVar("T", bound=Dict[str, Any])
-
-
-class DatabaseReaderInterface(ABC):
-    @abstractmethod
-    def fetch_latest_record(
-        self, table: str, column: str, order_by: Optional[str] = None
-    ) -> Optional[T]:
-        pass
-
-
-class DatabaseWriterInterface(ABC):
-    @abstractmethod
-    def insert_record(self, table: str, data: Dict[str, Union[str, int]]) -> bool:
-        pass
 
 
 class SupabaseReader(DatabaseReaderInterface):
@@ -28,7 +18,7 @@ class SupabaseReader(DatabaseReaderInterface):
 
     def fetch_latest_record(
         self, table: str, column: str, order_by: Optional[str] = None
-    ) -> Optional[T]:
+    ) -> Optional[type_T]:
         try:
             query = self.client.table(table).select(column)
             if order_by:
