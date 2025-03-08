@@ -10,7 +10,6 @@ import pandas as pd
 class Logger:
     @staticmethod
     def setup_logger():
-        """Configures and returns the logger."""
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(levelname)s - %(message)s",
