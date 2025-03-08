@@ -1,48 +1,24 @@
 from typing import Dict, Union
 
-from cryptography.fernet import Fernet, InvalidToken
+from cryptography.fernet import Fernet
 
+from src.interfaces.encryptor import EncryptationInterface
 from src.utils import helper
 
 
-class DataEncryptor:
-    """Handles encryption and decryption of data using Fernet symmetric encryption."""
-
-    def __init__(self, cipher: Fernet):
-        """
-        Initializes the DataEncryptor with a given cipher.
-
-        Args:
-            cipher (Fernet): An instance of the Fernet encryption class used for encryption/decryption.
-        """
-
+class FernetEncryptor(EncryptationInterface):
+    def __init__(self, cipher: Fernet, logger: helper.Logger):
         if not isinstance(cipher, Fernet):
             raise ValueError("Cipher must be an instance of Fernet.")
         self.cipher = cipher
-        self.logger = helper.Logger().setup_logger()
+        self.logger = logger
 
     def encrypt_data(self, data: Dict[str, Union[str, int]]) -> Dict[str, str]:
-        """
-        Encrypts the given data dictionary.
-
-        Args:
-            data (Dict[str, Union[str, int]]): The data to be encrypted,
-            where keys are strings and values are either strings or integers.
-
-        Returns:
-            Dict[str, str]: A dictionary with encrypted values as strings.
-
-        Raises:
-            ValueError: If encryption fails for any reason.
-        """
         try:
-            encrypted_data = {}
-            for key, value in data.items():
-                if not isinstance(value, (str, int)):
-                    raise ValueError(f"Invalid data type for {key}: {type(value)}")
-                encrypted_data[key] = self.cipher.encrypt(str(value).encode()).decode()
-            self.logger.info("Data encrypted successfully.")
-            return encrypted_data
+            return {
+                key: self.cipher.encrypt(str(value).encode()).decode()
+                for key, value in data.items()
+            }
 
         except Exception as e:
             self.logger.error(f"Error encrypting data: {e}", exc_info=True)
@@ -51,18 +27,6 @@ class DataEncryptor:
     def decrypt_data(
         self, data: Dict[str, Union[str, int]]
     ) -> Dict[str, Union[str, int]]:
-        """
-        Decrypts the given data dictionary.
-
-        Args:
-            data (Dict[str, Union[str, int]]): The data to be decrypted, where values are encrypted strings.
-
-        Returns:
-            Dict[str, Union[str, int]]: A dictionary with decrypted values.
-
-        Raises:
-            ValueError: If decryption fails for any reason.
-        """
         try:
             decrypted_data = {
                 key: (
@@ -74,10 +38,6 @@ class DataEncryptor:
             }
             self.logger.info("Data decrypted successfully.")
             return decrypted_data
-
-        except InvalidToken:
-            self.logger.error("Decryption failed: invalid token detected.")
-            raise ValueError("Decryption failed: invalid token detected.")
 
         except Exception as e:
             self.logger.error(f"Error decrypting data: {e}", exc_info=True)
