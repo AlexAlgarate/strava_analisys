@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from src.token_manager import Credentials, GranType, TokenException, TokenManager
+from src.utils import helper
 
 TEST_CLIENT_ID = "test_client_id"
 TEST_SECRET_KEY = "test_secret_key"
@@ -14,9 +15,17 @@ TEST_BASE_URL_ACCESS_TOKEN = "https://www.strava.com/oauth/token"
 
 
 @pytest.fixture
-def token_manager():
-    """Fixture for TokenManager instance."""
-    return TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY)
+def logger():
+    return helper.Logger().setup_logger()
+
+
+@pytest.fixture
+def token_manager(logger):
+    return TokenManager(
+        client_id=TEST_CLIENT_ID,
+        secret_key=TEST_SECRET_KEY,
+        logger=logger,
+    )
 
 
 @pytest.fixture
@@ -38,14 +47,14 @@ def mock_successful_response():
 
 
 class TestTokenManager:
-    def test_init_creates_credentials(self):
-        manager = TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY)
+    def test_init_creates_credentials(self, logger):
+        manager = TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY, logger)
         assert isinstance(manager.credentials, Credentials)
         assert manager.credentials.client_id == TEST_CLIENT_ID
         assert manager.credentials.secret_key == TEST_SECRET_KEY
 
-    def test_init_sets_up_logger(self, mock_logger):
-        TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY)
+    def test_init_sets_up_logger(self, mock_logger, logger):
+        TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY, logger)
         mock_logger.error.assert_not_called()
 
     def test_token_has_expired_with_expired_token(self):

@@ -5,6 +5,7 @@ import pytest
 from cryptography.fernet import Fernet
 
 from src.encryptor import FernetEncryptor
+from src.utils import helper
 
 
 class TestEncryptor:
@@ -13,8 +14,12 @@ class TestEncryptor:
         return Fernet(Fernet.generate_key())
 
     @pytest.fixture
-    def encryptor(self, cipher):
-        return FernetEncryptor(cipher)
+    def logger(self):
+        return helper.Logger().setup_logger()
+
+    @pytest.fixture
+    def encryptor(self, cipher, logger):
+        return FernetEncryptor(cipher, logger)
 
     @pytest.fixture
     def sample_data(self):
@@ -25,13 +30,13 @@ class TestEncryptor:
             "access_token_creation": "2025-01-30 08:40:21",
         }
 
-    def test_init_with_valid_cipher(self, cipher):
-        encryptor = FernetEncryptor(cipher)
+    def test_init_with_valid_cipher(self, cipher, logger):
+        encryptor = FernetEncryptor(cipher, logger)
         assert isinstance(encryptor.cipher, Fernet)
 
-    def test_init_with_invalid_cipher(self):
+    def test_init_with_invalid_cipher(self, logger):
         with pytest.raises(ValueError, match="Cipher must be an instance of Fernet."):
-            FernetEncryptor("invalid_cipher")
+            FernetEncryptor("invalid_cipher", logger)
 
     def test_encrypt_data(self, encryptor, sample_data):
         encrypted_data = encryptor.encrypt_data(sample_data)
@@ -86,9 +91,7 @@ class TestEncryptor:
     def test_decrypt_data_invalid_token(self, encryptor):
         invalid_data = {"key": "invalid_encrypted_value"}
 
-        with pytest.raises(
-            ValueError, match="Decryption failed: invalid token detected."
-        ):
+        with pytest.raises(ValueError, match="Decryption failed due to an error."):
             encryptor.decrypt_data(invalid_data)
 
     def test_decrypt_one_value_successfully(self, encryptor, sample_data):
