@@ -32,7 +32,7 @@ class TokenException(Exception):
 class TokenManager:
     """Manages token-related operations."""
 
-    def __init__(self, client_id: str, secret_key: str):
+    def __init__(self, client_id: str, secret_key: str, logger: helper.Logger):
         """
         Initializes the TokenManager with the necessary credentials.
 
@@ -42,7 +42,7 @@ class TokenManager:
         """
 
         self.credentials = Credentials(client_id, secret_key)
-        self.logger = helper.Logger().setup_logger()
+        self.logger = logger
 
     @staticmethod
     def token_has_expired(expires_at: int) -> bool:

@@ -13,9 +13,9 @@ def print_options(options: Dict[str, str]) -> None:
 
 
 def main():
-    access_token = GetAccessToken().get_access_token()
-    Strava_API = StravaAPI(access_token=access_token)
     logger = helper.Logger().setup_logger()
+    access_token = GetAccessToken(logger=logger).get_access_token()
+    Strava_API = StravaAPI(access_token=access_token)
     while True:
         print_options(constant.PRINT_OPTIONS)
         choice = input("\nChoose an option (number or 'exit'): ")

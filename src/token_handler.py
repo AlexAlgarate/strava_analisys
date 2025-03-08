@@ -4,18 +4,12 @@ from functools import wraps
 from typing import Dict, Optional, Union
 
 from src.database import SupabaseReader, SupabaseWriter
-from src.encryptor import DataEncryptor
+from src.encryptor import FernetEncryptor
 from src.oauth_code import GetOauthCode
 from src.token_manager import TokenManager
-from src.utils import constant, helper
+from src.utils import constant, exception, helper
 
 TokenResponse = Dict[str, Union[int, str]]
-
-
-class TokenError(Exception):
-    """Custom exception for token-related operations."""
-
-    pass
 
 
 def handle_token_errors(func):
@@ -27,7 +21,7 @@ def handle_token_errors(func):
             return func(self, *args, **kwargs)
         except Exception as e:
             self.logger.error(f"Error in {func.__name__}: {str(e)}", exc_info=True)
-            raise TokenError(f"Token operation failed: {str(e)}") from e
+            raise exception.TokenError(f"Token operation failed: {str(e)}") from e
 
     return wrapper
 
@@ -43,14 +37,15 @@ class TokenHandler:
         supabase_reader: SupabaseReader,
         supabase_writer: SupabaseWriter,
         token_manager: TokenManager,
-        encryptor: DataEncryptor,
+        encryptor: FernetEncryptor,
         client_id: str,
+        logger: helper.Logger,
     ):
         self.supabase_reader = supabase_reader
         self.supabase_writer = supabase_writer
         self.token_manager = token_manager
         self.encryptor = encryptor
-        self.logger = helper.Logger().setup_logger()
+        self.logger = logger
         self.credentials = Credentials(client_id)
 
     def process_token(self, table: str):
@@ -103,7 +98,7 @@ class TokenHandler:
         new_tokens = self.token_manager.refresh_access_token(refresh_token)
 
         if not new_tokens:
-            raise TokenError("Token refresh failed.")
+            raise exception.TokenError("Token refresh failed.")
 
         return self._store_and_return_tokens(new_tokens, table)
 
@@ -113,7 +108,7 @@ class TokenHandler:
         encrypted_data = self.encryptor.encrypt_data(data_to_insert)
 
         if not self.supabase_writer.insert_record(table, encrypted_data):
-            raise TokenError("Failed to store tokens in database")
+            raise exception.TokenError("Failed to store tokens in database")
 
         return data_to_insert
 
