@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.utils import helper
+from src.utils import helpers as helper
 
 from .strava_api import InterfaceStravaAPI
 

@@ -9,7 +9,7 @@ from src.activities import (
     GetOneActivity,
 )
 from src.strava_api import InterfaceStravaAPI
-from src.utils import constant
+from src.utils import constants as constant
 
 
 async def run_async_streams(access_token: str):

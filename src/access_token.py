@@ -6,7 +6,7 @@ from src.database import SupabaseReader, SupabaseWriter
 from src.encryptor import FernetEncryptor
 from src.token_handler import TokenHandler
 from src.token_manager import TokenManager
-from src.utils import helper
+from src.utils import helpers as helper
 
 
 class GetAccessToken:

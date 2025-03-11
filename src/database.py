@@ -9,7 +9,7 @@ from src.interfaces.database import (
 from src.interfaces.database import (
     T as type_T,
 )
-from src.utils import exception
+from src.utils import exceptions as exception
 
 
 class SupabaseReader(DatabaseReaderInterface):

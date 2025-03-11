@@ -1,11 +1,10 @@
 from typing import Union
 
-# from unittest.mock import patch
 import pytest
 from cryptography.fernet import Fernet
 
 from src.encryptor import FernetEncryptor
-from src.utils import helper
+from src.utils import helpers as helper
 
 
 class TestEncryptor:
@@ -51,17 +50,6 @@ class TestEncryptor:
     def test_encrypt_data_with_empty_dict(self, encryptor):
         encrypted_data = encryptor.encrypt_data({})
         assert encrypted_data == {}
-
-    # @patch("src.utils.helpers.Logger.setup_logger")
-    # def test_encrypt_data_error(self, mock_logger, encryptor):
-    #     invalid_data = {"key": object()}
-
-    #     # Assert that a ValueError is raised
-    #     with pytest.raises(ValueError, match="Encryptation failed due to an error"):
-    #         encryptor.encrypt_data(invalid_data)
-
-    #     # Verify error logging
-    #     mock_logger.return_value.setup_logger.return_value.error.assert_called_once()
 
     def test_decrypt_data_success(self, encryptor, sample_data):
         encrypted_data = encryptor.encrypt_data(sample_data)

@@ -6,7 +6,7 @@ import pandas as pd
 
 from src.interfaces.activities import InterfaceActivitiesStrava
 from src.strava_api import StravaAPI
-from src.utils import helper
+from src.utils import helpers as helper
 
 
 class GetOneActivity(InterfaceActivitiesStrava):

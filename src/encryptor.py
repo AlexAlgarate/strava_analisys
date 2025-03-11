@@ -3,7 +3,7 @@ from typing import Dict, Union
 from cryptography.fernet import Fernet
 
 from src.interfaces.encryptor import EncryptationInterface
-from src.utils import helper
+from src.utils import helpers as helper
 
 
 class FernetEncryptor(EncryptationInterface):

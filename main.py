@@ -2,7 +2,9 @@ from typing import Dict
 
 from src.access_token import GetAccessToken
 from src.strava_api import StravaAPI
-from src.utils import constant, helper, printer
+from src.utils import constants as constant
+from src.utils import helpers as helper
+from src.utils import printer_options as printer
 
 
 def print_options(options: Dict[str, str]) -> None:

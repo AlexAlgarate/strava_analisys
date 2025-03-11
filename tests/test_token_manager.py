@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from src.token_manager import Credentials, GranType, TokenException, TokenManager
-from src.utils import helper
+from src.utils import helpers as helper
 
 TEST_CLIENT_ID = "test_client_id"
 TEST_SECRET_KEY = "test_secret_key"

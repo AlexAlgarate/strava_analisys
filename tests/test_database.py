@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.database import SupabaseReader, SupabaseWriter
-from src.utils import exception
+from src.utils import exceptions as exception
 
 
 @pytest.fixture
