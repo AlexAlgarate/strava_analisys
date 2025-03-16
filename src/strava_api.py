@@ -3,10 +3,10 @@ from typing import Dict
 import aiohttp
 import requests
 
-from src.interfaces.strava_api import InterfaceStravaAPI
+from src.interfaces.strava_api import AsyncStravaAPI, SyncStravaAPI
 
 
-class StravaAPI(InterfaceStravaAPI):
+class StravaAPI(SyncStravaAPI, AsyncStravaAPI):
     BASE_URL = "https://www.strava.com/api/v3"
 
     def __init__(self, access_token: str):
