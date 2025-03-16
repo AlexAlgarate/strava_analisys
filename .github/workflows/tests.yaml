@@ -53,7 +53,7 @@ jobs:
       #     pytest tests/ -v
 
       - name: Lint code with Ruff
-        run: ruff check . --fix
+        run: uv run ruff check . --fix
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
