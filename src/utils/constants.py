@@ -1,6 +1,8 @@
 ACTIVITY_DETAILED_KEYS = [
     "name",
     "distance",
+    "moving_time",
+    "elapsed_time",
     "start_date_local",
     "gear_id",
     "average_heartrate",

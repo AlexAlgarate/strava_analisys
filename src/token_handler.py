@@ -58,7 +58,7 @@ class TokenHandler:
                 "No data found in Supabase. Generating initial tokens...\n"
             )
             self._handle_initial_token_flow(table)
-
+            return
         return self._handle_exisiting_token(record, table)
 
     @handle_token_errors
