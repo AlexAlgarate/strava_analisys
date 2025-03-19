@@ -1,8 +1,9 @@
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from supabase import Client
 
 from src.interfaces.database import (
+    DatabaseDeleterInterface,
     DatabaseReaderInterface,
     DatabaseWriterInterface,
 )
@@ -41,3 +42,21 @@ class SupabaseWriter(DatabaseWriterInterface):
 
         except Exception as e:
             raise exception.DatabaseOperationError(f"Failed to insert data: {e}")
+
+
+class SupabaseDeleter(DatabaseDeleterInterface):
+    def __init__(self, client: Client):
+        self.client = client
+
+    def delete_record(self, table: str, column: str, record: List[int]) -> bool:
+        try:
+            result = (
+                self.client.table(table)
+                .delete()
+                .in_(column=column, values=record)
+                .execute()
+            )
+            return bool(result and result.data)
+
+        except Exception as e:
+            raise exception.DatabaseOperationError(f"Failed to delete data: {e}")
