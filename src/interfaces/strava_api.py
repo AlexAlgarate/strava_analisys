@@ -9,5 +9,10 @@ class SyncStravaAPI(ABC):
 
 class AsyncStravaAPI(ABC):
     @abstractmethod
-    async def make_request_async(self, endpoint: str, params: dict = None) -> dict:
+    async def make_request_async(
+        self,
+        endpoint: str,
+        params: dict = None,
+        *args,
+    ) -> dict:
         pass

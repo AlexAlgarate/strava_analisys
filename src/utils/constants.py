@@ -24,8 +24,8 @@ PRINT_OPTIONS = {
     "4": "Show information for activities the last 200 activities",
     "5": "Show information for activities from current week",
     "6": "Show information for activities from last week",
-    "7": "Show the streams from the current week",
-    "8": "Show the streams from the previous week",
+    # "7": "Show the streams from the current week",
+    # "8": "Show the streams from the previous week",
 }
 
 EXIT_OPTION = "exit"

@@ -22,9 +22,7 @@ def main():
         print_options(constant.PRINT_OPTIONS)
         choice = input("\nChoose an option (number or 'exit'): ")
 
-        function_map = printer.get_function_map(
-            api=strava_API, access_token=access_token
-        )
+        function_map = printer.get_function_map(api=strava_API)
         if choice.lower() == constant.EXIT_OPTION:
             print("\nGoodbye!\n")
             break

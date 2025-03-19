@@ -73,6 +73,39 @@ class GetActivityDetails(InterfaceActivitiesStrava):
         return {k: activity[k] for k in keys if k in activity}
 
 
+class GetStreamsActivities(InterfaceActivitiesStrava):
+    async def get_streams_asyncio(self, stream_keys: List[str]) -> pd.DataFrame:
+        if not self.id_activity:
+            raise ValueError("Activity ID is required for this operation.")
+        params = {"keys": ",".join(stream_keys), "key_by_type": "true"}
+        response_json = await self.api.make_request_async(
+            f"/activities/{self.id_activity}/streams", params
+        )
+        return helper.process_streams(response_json, self.id_activity)
+
+    @classmethod
+    @helper.func_time_execution
+    async def fetch_activity_data(
+        cls, list_id_activities: List[int], stream_keys: List[str]
+    ) -> pd.DataFrame:
+        """Fetch streams for multiple activities concurrently."""
+        tasks = [
+            cls(activity_id).get_streams_asyncio(stream_keys=stream_keys)
+            for activity_id in list_id_activities
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        print("results--> ", results)
+        processed_results = [
+            result for result in results if isinstance(result, pd.DataFrame)
+        ]
+        print("processed_results--> ", processed_results)
+        try:
+            pd.concat(processed_results, ignore_index=True)
+        except Exception as e:
+            print(f"Error concatenating results: {e}")
+            return pd.DataFrame()
+
+
 class Activity:
     ZONES_KEY = [
         "Zone_1",
@@ -86,6 +119,31 @@ class Activity:
         self.api = StravaAPI(access_token)
         self.id_activity = id_activity
         self.logger = helper.Logger().setup_logger()
+
+    async def get_streams_asyncio(self, stream_keys: List[str]) -> pd.DataFrame:
+        if not self.id_activity:
+            raise ValueError("Activity ID is required for this operation.")
+        params = {"keys": ",".join(stream_keys), "key_by_type": "true"}
+        response_json = await self.api.make_request_async(
+            f"/activities/{self.id_activity}/streams", params
+        )
+        return helper.process_streams(response_json, self.id_activity)
+
+    @classmethod
+    @helper.func_time_execution
+    async def get_multiple_activities_streams(
+        cls, access_token: str, list_id_activities: List[int], stream_keys: List[str]
+    ) -> pd.DataFrame:
+        """Fetch streams for multiple activities concurrently."""
+        tasks = [
+            cls(access_token, activity_id).get_streams_asyncio(stream_keys)
+            for activity_id in list_id_activities
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        processed_results = [
+            result for result in results if isinstance(result, pd.DataFrame)
+        ]
+        return pd.concat(processed_results, ignore_index=True)
 
     def get_one_activity_detailed(self, id_activity: int, keys: List[str]) -> dict:
         activities = self.api.make_request(f"/activities/{id_activity}")
@@ -161,28 +219,3 @@ class Activity:
                 json.dump(zones_dict, f, indent=4)
 
         return zones_dict
-
-    async def get_streams_asyncio(self, stream_keys: List[str]) -> pd.DataFrame:
-        if not self.id_activity:
-            raise ValueError("Activity ID is required for this operation.")
-        params = {"keys": ",".join(stream_keys), "key_by_type": "true"}
-        response_json = await self.api.make_request_async(
-            f"/activities/{self.id_activity}/streams", params
-        )
-        return helper.process_streams(response_json, self.id_activity)
-
-    @classmethod
-    @helper.func_time_execution
-    async def get_multiple_activities_streams(
-        cls, access_token: str, list_id_activities: List[int], stream_keys: List[str]
-    ) -> pd.DataFrame:
-        """Fetch streams for multiple activities concurrently."""
-        tasks = [
-            cls(access_token, activity_id).get_streams_asyncio(stream_keys)
-            for activity_id in list_id_activities
-        ]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        processed_results = [
-            result for result in results if isinstance(result, pd.DataFrame)
-        ]
-        return pd.concat(processed_results, ignore_index=True)
