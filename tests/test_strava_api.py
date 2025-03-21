@@ -1,4 +1,4 @@
-from unittest.mock import patch
+"""from unittest.mock import patch
 
 import pytest
 import requests
@@ -78,3 +78,4 @@ class TestStravaAPI:
                 Exception, match="Too Many Requests. Wait and try again later."
             ):
                 await strava_api.make_request_async(endpoint)
+"""

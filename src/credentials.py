@@ -4,19 +4,6 @@ from cryptography.fernet import Fernet
 
 
 def get_env_variable(var_name: str, default_value: str = None) -> str:
-    """
-    Retrieves an environment variable with optional default value.
-
-    Args:
-        var_name (str): The name of the environment variable.
-        default_value (str): The default value if the variable is not found.
-
-    Returns:
-        str: The value of the environment variable.
-
-    Raises:
-        ValueError: If the environment variable is not found and no default is provided.
-    """
     value = os.environ.get(var_name, default_value)
     if value is None:
         raise ValueError(f"Environment variable {var_name} is required but not set.")
