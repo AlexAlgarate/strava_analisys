@@ -6,17 +6,19 @@ from src.activities import (
     GetActivityRange,
     GetLast200Activities,
     GetOneActivity,
+    GetStreamsActivities,
 )
 from src.strava_api import AsyncStravaAPI, SyncStravaAPI
 from src.utils import constants as constant
 
-# async def run_async_streams(api: AsyncStravaAPI):
-#     result = await GetStreamsActivities(api=api).fetch_activity_data(
-#         list_id_activities=constant.EXAMPLE_ID_ACTIVITIES,
-#         stream_keys=constant.ACTIVITY_STREAMS_KEYS,
-#     )
 
-#     print(result)
+async def run_async_streams(api: AsyncStravaAPI):
+    result = await GetStreamsActivities(api=api).fetch_activity_data(
+        list_id_activities=constant.EXAMPLE_ID_ACTIVITIES,
+        stream_keys=constant.ACTIVITY_STREAMS_KEYS,
+    )
+
+    print(result)
 
 
 # async def run_async_streams(access_token: str):
@@ -54,14 +56,43 @@ def show_last_200_activities(api: SyncStravaAPI):
     print(result)
 
 
-def get_function_map(api) -> Dict[str, Callable]:
+def get_function_map(
+    api_sync: SyncStravaAPI, api_async: AsyncStravaAPI
+) -> Dict[str, Callable]:
     return {
-        "1": lambda: show_one_activity(api),
-        "2": lambda: asyncio.run(show_activity_details(api, previous_week=False)),
-        "3": lambda: asyncio.run(show_activity_details(api, previous_week=True)),
-        "4": lambda: show_last_200_activities(api),
-        "5": lambda: asyncio.run(run_async_activity_range(api, previous_week=False)),
-        "6": lambda: asyncio.run(run_async_activity_range(api, previous_week=True)),
-        # "7": lambda: asyncio.run(run_async_streams(api)),
+        "1": lambda: show_one_activity(api_sync),
+        "2": lambda: asyncio.run(
+            show_activity_details(
+                api_async,
+                previous_week=False,
+            )
+        ),
+        "3": lambda: asyncio.run(
+            show_activity_details(
+                api_async,
+                previous_week=True,
+            )
+        ),
+        "4": lambda: show_last_200_activities(api_sync),
+        "5": lambda: asyncio.run(
+            run_async_activity_range(
+                api_async,
+                previous_week=False,
+            )
+        ),
+        "6": lambda: asyncio.run(
+            run_async_activity_range(
+                api_async,
+                previous_week=True,
+            )
+        ),
+        "7": lambda: asyncio.run(run_async_streams(api_async)),
         # "8": lambda: asyncio.run(run_async_streams(api)),
     }
+
+
+def print_options(options: Dict[str, str]) -> None:
+    print("\nChoose an option:")
+
+    for key, value in options.items():
+        print(f"{key}. {value}")
