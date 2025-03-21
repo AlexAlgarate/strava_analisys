@@ -1,28 +1,26 @@
-from typing import Dict
-
 from src.access_token import GetAccessToken
-from src.strava_api import StravaAPI
+from src.strava_api import (
+    AsyncStravaAPI,
+    SyncStravaAPI,
+)
 from src.utils import constants as constant
 from src.utils import helpers as helper
 from src.utils import printer_options as printer
 
 
-def print_options(options: Dict[str, str]) -> None:
-    print("\nChoose an option:")
-
-    for key, value in options.items():
-        print(f"{key}. {value}")
-
-
 def main():
     logger = helper.Logger().setup_logger()
     access_token = GetAccessToken(logger=logger).get_access_token()
-    strava_API = StravaAPI(access_token=access_token)
+    strava_API_sync = SyncStravaAPI(access_token=access_token)
+    strava_API_async = AsyncStravaAPI(access_token=access_token)
+
     while True:
-        print_options(constant.PRINT_OPTIONS)
+        printer.print_options(constant.PRINT_OPTIONS)
         choice = input("\nChoose an option (number or 'exit'): ")
 
-        function_map = printer.get_function_map(api=strava_API)
+        function_map = printer.get_function_map(
+            api_sync=strava_API_sync, api_async=strava_API_async
+        )
         if choice.lower() == constant.EXIT_OPTION:
             print("\nGoodbye!\n")
             break
