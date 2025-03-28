@@ -13,12 +13,22 @@ from src.utils import constants as constant
 
 
 async def run_async_streams(api: AsyncStravaAPI):
-    result = await GetStreamsActivities(api=api).fetch_activity_data(
-        list_id_activities=constant.EXAMPLE_ID_ACTIVITIES,
+    result = await GetStreamsActivities(
+        api=api, id_activity=constant.EXAMPLE_ID_ACTIVITIES[0]
+    ).fetch_activity_data(
         stream_keys=constant.ACTIVITY_STREAMS_KEYS,
     )
 
     print(result)
+
+
+# async def run_async_streams(api: AsyncStravaAPI):
+#     result = await GetStreamsActivities(api=api).fetch_activity_data(
+#         list_id_activities=constant.EXAMPLE_ID_ACTIVITIES,
+#         stream_keys=constant.ACTIVITY_STREAMS_KEYS,
+#     )
+
+#     print(result)
 
 
 # async def run_async_streams(access_token: str):

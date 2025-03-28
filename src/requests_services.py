@@ -14,6 +14,8 @@ class RequestHTTPClient(HTTPClient):
         try:
             response = requests.get(url, headers=headers, params=params)
             response.raise_for_status()
+            if response.status_code == 401:
+                raise exception.UnauthorizedError("\n\nUnauthorized. Check your token.")
             return response.json()
         except requests.exceptions.RequestException as e:
             print(f"\n\nError making request to {url}: {e}")

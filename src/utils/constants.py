@@ -9,6 +9,8 @@ ACTIVITY_DETAILED_KEYS = [
     "max_heartrate",
     "calories",
     "perceived_exertion",
+    "average_speed",
+    "gear",
 ]
 
 ACTIVITY_STREAMS_KEYS = [

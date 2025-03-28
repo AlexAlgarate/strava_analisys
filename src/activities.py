@@ -60,7 +60,7 @@ class GetActivityDetails(InterfaceActivitiesStrava):
     async def _get_activity_details(self, activity_id: int) -> dict:
         """Fetch detailed data for a single activity."""
         try:
-            return self.api.make_request(f"/activities/{activity_id}")
+            return await self.api.make_request_async(f"/activities/{activity_id}")
         except Exception as e:
             print(f"⚠️ Error fetching activity {activity_id}: {e}")
             return {}
@@ -72,7 +72,7 @@ class GetActivityDetails(InterfaceActivitiesStrava):
 
 
 class GetStreamsActivities(InterfaceActivitiesStrava):
-    async def get_streams_asyncio(self, stream_keys: List[str]) -> pd.DataFrame:
+    async def fetch_activity_data(self, stream_keys: List[str]) -> pd.DataFrame:
         if not self.id_activity:
             raise ValueError("Activity ID is required for this operation.")
         params = {"keys": ",".join(stream_keys), "key_by_type": "true"}
@@ -83,7 +83,7 @@ class GetStreamsActivities(InterfaceActivitiesStrava):
 
     @classmethod
     @helper.func_time_execution
-    async def fetch_activity_data(
+    async def _fetch_activity_data(
         cls, list_id_activities: List[int], stream_keys: List[str]
     ) -> pd.DataFrame:
         """Fetch streams for multiple activities concurrently."""
