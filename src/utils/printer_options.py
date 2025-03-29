@@ -12,10 +12,20 @@ from src.strava_api import AsyncStravaAPI, SyncStravaAPI
 from src.utils import constants as constant
 
 
-async def run_async_streams(api: AsyncStravaAPI):
+async def run_async_stream(api: AsyncStravaAPI):
     result = await GetStreamsActivities(
         api=api, id_activity=constant.EXAMPLE_ID_ACTIVITIES[0]
     ).fetch_activity_data(
+        stream_keys=constant.ACTIVITY_STREAMS_KEYS,
+    )
+
+    print(result)
+
+
+async def run_async_streams(api: AsyncStravaAPI):
+    result = await GetStreamsActivities.fetch_multiple_activities_streams(
+        api=api,
+        list_id_activities=constant.EXAMPLE_ID_ACTIVITIES,
         stream_keys=constant.ACTIVITY_STREAMS_KEYS,
     )
 
@@ -96,8 +106,8 @@ def get_function_map(
                 previous_week=True,
             )
         ),
-        "7": lambda: asyncio.run(run_async_streams(api_async)),
-        # "8": lambda: asyncio.run(run_async_streams(api)),
+        "7": lambda: asyncio.run(run_async_stream(api_async)),
+        "8": lambda: asyncio.run(run_async_streams(api_async)),
     }
 
 

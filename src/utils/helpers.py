@@ -19,14 +19,14 @@ class Logger:
 
 
 def func_time_execution(func):
-    async def wraper(*args, **kwargs):
+    async def wrapper(*args, **kwargs):
         start = time.time()
         result = await func(*args, **kwargs)
         end = time.time()
         print(f"\nExecution time: {end - start:.2f} seconds\n")
         return result
 
-    return wraper
+    return wrapper
 
 
 def get_epoch_times_for_week(previous_week: bool = False) -> tuple:
