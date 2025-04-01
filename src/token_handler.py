@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
-from typing import Dict, Optional, Union
+from typing import Dict, Union
 
 from src.database import SupabaseReader, SupabaseWriter
 from src.encryptor import FernetEncryptor
@@ -62,9 +62,7 @@ class TokenHandler:
         return self._handle_exisiting_token(record, table)
 
     @handle_token_errors
-    def _handle_exisiting_token(
-        self, record: dict, table: str
-    ) -> Optional[TokenResponse]:
+    def _handle_exisiting_token(self, record: dict, table: str) -> TokenResponse | None:
         decrypted_record = self.encryptor.decrypt_data(record)
 
         if self.token_manager.token_has_expired(int(decrypted_record["expires_at"])):
@@ -76,7 +74,7 @@ class TokenHandler:
         return decrypted_record
 
     @handle_token_errors
-    def _handle_initial_token_flow(self, table: str) -> Optional[TokenResponse]:
+    def _handle_initial_token_flow(self, table: str) -> TokenResponse | None:
         oauth_helper = GetOauthCode()
         code = oauth_helper.get_authorization_code(
             constant.OAUTH_URL,
@@ -96,7 +94,7 @@ class TokenHandler:
     @handle_token_errors
     def _refresh_and_store_token(
         self, refresh_token: str, table: str
-    ) -> Optional[TokenResponse]:
+    ) -> TokenResponse | None:
         new_tokens = self.token_manager.refresh_access_token(refresh_token)
 
         if not new_tokens:

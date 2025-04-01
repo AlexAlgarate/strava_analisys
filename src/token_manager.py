@@ -1,7 +1,7 @@
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Union
+from typing import Dict, Union
 
 import requests
 
@@ -78,7 +78,7 @@ class TokenManager:
         data.update(kwargs)
         return data
 
-    def _send_token_request(self, data: Dict[str, str]) -> Optional[TokenResponse]:
+    def _send_token_request(self, data: Dict[str, str]) -> TokenResponse | None:
         """
         Sends a token request to the API.
 
@@ -86,7 +86,7 @@ class TokenManager:
             data (Dict[str, str]): The data to send in the request.
 
         Returns:
-            Optional[TokenResponse]: The JSON response from the API, or None in case of an error.
+            TokenResponse | None: The JSON response from the API, or None in case of an error.
         """
 
         try:
@@ -98,7 +98,7 @@ class TokenManager:
             self.logger.error(f"Error fetching initial tokens: {e}", exc_info=True)
             return None
 
-    def refresh_access_token(self, refresh_token: str) -> Optional[TokenResponse]:
+    def refresh_access_token(self, refresh_token: str) -> TokenResponse | None:
         """
         Refreshes the access token using a refresh token.
 
@@ -106,7 +106,7 @@ class TokenManager:
             refresh_token (str): The refresh token.
 
         Returns:
-            Optional[TokenResponse]: The new access token, or None if an error occurs.
+            TokenResponse | None: The new access token, or None if an error occurs.
         """
 
         data = self._prepare_request_data(
@@ -116,7 +116,7 @@ class TokenManager:
 
         return self._send_token_request(data)
 
-    def get_initial_tokens(self, code: str) -> Optional[TokenResponse]:
+    def get_initial_tokens(self, code: str) -> TokenResponse | None:
         """
         Get initial access and refresh token.
 

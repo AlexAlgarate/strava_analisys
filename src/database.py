@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 from supabase import Client
 
@@ -18,8 +18,8 @@ class SupabaseReader(DatabaseReaderInterface):
         self.client = client
 
     def fetch_latest_record(
-        self, table: str, column: str, order_by: Optional[str] = None
-    ) -> Optional[type_T]:
+        self, table: str, column: str, order_by: str | None = None
+    ) -> type_T | None:
         try:
             query = self.client.table(table).select(column)
             if order_by:

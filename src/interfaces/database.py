@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, Dict, List, TypeVar, Union
 
 T = TypeVar("T", bound=Dict[str, Any])
 
@@ -7,8 +7,8 @@ T = TypeVar("T", bound=Dict[str, Any])
 class DatabaseReaderInterface(ABC):
     @abstractmethod
     def fetch_latest_record(
-        self, table: str, column: str, order_by: Optional[str] = None
-    ) -> Optional[T]:
+        self, table: str, column: str, order_by: str | None = None
+    ) -> T | None:
         pass
 
 
