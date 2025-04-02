@@ -4,7 +4,7 @@ import pytest
 from cryptography.fernet import Fernet
 
 from src.encryptor import FernetEncryptor
-from src.utils import helpers as helper
+from src.utils.logging import Logger
 
 
 class TestEncryptor:
@@ -14,7 +14,7 @@ class TestEncryptor:
 
     @pytest.fixture
     def logger(self):
-        return helper.Logger().setup_logger()
+        return Logger().setup_logger()
 
     @pytest.fixture
     def encryptor(self, cipher, logger):

@@ -1,21 +1,9 @@
-import logging
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict
 
 import pandas as pd
-
-
-class Logger:
-    @staticmethod
-    def setup_logger():
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        return logging.getLogger(__name__)
 
 
 def func_time_execution(func):

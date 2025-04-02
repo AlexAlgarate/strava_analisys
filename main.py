@@ -5,11 +5,11 @@ from src.strava_api import (
     AsyncStravaAPI,
     SyncStravaAPI,
 )
-from src.utils import helpers as helper
+from src.utils.logging import Logger
 
 
 def main():
-    logger = helper.Logger().setup_logger()
+    logger = Logger().setup_logger()
     access_token = GetAccessToken(logger=logger).get_access_token()
     strava_API_sync = SyncStravaAPI(access_token=access_token)
     strava_API_async = AsyncStravaAPI(access_token=access_token)

@@ -6,7 +6,7 @@ from typing import Dict, Union
 import requests
 
 from src.utils import constants as constant
-from src.utils import helpers as helper
+from src.utils.logging import Logger
 
 TokenResponse = Dict[str, Union[str, int]]
 RequestData = Dict[str, str]
@@ -32,7 +32,7 @@ class TokenException(Exception):
 class TokenManager:
     """Manages token-related operations."""
 
-    def __init__(self, client_id: str, secret_key: str, logger: helper.Logger):
+    def __init__(self, client_id: str, secret_key: str, logger: Logger):
         """
         Initializes the TokenManager with the necessary credentials.
 

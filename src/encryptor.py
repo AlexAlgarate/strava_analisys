@@ -3,11 +3,11 @@ from typing import Dict, Union
 from cryptography.fernet import Fernet
 
 from src.interfaces.encryptor import EncryptationInterface
-from src.utils import helpers as helper
+from src.utils.logging import Logger
 
 
 class FernetEncryptor(EncryptationInterface):
-    def __init__(self, cipher: Fernet, logger: helper.Logger):
+    def __init__(self, cipher: Fernet, logger: Logger):
         if not isinstance(cipher, Fernet):
             raise ValueError("Cipher must be an instance of Fernet.")
         self.cipher = cipher

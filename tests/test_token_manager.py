@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from src.token_manager import Credentials, GranType, TokenException, TokenManager
-from src.utils import helpers as helper
+from src.utils.logging import Logger
 
 TEST_CLIENT_ID = "test_client_id"
 TEST_SECRET_KEY = "test_secret_key"
@@ -16,7 +16,7 @@ TEST_BASE_URL_ACCESS_TOKEN = "https://www.strava.com/oauth/token"
 
 @pytest.fixture
 def logger():
-    return helper.Logger().setup_logger()
+    return Logger().setup_logger()
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def token_manager(logger):
 @pytest.fixture
 def mock_logger():
     """Fixture for mocked logger."""
-    with patch("src.utils.helpers.Logger") as mock_logger_class:
+    with patch("src.utils.logging.Logger") as mock_logger_class:
         mock_logger = Mock()
         mock_logger_class.return_value.setup_logger.return_value = mock_logger
         yield mock_logger
