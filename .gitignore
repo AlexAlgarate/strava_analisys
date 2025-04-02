@@ -5,7 +5,7 @@ read_zones.py
 prueba.py
 analisys_zones.py
 prueba_supabase.py
-
+update_uv.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
