@@ -20,21 +20,21 @@ def logger():
 
 
 @pytest.fixture
-def token_manager(logger):
-    return TokenManager(
-        client_id=TEST_CLIENT_ID,
-        secret_key=TEST_SECRET_KEY,
-        logger=logger,
-    )
-
-
-@pytest.fixture
 def mock_logger():
     """Fixture for mocked logger."""
     with patch("src.utils.logging.Logger") as mock_logger_class:
         mock_logger = Mock()
         mock_logger_class.return_value.setup_logger.return_value = mock_logger
         yield mock_logger
+
+
+@pytest.fixture
+def token_manager(mock_logger):
+    return TokenManager(
+        client_id=TEST_CLIENT_ID,
+        secret_key=TEST_SECRET_KEY,
+        logger=mock_logger,
+    )
 
 
 @pytest.fixture
