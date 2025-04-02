@@ -1,10 +1,8 @@
 from src import strava_service
 from src.access_token import GetAccessToken
 from src.menu_handler import MenuHandler
-from src.strava_api import (
-    AsyncStravaAPI,
-    SyncStravaAPI,
-)
+from src.strava_api.api_requests.async_request import AsyncStravaAPI
+from src.strava_api.api_requests.sync_request import SyncStravaAPI
 from src.utils.logging import Logger
 
 

@@ -48,14 +48,15 @@ class SupabaseDeleter(DatabaseDeleterInterface):
     def __init__(self, client: Client):
         self.client = client
 
-    def delete_record(self, table: str, column: str, record: List[int]) -> bool:
+    def delete_record(self, table: str, ids_to_delete: List[int]) -> bool:
         try:
             result = (
                 self.client.table(table)
                 .delete()
-                .in_(column=column, values=record)
+                .in_(column="id", values=ids_to_delete)
                 .execute()
             )
+            print(f"Deleted {len(ids_to_delete)} records with IDs: {ids_to_delete}")
             return bool(result and result.data)
 
         except Exception as e:

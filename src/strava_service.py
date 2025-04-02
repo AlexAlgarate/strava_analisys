@@ -9,7 +9,8 @@ from src.activities import (
     GetOneActivity,
     GetStreamsActivities,
 )
-from src.strava_api import AsyncStravaAPI, SyncStravaAPI
+from src.strava_api.api_requests.async_request import AsyncStravaAPI
+from src.strava_api.api_requests.sync_request import SyncStravaAPI
 from src.utils import constants as constant
 
 

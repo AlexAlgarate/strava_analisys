@@ -20,5 +20,5 @@ class DatabaseWriterInterface(ABC):
 
 class DatabaseDeleterInterface(ABC):
     @abstractmethod
-    def delete_record(self, table: str, column: str, record: List[int]) -> bool:
+    def delete_record(self, table: str, record: List[int]) -> bool:
         pass
