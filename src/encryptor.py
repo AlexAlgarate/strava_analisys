@@ -15,10 +15,12 @@ class FernetEncryptor(EncryptationInterface):
 
     def encrypt_data(self, data: Dict[str, Union[str, int]]) -> Dict[str, str]:
         try:
-            return {
+            encrypted_data = {
                 key: self.cipher.encrypt(str(value).encode()).decode()
                 for key, value in data.items()
             }
+            self.logger.info("Data encrypted successfully.")
+            return encrypted_data
 
         except Exception as e:
             self.logger.error(f"Error encrypting data: {e}", exc_info=True)
