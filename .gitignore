@@ -6,7 +6,7 @@ prueba.py
 analisys_zones.py
 prueba_supabase.py
 update_uv.sh
-
+src/refactor.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
