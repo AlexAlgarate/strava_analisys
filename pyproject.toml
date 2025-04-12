@@ -7,13 +7,14 @@ requires-python = ">=3.12"
 dependencies = [
     "aioresponses>=0.7.8",
     "cryptography>=44.0.2",
+    "mypy>=1.15.0",
     "pandas>=2.2.3",
     "pytest>=8.3.5",
     "pytest-asyncio>=0.26.0",
     "pytest-cov>=6.1.1",
     "python-dotenv>=1.1.0",
     "requests>=2.32.3",
-    "ruff>=0.11.4",
+    "ruff>=0.11.5",
     "supabase>=2.15.0",
 ]
 
@@ -72,3 +73,4 @@ docstring-code-line-length = "dynamic"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
+
