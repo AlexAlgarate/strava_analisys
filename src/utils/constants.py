@@ -1,3 +1,5 @@
+from typing import Dict
+
 ACTIVITY_DETAILED_KEYS = [
     "name",
     "distance",
@@ -20,18 +22,7 @@ ACTIVITY_STREAMS_KEYS = [
     "heartrate",
 ]
 
-PRINT_OPTIONS = {
-    "1": "Show information for a specific activity",
-    "2": "Show detailed information for activities from current week",
-    "3": "Show detailed information for activities from previous week",
-    "4": "Show information for activities the last 200 activities",
-    "5": "Show information for activities from current week",
-    "6": "Show information for activities from last week",
-    "7": "Show ONE STREAM",
-    "8": "Show the streams from the previous week",
-}
 
-EXIT_OPTION = "exit"
 EXAMPLE_ID_ONE_ACTIVITY = 13200148363
 
 EXAMPLE_ID_ACTIVITIES = [
@@ -42,6 +33,17 @@ EXAMPLE_ID_ACTIVITIES = [
     13150752938,
 ]
 
-STRAVA_API_ACTIVITIES = "https://www.strava.com/api/v3/activities"
 URL_GET_ACCESS_TOKEN = "https://www.strava.com/oauth/token"
 OAUTH_URL = "https://www.strava.com/oauth/authorize"
+
+
+MENU_DESCRIPTIONS: Dict[str, str] = {
+    "ONE_ACTIVITY": "Show information for a specific activity",
+    "LAST_200_ACTIVITIES": "Show information for activities the last 200 activities",
+    "ACTIVITY_DETAILS": "Show detailed information for activities from current week",
+    "ACTIVITY_DETAILS_PREV_WEEK": "Show detailed information for activities from previous week",
+    "ACTIVITY_RANGE": "Show information for activities from current week",
+    "ACTIVITY_RANGE_PREV_WEEK": "Show information for activities from last week",
+    "SINGLE_STREAM": "Show the streams for ONE activity",
+    "MULTIPLE_STREAMS": "Show the streams for MULTIPLE activities",
+}
