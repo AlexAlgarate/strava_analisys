@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from supabase import Client
 
@@ -35,7 +35,7 @@ class SupabaseWriter(DatabaseWriterInterface):
     def __init__(self, client: Client):
         self.client = client
 
-    def insert_record(self, table: str, data: Dict[str, Union[str, int]]) -> bool:
+    def insert_record(self, table: str, data: Dict[str, str | int]) -> bool:
         try:
             result = self.client.table(table).insert(data).execute()
             return bool(result and result.data)

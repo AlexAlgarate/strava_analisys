@@ -1,14 +1,14 @@
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Union
+from typing import Dict
 
 import requests
 
 from src.utils import constants as constant
 from src.utils.logging import Logger
 
-TokenResponse = Dict[str, Union[str, int]]
+TokenResponse = Dict[str, str | int]
 RequestData = Dict[str, str]
 
 

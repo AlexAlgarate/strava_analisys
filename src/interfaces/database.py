@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, TypeVar, Union
+from typing import Any, Dict, List, TypeVar
 
 T = TypeVar("T", bound=Dict[str, Any])
 
@@ -14,7 +14,7 @@ class DatabaseReaderInterface(ABC):
 
 class DatabaseWriterInterface(ABC):
     @abstractmethod
-    def insert_record(self, table: str, data: Dict[str, Union[str, int]]) -> bool:
+    def insert_record(self, table: str, data: Dict[str, str | int]) -> bool:
         pass
 
 

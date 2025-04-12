@@ -21,7 +21,7 @@ class GetAccessToken:
         self.encryptor = self._create_encryptor()
         self.token_handler = self._create_token_handler()
 
-    def get_access_token(self) -> str:
+    def get_access_token(self) -> str | int:
         self.token_handler.process_token(
             self.credentials["supabase_secrets"].SUPABASE_TABLE
         )

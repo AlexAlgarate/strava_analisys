@@ -1,5 +1,3 @@
-from typing import Union
-
 import pytest
 from cryptography.fernet import Fernet
 
@@ -44,7 +42,7 @@ class TestEncryptor:
         assert set(encrypted_data.keys()) == set(sample_data.keys())
 
         for value in encrypted_data.values():
-            assert isinstance(value, Union[str, int])
+            assert isinstance(value, str | int)
             assert value not in sample_data.values()
 
     def test_encrypt_data_with_empty_dict(self, encryptor):

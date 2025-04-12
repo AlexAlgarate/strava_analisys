@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict
 
 from cryptography.fernet import Fernet
 
@@ -13,7 +13,7 @@ class FernetEncryptor(EncryptationInterface):
         self.cipher = cipher
         self.logger = logger
 
-    def encrypt_data(self, data: Dict[str, Union[str, int]]) -> Dict[str, str]:
+    def encrypt_data(self, data: Dict[str, str | int]) -> Dict[str, str]:
         try:
             encrypted_data = {
                 key: self.cipher.encrypt(str(value).encode()).decode()
@@ -26,9 +26,7 @@ class FernetEncryptor(EncryptationInterface):
             self.logger.error(f"Error encrypting data: {e}", exc_info=True)
             raise ValueError("Encryptation failed due to an error") from e
 
-    def decrypt_data(
-        self, data: Dict[str, Union[str, int]]
-    ) -> Dict[str, Union[str, int]]:
+    def decrypt_data(self, data: Dict[str, str | int]) -> Dict[str, str | int]:
         try:
             decrypted_data = {
                 key: (
@@ -45,7 +43,7 @@ class FernetEncryptor(EncryptationInterface):
             self.logger.error(f"Error decrypting data: {e}", exc_info=True)
             raise ValueError("Decryption failed due to an error.") from e
 
-    def decrypt_value(self, data_to_decrypt: dict, value: str) -> Union[str, int]:
+    def decrypt_value(self, data_to_decrypt: dict, value: str) -> str | int:
         try:
             decrypted_data = self.decrypt_data(data_to_decrypt)
             return decrypted_data[value]

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
-from typing import Dict, Union
+from typing import Dict
 
 from src.database import SupabaseReader, SupabaseWriter
 from src.encryptor import FernetEncryptor
@@ -11,7 +11,7 @@ from src.utils import constants as constant
 from src.utils import exceptions as exception
 from src.utils.logging import Logger
 
-TokenResponse = Dict[str, Union[int, str]]
+TokenResponse = Dict[str, int | str]
 
 
 def handle_token_errors(func):
