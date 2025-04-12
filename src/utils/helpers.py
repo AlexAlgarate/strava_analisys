@@ -38,18 +38,33 @@ def get_epoch_times_for_week(previous_week: bool = False) -> tuple:
 
 
 def check_path(target_path: str) -> bool:
-    execution_path = Path(__file__).parent
-    target_directory = execution_path / target_path
+    target_directory = Path(target_path).absolute()
     if not target_directory.exists():
         target_directory.mkdir(parents=True, exist_ok=True)
     return target_directory.is_dir()
 
 
 def process_streams(response: Dict, id_activity: int) -> pd.DataFrame:
-    data = {
-        stream_type: stream_data.get("data", [])
-        for stream_type, stream_data in response.items()
-    }
+    max_length = (
+        max(
+            len(stream_data.get("data", []))
+            for stream_data in response.values()
+            if isinstance(stream_data, dict)
+        )
+        if response
+        else 0
+    )
+
+    data = {}
+    for stream_type, stream_data in response.items():
+        if isinstance(stream_data, dict) and "data" in stream_data:
+            data[stream_type] = stream_data["data"]
+
+            if len(data[stream_type]) < max_length:
+                data[stream_type].extend([None] * (max_length - len(data[stream_type])))
+        else:
+            data[stream_type] = [None] * max_length
+
     df = pd.DataFrame(data)
     df["id"] = id_activity
     return df
