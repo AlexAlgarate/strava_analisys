@@ -11,6 +11,7 @@ ACTIVITY_DETAILED_KEYS = [
     "perceived_exertion",
     "average_speed",
     "gear",
+    "sport_type",
 ]
 
 ACTIVITY_STREAMS_KEYS = [

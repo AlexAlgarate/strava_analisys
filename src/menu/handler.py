@@ -1,14 +1,23 @@
 import asyncio
 from typing import Any, Callable, Dict
 
+from src.menu.console_error_handler import ConsoleErrorHandler
 from src.menu.options import MenuOption
+from src.menu.result_console_printer import ResultConsolePrinter
 from src.strava_service import StravaService
 from src.utils import constants as constant
 
 
 class MenuHandler:
-    def __init__(self, service: StravaService):
+    def __init__(
+        self,
+        service: StravaService,
+        result_console_printer: ResultConsolePrinter = None,
+        error_console_printer: ConsoleErrorHandler = None,
+    ) -> None:
         self.service = service
+        self.result_console_printer = result_console_printer
+        self.error_console_printer = error_console_printer
 
         self.menu_options: Dict[MenuOption, Callable[[], Any]] = {
             MenuOption.ONE_ACTIVITY: lambda: self.service.get_one_activity(
@@ -57,10 +66,10 @@ class MenuHandler:
 
             result = self.menu_options[menu_option]()
 
-            self._print_result(option=option, result=result)
+            self.result_console_printer.print_result(option=option, result=result)
             return result
         except (ValueError, KeyError):
-            self._print_error(option=option)
+            self.error_console_printer.print_error(option=option)
             return None
 
     def _validate_option(self, option: str) -> MenuOption:
@@ -69,16 +78,6 @@ class MenuHandler:
             raise ValueError(f"Option {option} not found")
 
         return valid_options[option]
-
-    def _print_result(self, option: str, result: Any) -> None:
-        print(f"\n✅ Result for option {option}:")
-        print(result)
-
-    def _print_error(self, option: str) -> None:
-        """Print error message"""
-        valid_options = {str(opt.id): opt for opt in MenuOption}
-        print(f"❌ Invalid option: {option}")
-        print(f"Valid options are: {', '.join(valid_options.keys())}\n")
 
     def print_menu(self, menu_option: MenuOption) -> None:
         print("\n📌 Choose an option: \n")
