@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Simple (or not) tool to analyze your running workouts using Strava's API"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { text = "MIT" }  # Cambia esto si usas otra licencia
+authors = [{ name = "Alex Algarate", email = "alex@example.com" }]  # Actualiza si quieres
 dependencies = [
     "aioresponses>=0.7.8",
     "cryptography>=44.0.2",
@@ -21,39 +23,15 @@ dependencies = [
 ]
 
 [project.urls]
-github = "https://github.com/AlexAlgarate"
-strava_profile = "https://www.strava.com/athletes/6398816"
+Homepage = "https://github.com/AlexAlgarate"
 
 [tool.ruff]
 exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".ipynb_checkpoints",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
+    ".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg", ".ipynb_checkpoints",
+    ".mypy_cache", ".nox", ".pants.d", ".pyenv", ".pytest_cache", ".pytype",
+    ".ruff_cache", ".svn", ".tox", ".venv", ".vscode", "__pypackages__",
+    "_build", "buck-out", "build", "dist", "node_modules", "site-packages", "venv"
 ]
-
 line-length = 88
 indent-width = 4
 
@@ -68,13 +46,9 @@ line-ending = "auto"
 docstring-code-format = true
 docstring-code-line-length = "dynamic"
 
-
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402"]
 "**/{tests,docs,tools}/*" = ["E402"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
-filterwarnings = [
-    "ignore::DeprecationWarning:pytest_freezegun",
-]
