@@ -8,7 +8,7 @@ from src.interfaces.strava_api import AsyncStravaAPI
 from src.utils import helpers as helper
 
 
-class GetStreamsActivities(InterfaceActivitiesStrava):
+class ActivityStreamsFetcher(InterfaceActivitiesStrava):
     async def fetch_activity_data(self, stream_keys: List[str]) -> pd.DataFrame:
         if not self.id_activity:
             raise ValueError("Activity ID is required for this operation.")
@@ -25,7 +25,6 @@ class GetStreamsActivities(InterfaceActivitiesStrava):
     async def fetch_multiple_activities_streams(
         cls, api: AsyncStravaAPI, list_id_activities: List[int], stream_keys: List[str]
     ) -> pd.DataFrame:
-        """Fetch streams for multiple activities concurrently."""
         tasks = [
             cls(api=api, id_activity=activity_id).fetch_activity_data(
                 stream_keys=stream_keys

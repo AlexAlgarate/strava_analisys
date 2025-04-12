@@ -1,12 +1,12 @@
 from typing import Any, Dict
 
-from src.activities import (
-    GetActivityDetails,
-    GetActivityRange,
-    GetLast200Activities,
-    GetOneActivity,
-    GetStreamsActivities,
+from src.activities.detailed_activities import (
+    DetailedActivitiesFetcher,
+    WeeklyActivitiesFetcher,
 )
+from src.activities.get_streams import ActivityStreamsFetcher
+from src.activities.last_200_activities import RecentActivitiesFetcher
+from src.activities.one_activity import SingleActivityFetcher
 from src.strava_api.api_requests.async_request import AsyncStravaAPI
 from src.strava_api.api_requests.sync_request import SyncStravaAPI
 from src.utils import constants as constant
@@ -18,33 +18,34 @@ class StravaService:
         self.api_async = api_async
 
     async def get_streams_for_activity(self, activity_id: int) -> Dict[str, Any]:
-        return await GetStreamsActivities(
+        return await ActivityStreamsFetcher(
             api=self.api_async, id_activity=activity_id
         ).fetch_activity_data(stream_keys=constant.ACTIVITY_STREAMS_KEYS)
 
     async def get_streams_for_multiple_activities(
         self, activity_ids: list[int]
     ) -> Dict[str, Any]:
-        return await GetStreamsActivities.fetch_multiple_activities_streams(
+        return await ActivityStreamsFetcher.fetch_multiple_activities_streams(
             api=self.api_async,
             list_id_activities=activity_ids,
             stream_keys=constant.ACTIVITY_STREAMS_KEYS,
         )
 
     async def get_activity_range(self, previous_week: bool = False) -> Dict[str, Any]:
-        return await GetActivityRange(self.api_async).fetch_activity_data(
+        return await WeeklyActivitiesFetcher(self.api_async).fetch_activity_data(
             previous_week=previous_week
         )
 
     async def get_activity_details(self, previous_week: bool = False) -> Dict[str, Any]:
-        return await GetActivityDetails(self.api_async).fetch_activity_data(
-            keys=constant.ACTIVITY_DETAILED_KEYS, previuos_week=previous_week
+        keys = [key.value for key in constant.ActivityDetailKey]
+        return await DetailedActivitiesFetcher(self.api_async).fetch_activity_data(
+            keys=keys, previuos_week=previous_week
         )
 
     def get_one_activity(self, activity_id: int) -> Dict[str, Any]:
-        return GetOneActivity(
+        return SingleActivityFetcher(
             api=self.api_sync, id_activity=activity_id
         ).fetch_activity_data()
 
     def get_last_200_activities(self) -> Dict[str, Any]:
-        return GetLast200Activities(self.api_sync).fetch_activity_data()
+        return RecentActivitiesFetcher(self.api_sync).fetch_activity_data()

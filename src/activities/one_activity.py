@@ -1,7 +1,7 @@
 from src.interfaces.activities import InterfaceActivitiesStrava
 
 
-class GetOneActivity(InterfaceActivitiesStrava):
+class SingleActivityFetcher(InterfaceActivitiesStrava):
     def fetch_activity_data(self) -> dict:
         if not self.id_activity:
             raise ValueError("Activity ID is required for this operation.")
