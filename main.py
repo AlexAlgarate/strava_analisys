@@ -31,7 +31,7 @@ def main():
         option = input("\nChoose an option (number or 'q' to exit): ")
 
         if option.lower() == "q":
-            print("👋 Goodbye")
+            print("\n👋 Goodbye")
             break
 
         menu.execute_option(option)

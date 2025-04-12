@@ -1,9 +1,14 @@
 from src.interfaces.console_printer import PrinterErrorInterface
-from src.menu.options import MenuOption
 
 
 class ConsoleErrorHandler(PrinterErrorInterface):
     def print_error(self, option: str) -> None:
-        valid_options = {str(opt.id): opt for opt in MenuOption}
-        print(f"\n❌ Invalid option: {option}\n")
-        print(f"Valid options are: {', '.join(valid_options.keys())}\n")
+        self._print_error_header(option)
+        self._print_usage_hint()
+
+    def _print_error_header(self, option: str) -> None:
+        print("\n❌ Invalid option selected:")
+        print(f"   '{option}' is not a valid menu choice\n")
+
+    def _print_usage_hint(self) -> None:
+        print("Please select a number from the menu or 'q' to quit\n")

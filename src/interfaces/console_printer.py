@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, List
+
+import pandas as pd
 
 
 class PrinterResultInterface(ABC):
     @abstractmethod
-    def print_result(self, option: str, result: Dict) -> None:
+    def print_result(self, option: str, result: Dict | List | pd.DataFrame) -> None:
         pass
 
 
