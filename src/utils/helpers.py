@@ -46,7 +46,6 @@ def check_path(target_path: str) -> bool:
 
 
 def process_streams(response: Dict, id_activity: int) -> pd.DataFrame:
-    """Transform API response into a structured DataFrame."""
     data = {
         stream_type: stream_data.get("data", [])
         for stream_type, stream_data in response.items()

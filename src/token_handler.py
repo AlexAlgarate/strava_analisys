@@ -15,8 +15,6 @@ TokenResponse = Dict[str, int | str]
 
 
 def handle_token_errors(func):
-    """Decorator for consistent error handling in token operations."""
-
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:

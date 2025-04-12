@@ -21,7 +21,6 @@ def logger():
 
 @pytest.fixture
 def mock_logger():
-    """Fixture for mocked logger."""
     with patch("src.utils.logging.Logger") as mock_logger_class:
         mock_logger = Mock()
         mock_logger_class.return_value.setup_logger.return_value = mock_logger
