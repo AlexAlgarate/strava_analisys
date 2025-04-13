@@ -13,41 +13,31 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
+      - name: Set up Python and uv (with caching)
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.6.6"
-
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
+          version: "0.6.14"
           python-version-file: ".python-version"
-
-      - name: Enable caching
-        uses: astral-sh/setup-uv@v5
-        with:
           enable-cache: true
 
       - name: Run tests
-
         run: uv run pytest tests/ 
         
 
       - name: Lint code with Ruff
         run: uv run ruff check . --fix
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push
+      - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v6
         with:
           push: true
           tags: ghcr.io/alexalgarate/strava_analisys:latest
+        
+
+        env:
+          DOCKER_BUILDKIT: 1
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
