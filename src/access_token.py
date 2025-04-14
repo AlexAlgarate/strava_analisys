@@ -2,7 +2,9 @@ import supabase
 from dotenv import load_dotenv
 
 from src.credentials import FernetSecrets, StravaSecrets, SupabaseSecrets
-from src.database import SupabaseReader, SupabaseWriter
+from src.database.supabase_deleter import SupabaseDeleter
+from src.database.supabase_reader import SupabaseReader
+from src.database.supabase_writer import SupabaseWriter
 from src.encryptor import FernetEncryptor
 from src.token_handler import TokenHandler
 from src.token_manager import TokenManager
@@ -15,8 +17,10 @@ class GetAccessToken:
         self.logger = logger
 
         self.credentials = self._load_credentials()
+        self.supabase_client = self._create_supabase_client()
         self.supabase_reader = self._create_supabase_reader()
         self.supabase_writer = self._create_supabase_writer()
+        self.supabase_deleter = self._create_supabase_deleter()
         self.token_manager = self._create_token_manager()
         self.encryptor = self._create_encryptor()
         self.token_handler = self._create_token_handler()
@@ -41,23 +45,21 @@ class GetAccessToken:
             "fernet_secrets": FernetSecrets(),
         }
 
-    def _create_supabase_reader(self) -> SupabaseReader:
+    def _create_supabase_client(self) -> supabase.Client:
         supabase_secrets = self.credentials["supabase_secrets"]
-        return SupabaseReader(
-            client=supabase.create_client(
-                supabase_secrets.SUPABASE_URL,
-                supabase_secrets.SUPABASE_API_KEY,
-            )
+        return supabase.create_client(
+            supabase_secrets.SUPABASE_URL,
+            supabase_secrets.SUPABASE_API_KEY,
         )
 
+    def _create_supabase_reader(self) -> SupabaseReader:
+        return SupabaseReader(client=self.supabase_client)
+
     def _create_supabase_writer(self) -> SupabaseWriter:
-        supabase_secrets = self.credentials["supabase_secrets"]
-        return SupabaseWriter(
-            client=supabase.create_client(
-                supabase_secrets.SUPABASE_URL,
-                supabase_secrets.SUPABASE_API_KEY,
-            )
-        )
+        return SupabaseWriter(client=self.supabase_client)
+
+    def _create_supabase_deleter(self) -> SupabaseDeleter:
+        return SupabaseDeleter(client=self.supabase_client)
 
     def _create_token_manager(self) -> TokenManager:
         strava_secrets = self.credentials["strava_secrets"]
@@ -76,6 +78,7 @@ class GetAccessToken:
         return TokenHandler(
             supabase_reader=self.supabase_reader,
             supabase_writer=self.supabase_writer,
+            supabase_deleter=self.supabase_deleter,
             token_manager=self.token_manager,
             encryptor=self.encryptor,
             client_id=strava_secrets.STRAVA_CLIENT_ID,

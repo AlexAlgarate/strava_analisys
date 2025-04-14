@@ -3,7 +3,9 @@ from datetime import datetime
 from functools import wraps
 from typing import Dict
 
-from src.database import SupabaseReader, SupabaseWriter
+from src.database.supabase_deleter import SupabaseDeleter
+from src.database.supabase_reader import SupabaseReader
+from src.database.supabase_writer import SupabaseWriter
 from src.encryptor import FernetEncryptor
 from src.oauth_code import GetOauthCode
 from src.token_manager import TokenManager
@@ -36,6 +38,7 @@ class TokenHandler:
         self,
         supabase_reader: SupabaseReader,
         supabase_writer: SupabaseWriter,
+        supabase_deleter: SupabaseDeleter,
         token_manager: TokenManager,
         encryptor: FernetEncryptor,
         client_id: str,
@@ -43,12 +46,16 @@ class TokenHandler:
     ):
         self.supabase_reader = supabase_reader
         self.supabase_writer = supabase_writer
+        self.supabase_deleter = supabase_deleter
         self.token_manager = token_manager
         self.encryptor = encryptor
         self.logger = logger
         self.credentials = Credentials(client_id)
 
     def process_token(self, table: str):
+        # Cleanup expired tokens before processing
+        self._cleanup_expired_tokens(table)
+
         record = self.supabase_reader.fetch_latest_record(table, "*", "expires_at")
 
         if not record:
@@ -58,6 +65,15 @@ class TokenHandler:
             self._handle_initial_token_flow(table)
             return
         return self._handle_exisiting_token(record, table)
+
+    @handle_token_errors
+    def _cleanup_expired_tokens(self, table: str) -> None:
+        """Clean up expired tokens before processing new ones."""
+        try:
+            if self.supabase_deleter.cleanup_expired_tokens(table, self.encryptor):
+                self.logger.info("Successfully cleaned up expired tokens")
+        except exception.DatabaseOperationError as e:
+            self.logger.warning(f"Failed to cleanup expired tokens: {e}")
 
     @handle_token_errors
     def _handle_exisiting_token(self, record: dict, table: str) -> TokenResponse | None:
