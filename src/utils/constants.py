@@ -48,4 +48,6 @@ MENU_DESCRIPTIONS: Dict[str, str] = {
     "ACTIVITY_RANGE_PREV_WEEK": "Show information for activities from last week",
     "SINGLE_STREAM": "Show the streams for ONE activity",
     "MULTIPLE_STREAMS": "Show the streams for MULTIPLE activities",
+    "CURRENT_WEEK_REPORT": "Show the weekly report for the current week",
+    "LAST_WEEK_REPORT": "Show the weekly report for the last week",
 }

@@ -12,6 +12,8 @@ class MenuOption(Enum):
     ACTIVITY_RANGE_PREV_WEEK = auto()
     SINGLE_STREAM = auto()
     MULTIPLE_STREAMS = auto()
+    CURRENT_WEEK_REPORT = auto()
+    LAST_WEEK_REPORT = auto()
 
     @property
     def id(self) -> int:
