@@ -4,7 +4,7 @@ from typing import Any, Dict, List, TypeVar
 T = TypeVar("T", bound=Dict[str, Any])
 
 
-class DatabaseReaderInterface(ABC):
+class IDatabaseReader(ABC):
     @abstractmethod
     def fetch_latest_record(
         self, table: str, column: str, order_by: str | None = None
@@ -12,13 +12,13 @@ class DatabaseReaderInterface(ABC):
         pass
 
 
-class DatabaseWriterInterface(ABC):
+class IDatabaseWriter(ABC):
     @abstractmethod
     def insert_record(self, table: str, data: Dict[str, str | int]) -> bool:
         pass
 
 
-class DatabaseDeleterInterface(ABC):
+class IDatabaseDeleter(ABC):
     @abstractmethod
     def delete_records(self, table: str, ids_to_delete: List[int]) -> bool:
         pass

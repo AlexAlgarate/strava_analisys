@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 
 from src.utils.logging import Logger
 
-from .strava_api import HTTPClient
+from .strava_api import IHTTPClient
 
 
-class InterfaceActivitiesStrava(ABC):
+class IActivityFetcher(ABC):
     def __init__(
         self,
-        api: HTTPClient,
+        api: IHTTPClient,
         id_activity: int = None,
     ):
         self.api = api

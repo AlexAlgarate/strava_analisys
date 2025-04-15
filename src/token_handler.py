@@ -54,7 +54,7 @@ class TokenHandler:
 
     def process_token(self, table: str):
         # Cleanup expired tokens before processing
-        self._cleanup_expired_tokens(table)
+        # self._cleanup_expired_tokens(table)
 
         record = self.supabase_reader.fetch_latest_record(table, "*", "expires_at")
 

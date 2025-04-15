@@ -3,12 +3,12 @@ from typing import List
 
 import pandas as pd
 
-from src.interfaces.activities import InterfaceActivitiesStrava
-from src.interfaces.strava_api import AsyncStravaAPI
+from src.interfaces.activities import IActivityFetcher
+from src.interfaces.strava_api import IAsyncStravaAPI
 from src.utils import helpers as helper
 
 
-class ActivityStreamsFetcher(InterfaceActivitiesStrava):
+class ActivityStreamsFetcher(IActivityFetcher):
     async def fetch_activity_data(self, stream_keys: List[str]) -> pd.DataFrame:
         if not self.id_activity:
             raise ValueError("Activity ID is required for this operation.")
@@ -23,7 +23,10 @@ class ActivityStreamsFetcher(InterfaceActivitiesStrava):
     @classmethod
     @helper.func_time_execution
     async def fetch_multiple_activities_streams(
-        cls, api: AsyncStravaAPI, list_id_activities: List[int], stream_keys: List[str]
+        cls,
+        api: IAsyncStravaAPI,
+        list_id_activities: List[int],
+        stream_keys: List[str],
     ) -> pd.DataFrame:
         tasks = [
             cls(api=api, id_activity=activity_id).fetch_activity_data(

@@ -1,7 +1,7 @@
-from src.interfaces.console_printer import PrinterErrorInterface
+from src.interfaces.console_printer import IPrinterError
 
 
-class ConsoleErrorHandler(PrinterErrorInterface):
+class ConsoleErrorHandler(IPrinterError):
     def print_error(self, option: str) -> None:
         self._print_error_header(option)
         self._print_usage_hint()

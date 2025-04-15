@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict
 
 
-class EncryptationInterface(ABC):
+class IEncryptation(ABC):
     @abstractmethod
     def encrypt_data(self, data: Dict[str, str | int]) -> Dict[str, str]:
         pass

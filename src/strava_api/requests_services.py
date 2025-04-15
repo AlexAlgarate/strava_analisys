@@ -3,11 +3,11 @@ from typing import Any, Dict
 import aiohttp
 import requests
 
-from src.interfaces.strava_api import HTTPClient
+from src.interfaces.strava_api import IHTTPClient
 from src.utils import exceptions
 
 
-class RequestHTTPClient(HTTPClient):
+class RequestHTTPClient(IHTTPClient):
     def get(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
     ) -> Dict[str, Any]:
@@ -25,7 +25,7 @@ class RequestHTTPClient(HTTPClient):
             return {}
 
 
-class AioHTTPClient(HTTPClient):
+class AioHTTPClient(IHTTPClient):
     async def get(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
     ) -> Dict[str, Any]:

@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 
-class SyncStravaAPI(ABC):
+class ISyncStravaAPI(ABC):
     @abstractmethod
     def make_request(self, endpoint: str, params: dict = None) -> dict:
         pass
 
 
-class AsyncStravaAPI(ABC):
+class IAsyncStravaAPI(ABC):
     @abstractmethod
     async def make_request_async(
         self,
@@ -19,7 +19,7 @@ class AsyncStravaAPI(ABC):
         pass
 
 
-class HTTPClient(ABC):
+class IHTTPClient(ABC):
     @abstractmethod
     def get(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None

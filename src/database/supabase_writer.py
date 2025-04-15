@@ -2,11 +2,11 @@ from typing import Dict
 
 from supabase import Client
 
-from src.interfaces.database import DatabaseWriterInterface
+from src.interfaces.database import IDatabaseWriter
 from src.utils import exceptions as exception
 
 
-class SupabaseWriter(DatabaseWriterInterface):
+class SupabaseWriter(IDatabaseWriter):
     def __init__(self, client: Client):
         self.client = client
 

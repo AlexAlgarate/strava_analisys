@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Any, Dict
 
-from src.interfaces.formatter import ValueFormatter
+from src.interfaces.formatter import IValueFormatter
 
 
-class ActivityDateFormatter(ValueFormatter):
+class ActivityDateFormatter(IValueFormatter):
     def format(self, value: Any) -> str:
         try:
             dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
@@ -13,7 +13,7 @@ class ActivityDateFormatter(ValueFormatter):
             return str(value)
 
 
-class ActivityDistanceFormatter(ValueFormatter):
+class ActivityDistanceFormatter(IValueFormatter):
     def format(self, value: Any) -> str:
         try:
             return f"{float(value) / 1000:.2f} km"
@@ -21,7 +21,7 @@ class ActivityDistanceFormatter(ValueFormatter):
             return str(value)
 
 
-class ActivityPaceFormatter(ValueFormatter):
+class ActivityPaceFormatter(IValueFormatter):
     def format(self, value: Any) -> str:
         try:
             return f"{float(value) * 3.6:.2f} km/h"
@@ -29,7 +29,7 @@ class ActivityPaceFormatter(ValueFormatter):
             return str(value)
 
 
-class ActivityDurationFormatter(ValueFormatter):
+class ActivityDurationFormatter(IValueFormatter):
     def format(self, value: Any) -> str:
         try:
             minutes = int(value) // 60
@@ -39,7 +39,7 @@ class ActivityDurationFormatter(ValueFormatter):
             return str(value)
 
 
-class ActivityHeartRateFormatter(ValueFormatter):
+class ActivityHeartRateFormatter(IValueFormatter):
     def format(self, value: Any) -> str:
         try:
             return f"{int(value)} ppm"
@@ -47,7 +47,7 @@ class ActivityHeartRateFormatter(ValueFormatter):
             return str(value)
 
 
-class ActivityCaloriesFormatter(ValueFormatter):
+class ActivityCaloriesFormatter(IValueFormatter):
     def format(self, value: Any) -> str:
         try:
             return f"{int(value)} kcal"
@@ -55,7 +55,7 @@ class ActivityCaloriesFormatter(ValueFormatter):
             return str(value)
 
 
-class ActivityExertionFormatter(ValueFormatter):
+class ActivityExertionFormatter(IValueFormatter):
     def format(self, value: Any) -> str:
         try:
             return f"{int(value)} RPE"
@@ -65,7 +65,7 @@ class ActivityExertionFormatter(ValueFormatter):
 
 class ActivityFormatter:
     def __init__(self):
-        self.formatters: Dict[str, ValueFormatter] = {
+        self.formatters: Dict[str, IValueFormatter] = {
             "start_date": ActivityDateFormatter(),
             "start_date_local": ActivityDateFormatter(),
             "distance": ActivityDistanceFormatter(),

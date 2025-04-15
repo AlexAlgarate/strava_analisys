@@ -1,11 +1,11 @@
 import asyncio
 from typing import List
 
-from src.interfaces.activities import InterfaceActivitiesStrava
+from src.interfaces.activities import IActivityFetcher
 from src.utils import helpers as helper
 
 
-class WeeklyActivitiesFetcher(InterfaceActivitiesStrava):
+class WeeklyActivitiesFetcher(IActivityFetcher):
     @helper.func_time_execution
     async def fetch_activity_data(self, previous_week: bool = False) -> List[dict]:
         monday, sunday = helper.get_epoch_times_for_week(previous_week=previous_week)
@@ -18,7 +18,7 @@ class WeeklyActivitiesFetcher(InterfaceActivitiesStrava):
         return await self.api.make_request_async(endpoint="/activities", params=params)
 
 
-class DetailedActivitiesFetcher(InterfaceActivitiesStrava):
+class DetailedActivitiesFetcher(IActivityFetcher):
     async def fetch_activity_data(
         self, keys: List[str], previuos_week: bool = False
     ) -> List[dict]:

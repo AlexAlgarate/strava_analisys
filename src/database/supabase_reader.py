@@ -1,11 +1,11 @@
 from supabase import Client
 
-from src.interfaces.database import DatabaseReaderInterface
+from src.interfaces.database import IDatabaseReader
 from src.interfaces.database import T as type_T
 from src.utils import exceptions as exception
 
 
-class SupabaseReader(DatabaseReaderInterface):
+class SupabaseReader(IDatabaseReader):
     def __init__(self, client: Client):
         self.client = client
 

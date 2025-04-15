@@ -2,11 +2,11 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from src.interfaces.console_printer import PrinterResultInterface
+from src.interfaces.console_printer import IPrinterResult
 from src.menu.formatter import ActivityFormatter
 
 
-class ResultConsolePrinter(PrinterResultInterface):
+class ResultConsolePrinter(IPrinterResult):
     def __init__(self):
         self.formatter = ActivityFormatter()
 

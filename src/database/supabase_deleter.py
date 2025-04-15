@@ -4,12 +4,12 @@ from typing import List
 from supabase import Client
 
 from src.interfaces.database import (
-    DatabaseDeleterInterface,
+    IDatabaseDeleter,
 )
 from src.utils import exceptions as exception
 
 
-class SupabaseDeleter(DatabaseDeleterInterface):
+class SupabaseDeleter(IDatabaseDeleter):
     def __init__(self, client: Client):
         self.client = client
 
