@@ -19,6 +19,8 @@ def mock_api():
     api = Mock()
     api.make_request = Mock()
     api.make_request_async = AsyncMock()
+    api.get_headers = Mock(return_value={"Authorization": "Bearer test"})
+    api.get_url = Mock(return_value="https://test.api.com/v3")
     return api
 
 

@@ -1,13 +1,18 @@
+"""HTTP client implementations for Strava API."""
+
 from typing import Any, Dict
 
 import aiohttp
 import requests
 
-from src.interfaces.strava_api import IHTTPClient
 from src.utils import exceptions
 
+from .base_http_client import BaseHTTPClient
 
-class RequestHTTPClient(IHTTPClient):
+
+class SyncHTTPClient(BaseHTTPClient):
+    """Synchronous HTTP client implementation using requests."""
+
     def get(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
     ) -> Dict[str, Any]:
@@ -25,11 +30,13 @@ class RequestHTTPClient(IHTTPClient):
             return {}
 
 
-class AioHTTPClient(IHTTPClient):
+class AsyncHTTPClient(BaseHTTPClient):
+    """Asynchronous HTTP client implementation using aiohttp."""
+
     async def get(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
     ) -> Dict[str, Any]:
-        async with aiohttp.ClientSession(headers=headers) as session:
+        async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, params=params) as response:
                 if response.status == 429:
                     raise exceptions.TooManyRequestError(
@@ -40,7 +47,4 @@ class AioHTTPClient(IHTTPClient):
                     raise exceptions.UnauthorizedError(
                         "\n\nUnauthorized. Check your token."
                     )
-                data = await response.json()
-                if data == []:
-                    raise exceptions.NotActivitiesError("\n\nNo activities found.")
-                return data
+                return await response.json()

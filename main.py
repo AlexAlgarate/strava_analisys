@@ -4,8 +4,8 @@ from src.menu.console_error_handler import ConsoleErrorHandler
 from src.menu.handler import MenuHandler
 from src.menu.options import MenuOption
 from src.menu.result_console_printer import ResultConsolePrinter
-from src.strava_api.api_requests.async_request import AsyncStravaAPI
-from src.strava_api.api_requests.sync_request import SyncStravaAPI
+from src.strava_api.api.async_strava_api import AsyncStravaAPI
+from src.strava_api.api.sync_strava_api import SyncStravaAPI
 from src.utils.logging import Logger
 
 

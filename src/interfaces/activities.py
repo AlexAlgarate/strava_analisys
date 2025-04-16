@@ -1,14 +1,15 @@
+"""Activity fetcher interfaces."""
+
 from abc import ABC, abstractmethod
 
+from src.strava_api.api.base_strava_api import BaseStravaAPI
 from src.utils.logging import Logger
-
-from .strava_api import IHTTPClient
 
 
 class IActivityFetcher(ABC):
     def __init__(
         self,
-        api: IHTTPClient,
+        api: BaseStravaAPI,
         id_activity: int = None,
     ):
         self.api = api
@@ -17,4 +18,5 @@ class IActivityFetcher(ABC):
 
     @abstractmethod
     def fetch_activity_data(self, *args, **kwargs):
+        """Fetch activity data from Strava API."""
         pass

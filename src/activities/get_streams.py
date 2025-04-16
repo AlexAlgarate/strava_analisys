@@ -4,7 +4,7 @@ from typing import List
 import pandas as pd
 
 from src.interfaces.activities import IActivityFetcher
-from src.interfaces.strava_api import IAsyncStravaAPI
+from src.strava_api.api.async_strava_api import AsyncStravaAPI
 from src.utils import helpers as helper
 
 
@@ -24,7 +24,7 @@ class ActivityStreamsFetcher(IActivityFetcher):
     @helper.func_time_execution
     async def fetch_multiple_activities_streams(
         cls,
-        api: IAsyncStravaAPI,
+        api: AsyncStravaAPI,
         list_id_activities: List[int],
         stream_keys: List[str],
     ) -> pd.DataFrame:
