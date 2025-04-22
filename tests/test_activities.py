@@ -140,21 +140,38 @@ class TestDetailedActivitiesFetcher:
         assert result[0] == {}  # Empty dict returned for failed fetch
 
 
+STREAM_RESPONSES = [
+    {
+        "time": {"data": [0, 1, 2]},
+        "distance": {"data": [0, 1, 2]},
+        "heartrate": {"data": [60, 62, 64]},
+    },
+    {
+        "time": {"data": [3, 4, 5]},
+        "distance": {"data": [0, 10, 20]},
+        "heartrate": {"data": [100, 101, 102]},
+    },
+    {
+        "time": {"data": [6, 7, 8]},
+        "distance": {"data": [0.5, 20.5, 40.5]},
+        "heartrate": {"data": [110, 111, 112]},
+    },
+]
+
+
 class TestActivityStreamsFetcher:
     @pytest.fixture
-    def activity_fetcher(self, mock_api):
+    def stream_fetcher(self, mock_api):
         return ActivityStreamsFetcher(api=mock_api, id_activity=123)
 
+    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio
-    async def test_fetch_activity_data_success(self, activity_fetcher, mock_api):
-        stream_response = {
-            "time": {"data": [0, 1, 2]},
-            "distance": {"data": [0, 1, 2]},
-            "heartrate": {"data": [60, 62, 64]},
-        }
+    async def test_fetch_activity_data_success(
+        self, stream_fetcher, mock_api, stream_response
+    ):
         mock_api.make_request_async.return_value = stream_response
 
-        result = await activity_fetcher.fetch_activity_data(
+        result = await stream_fetcher.fetch_activity_data(
             stream_keys=constant.ACTIVITY_STREAMS_KEYS
         )
 
@@ -173,14 +190,11 @@ class TestActivityStreamsFetcher:
                 stream_keys=constant.ACTIVITY_STREAMS_KEYS
             )
 
+    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio
-    async def test_fetch_multiple_activities_streams(self, mock_api):
+    async def test_fetch_multiple_activities_streams(self, mock_api, stream_response):
         activity_ids = [1, 2]
-        stream_response = {
-            "time": {"data": [0, 1]},
-            "distance": {"data": [0, 1]},
-            "heartrate": {"data": [60, 62]},
-        }
+
         mock_api.make_request_async.return_value = stream_response
 
         result = await ActivityStreamsFetcher.fetch_multiple_activities_streams(
@@ -190,18 +204,17 @@ class TestActivityStreamsFetcher:
         )
 
         assert isinstance(result, pd.DataFrame)
-        assert len(result) == 4  # 2 data points for each activity
+        assert len(result) == 6  # 2 data points for each activity
         assert set(result["id"].unique()) == {1, 2}
 
+    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio
-    async def test_fetch_multiple_activities_streams_error_handling(self, mock_api):
+    async def test_fetch_multiple_activities_streams_error_handling(
+        self, mock_api, stream_response
+    ):
         activity_ids = [1, 2]
         mock_api.make_request_async.side_effect = [
-            {
-                "time": {"data": [0, 1]},
-                "distance": {"data": [0, 1]},
-                "heartrate": {"data": [60, 62]},
-            },
+            stream_response,
             exceptions.TooManyRequestError("Rate limit exceeded"),
         ]
 
@@ -212,4 +225,4 @@ class TestActivityStreamsFetcher:
         )
 
         assert isinstance(result, pd.DataFrame)
-        assert len(result) == 2  # Only data from successful request
+        assert len(result) == 3  # Only data from successful request

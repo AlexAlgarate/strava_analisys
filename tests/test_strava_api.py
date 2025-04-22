@@ -1,5 +1,3 @@
-"""Tests for Strava API implementations."""
-
 from unittest.mock import patch
 
 import aiohttp
@@ -34,6 +32,9 @@ class MockResponse:
 
 class TestStravaAPI:
     TEST_TOKEN = "test_token"
+    TEST_TABLE = "test_table"
+    TEST_ENCRYPTOR = "test_encryptor"
+    TEST_DELETER = "test_deleter"
     TEST_CONFIG = StravaAPIConfig(
         base_url="https://test.api.com/v3", content_type="application/json"
     )
@@ -44,7 +45,13 @@ class TestStravaAPI:
 
     @pytest.fixture
     def async_api(self):
-        return AsyncStravaAPI(access_token=self.TEST_TOKEN, config=self.TEST_CONFIG)
+        return AsyncStravaAPI(
+            access_token=self.TEST_TOKEN,
+            config=self.TEST_CONFIG,
+            table=self.TEST_TABLE,
+            encryptor=self.TEST_ENCRYPTOR,
+            deleter=self.TEST_DELETER,
+        )
 
     def test_init_without_token(self):
         with pytest.raises(ValueError, match="Access token must be provided."):
