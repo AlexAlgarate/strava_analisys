@@ -1,5 +1,3 @@
-"""Service layer for Strava API operations."""
-
 from typing import Any, Dict
 
 from src.activities.detailed_activities import (
@@ -15,8 +13,6 @@ from src.utils import constants as constant
 
 
 class StravaService:
-    """Service class that coordinates all Strava API operations."""
-
     def __init__(self, api_sync: SyncStravaAPI, api_async: AsyncStravaAPI):
         self.api_sync = api_sync
         self.api_async = api_async

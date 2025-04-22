@@ -1,5 +1,3 @@
-"""Activity fetcher interfaces."""
-
 from abc import ABC, abstractmethod
 
 from src.strava_api.api.base_strava_api import BaseStravaAPI
@@ -18,5 +16,4 @@ class IActivityFetcher(ABC):
 
     @abstractmethod
     def fetch_activity_data(self, *args, **kwargs):
-        """Fetch activity data from Strava API."""
         pass

@@ -68,7 +68,6 @@ class TokenHandler:
 
     @handle_token_errors
     def _cleanup_expired_tokens(self, table: str) -> None:
-        """Clean up expired tokens before processing new ones."""
         try:
             if self.supabase_deleter.cleanup_expired_tokens(table, self.encryptor):
                 self.logger.info("Successfully cleaned up expired tokens")
