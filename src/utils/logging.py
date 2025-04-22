@@ -12,4 +12,6 @@ class Logger:
             format=FORMAT_LOGGING,
             datefmt=DATEFMT_LOGGING,
         )
-        return logging.getLogger(__name__)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
+        return logger

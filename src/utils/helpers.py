@@ -1,7 +1,6 @@
+import datetime
 import time
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict
+from typing import Dict, Tuple
 
 import pandas as pd
 
@@ -17,31 +16,27 @@ def func_time_execution(func):
     return wrapper
 
 
-def get_epoch_times_for_week(previous_week: bool = False) -> tuple:
-    today = datetime.today()
-    _iso_year, _iso_week, iso_weekday = today.isocalendar()
-    days_offset = -iso_weekday + 1 - (7 if previous_week else 0)
+def get_week_epoch_range(previous_week: bool = False) -> Tuple[int, int]:
+    today = datetime.datetime.today()
+    _, _, iso_weekday = today.isocalendar()
+    days_to_monday = 1 - iso_weekday
 
-    start_of_week = today + timedelta(days=days_offset)
-    end_of_week = start_of_week + timedelta(days=6)
+    if previous_week:
+        days_to_monday -= 7
 
-    start_of_week_epoch = int(
+    start_of_week = today + datetime.timedelta(days=days_to_monday)
+    end_of_week = start_of_week + datetime.timedelta(days=6)
+
+    start_timestamp = int(
         start_of_week.replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
     )
-    end_of_week_epoch = int(
+    end_timestamp = int(
         end_of_week.replace(
             hour=23, minute=59, second=59, microsecond=999999
         ).timestamp()
     )
 
-    return start_of_week_epoch, end_of_week_epoch
-
-
-def check_path(target_path: str) -> bool:
-    target_directory = Path(target_path).absolute()
-    if not target_directory.exists():
-        target_directory.mkdir(parents=True, exist_ok=True)
-    return target_directory.is_dir()
+    return start_timestamp, end_timestamp
 
 
 def process_streams(response: Dict, id_activity: int) -> pd.DataFrame:
