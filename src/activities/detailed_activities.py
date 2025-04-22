@@ -8,7 +8,7 @@ from src.utils import helpers as helper
 class WeeklyActivitiesFetcher(IActivityFetcher):
     @helper.func_time_execution
     async def fetch_activity_data(self, previous_week: bool = False) -> List[dict]:
-        monday, sunday = helper.get_epoch_times_for_week(previous_week=previous_week)
+        monday, sunday = helper.get_week_epoch_range(previous_week=previous_week)
         params = {
             "per_page": 200,
             "page": 1,

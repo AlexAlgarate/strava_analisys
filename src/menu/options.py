@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-from src.utils.constants import MENU_DESCRIPTIONS
+from src.utils import constants
 
 
 class MenuOption(Enum):
@@ -21,12 +21,14 @@ class MenuOption(Enum):
 
     @property
     def description(self) -> str:
-        return MENU_DESCRIPTIONS[self.name]
+        return constants.MENU_DESCRIPTIONS[self.name]
 
     @classmethod
     def validate_descriptions(cls) -> None:
         missing = [
-            member.name for member in cls if member.name not in MENU_DESCRIPTIONS
+            member.name
+            for member in cls
+            if member.name not in constants.MENU_DESCRIPTIONS
         ]
         if missing:
             raise ValueError(
