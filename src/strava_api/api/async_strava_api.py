@@ -1,20 +1,29 @@
-"""Asynchronous Strava API implementation."""
+from src.database.supabase_deleter import SupabaseDeleter
+from src.encryptor import FernetEncryptor
 
 from ..http.http_clients import AsyncHTTPClient
 from .base_strava_api import BaseStravaAPI, StravaAPIConfig
 
 
 class AsyncStravaAPI(BaseStravaAPI):
-    """Asynchronous implementation of Strava API."""
-
-    def __init__(self, access_token: str, config: StravaAPIConfig = None):
+    def __init__(
+        self,
+        access_token: str,
+        table: str,
+        encryptor: FernetEncryptor,
+        config: StravaAPIConfig = None,
+        deleter: SupabaseDeleter = None,
+    ):
         super().__init__(
-            access_token=access_token, http_client=AsyncHTTPClient(), config=config
+            access_token=access_token,
+            http_client=AsyncHTTPClient(
+                database_deleter=deleter, table=table, encryptor=encryptor
+            ),
+            config=config,
         )
 
     async def make_request_async(self, endpoint: str, params: dict = None) -> dict:
-        """Make an asynchronous request to Strava API."""
         url = self.get_url(endpoint)
         return await self.http_client.get(
-            url, headers=self.get_headers(), params=params
+            url=url, headers=self.get_headers(), params=params
         )

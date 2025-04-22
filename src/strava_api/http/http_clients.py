@@ -1,18 +1,16 @@
-"""HTTP client implementations for Strava API."""
-
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import aiohttp
 import requests
 
+from src.database.supabase_deleter import SupabaseDeleter
+from src.encryptor import FernetEncryptor
 from src.utils import exceptions
 
 from .base_http_client import BaseHTTPClient
 
 
 class SyncHTTPClient(BaseHTTPClient):
-    """Synchronous HTTP client implementation using requests."""
-
     def get(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
     ) -> Dict[str, Any]:
@@ -31,7 +29,15 @@ class SyncHTTPClient(BaseHTTPClient):
 
 
 class AsyncHTTPClient(BaseHTTPClient):
-    """Asynchronous HTTP client implementation using aiohttp."""
+    def __init__(
+        self,
+        database_deleter: Optional[SupabaseDeleter] = None,
+        table: Optional[str] = None,
+        encryptor: Optional[FernetEncryptor] = None,
+    ):
+        self.database_deleter = database_deleter
+        self.table = table
+        self.encryptor = encryptor
 
     async def get(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
@@ -42,9 +48,10 @@ class AsyncHTTPClient(BaseHTTPClient):
                     raise exceptions.TooManyRequestError(
                         "\n\nToo Many Requests. Wait and try again later."
                     )
-                response.raise_for_status()
                 if response.status == 401:
-                    raise exceptions.UnauthorizedError(
-                        "\n\nUnauthorized. Check your token."
-                    )
+                    if self.database_deleter and self.table and self.encryptor:
+                        self.database_deleter.cleanup_expired_tokens(
+                            table=self.table, encryptor=self.encryptor
+                        )
+                    return {}
                 return await response.json()

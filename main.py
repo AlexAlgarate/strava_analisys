@@ -11,9 +11,17 @@ from src.utils.logging import Logger
 
 def main():
     logger = Logger().setup_logger()
-    access_token = GetAccessToken(logger=logger).get_access_token()
+
+    token = GetAccessToken(logger=logger)
+    access_token = token.get_access_token()
+
     strava_API_sync = SyncStravaAPI(access_token=access_token)
-    strava_API_async = AsyncStravaAPI(access_token=access_token)
+    strava_API_async = AsyncStravaAPI(
+        access_token=access_token,
+        deleter=token.supabase_deleter,
+        table=token.credentials["supabase_secrets"].SUPABASE_TABLE,
+        encryptor=token.encryptor,
+    )
 
     result_console_printer = ResultConsolePrinter()
     error_console_printer = ConsoleErrorHandler()
