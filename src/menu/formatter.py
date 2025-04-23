@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from src.interfaces.formatter import IValueFormatter
 
@@ -65,7 +65,7 @@ class ActivityExertionFormatter(IValueFormatter):
 
 class ActivityFormatter:
     def __init__(self):
-        self.formatters: Dict[str, IValueFormatter] = {
+        self.formatters = {
             "start_date": ActivityDateFormatter(),
             "start_date_local": ActivityDateFormatter(),
             "distance": ActivityDistanceFormatter(),

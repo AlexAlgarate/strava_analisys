@@ -6,11 +6,11 @@ from src.menu.options import MenuOption
 from src.menu.result_console_printer import ResultConsolePrinter
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
 from src.strava_api.api.sync_strava_api import SyncStravaAPI
-from src.utils.logging import Logger
+from src.utils.logger_config import LoggerConfig
 
 
 def main():
-    logger = Logger().setup_logger()
+    logger = LoggerConfig().setup_logger()
 
     token = GetAccessToken(logger=logger)
     access_token = token.get_access_token()

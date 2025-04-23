@@ -8,11 +8,11 @@ from src.database.supabase_writer import SupabaseWriter
 from src.encryptor import FernetEncryptor
 from src.token_handler import TokenHandler
 from src.token_manager import TokenManager
-from src.utils.logging import Logger
+from src.utils.logger_config import LoggerConfig
 
 
 class GetAccessToken:
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: LoggerConfig):
         load_dotenv()
         self.logger = logger
 

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from src.strava_api.api.base_strava_api import BaseStravaAPI
-from src.utils.logging import Logger
+from src.utils.logger_config import LoggerConfig
 
 
 class IActivityFetcher(ABC):
@@ -12,7 +12,7 @@ class IActivityFetcher(ABC):
     ):
         self.api = api
         self.id_activity = id_activity
-        self.logger = Logger().setup_logger()
+        self.logger = LoggerConfig().setup_logger()
 
     @abstractmethod
     def fetch_activity_data(self, *args, **kwargs):

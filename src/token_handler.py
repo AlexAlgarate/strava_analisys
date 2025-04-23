@@ -11,7 +11,7 @@ from src.oauth_code import GetOauthCode
 from src.token_manager import TokenManager
 from src.utils import constants as constant
 from src.utils import exceptions as exception
-from src.utils.logging import Logger
+from src.utils.logger_config import LoggerConfig
 
 TokenResponse = Dict[str, int | str]
 
@@ -42,7 +42,7 @@ class TokenHandler:
         token_manager: TokenManager,
         encryptor: FernetEncryptor,
         client_id: str,
-        logger: Logger,
+        logger: LoggerConfig,
     ):
         self.supabase_reader = supabase_reader
         self.supabase_writer = supabase_writer

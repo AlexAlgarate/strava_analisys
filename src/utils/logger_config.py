@@ -4,7 +4,7 @@ FORMAT_LOGGING = "%(asctime)s - %(levelname)s - %(message)s"
 DATEFMT_LOGGING = "%Y-%m-%d %H:%M:%S"
 
 
-class Logger:
+class LoggerConfig:
     @staticmethod
     def setup_logger():
         logging.basicConfig(
