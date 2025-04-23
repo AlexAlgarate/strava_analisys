@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict
 
-from src.database.supabase_deleter import SupabaseDeleter
 from src.strava_api.http.base_http_client import BaseHTTPClient
 
 
@@ -17,7 +16,6 @@ class BaseStravaAPI(ABC):
         self,
         access_token: str,
         http_client: BaseHTTPClient,
-        deleter: SupabaseDeleter = None,
         config: StravaAPIConfig = None,
     ):
         if not access_token:
@@ -25,10 +23,15 @@ class BaseStravaAPI(ABC):
         self.access_token = access_token
         self.http_client = http_client
         self.config = config or StravaAPIConfig()
-        self.deleter = deleter
 
-    @abstractmethod
-    def get_headers(self, access_token: str, content_type: str) -> Dict[str, str]: ...
+    def get_headers(self) -> Dict[str, str]:
+        return {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": self.config.content_type,
+        }
 
     def get_url(self, endpoint: str) -> str:
         return f"{self.config.base_url}{endpoint}"
+
+    @abstractmethod
+    def make_request(self, endpoint: str, params: dict = None): ...

@@ -15,7 +15,7 @@ class WeeklyActivitiesFetcher(IActivityFetcher):
             "after": str(monday),
             "before": str(sunday),
         }
-        return await self.api.make_request_async(endpoint="/activities", params=params)
+        return await self.api.make_request(endpoint="/activities", params=params)
 
 
 class DetailedActivitiesFetcher(IActivityFetcher):
@@ -43,7 +43,7 @@ class DetailedActivitiesFetcher(IActivityFetcher):
 
     async def _get_activity_details(self, activity_id: int) -> dict:
         try:
-            return await self.api.make_request_async(f"/activities/{activity_id}")
+            return await self.api.make_request(f"/activities/{activity_id}")
         except Exception as e:
             print(f"⚠️ Error fetching activity {activity_id}: {e}")
             return {}

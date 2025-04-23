@@ -13,7 +13,7 @@ class ActivityStreamsFetcher(IActivityFetcher):
         if not self.id_activity:
             raise ValueError("Activity ID is required for this operation.")
         params = {"keys": ",".join(stream_keys), "key_by_type": "true"}
-        response_json = await self.api.make_request_async(
+        response_json = await self.api.make_request(
             f"/activities/{self.id_activity}/streams", params
         )
         return helper.process_streams(

@@ -94,7 +94,7 @@ class TestStravaAPI:
 
         with patch("aiohttp.ClientSession.get") as mock_get:
             mock_get.return_value = MockResponse(mock_response)
-            response = await async_api.make_request_async(endpoint)
+            response = await async_api.make_request(endpoint)
             assert response == mock_response
 
     @pytest.mark.asyncio
@@ -104,4 +104,4 @@ class TestStravaAPI:
         with patch("aiohttp.ClientSession.get") as mock_get:
             mock_get.return_value = MockResponse({}, status=429)
             with pytest.raises(exceptions.TooManyRequestError):
-                await async_api.make_request_async(endpoint)
+                await async_api.make_request(endpoint)
