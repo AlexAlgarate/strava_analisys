@@ -7,13 +7,13 @@ from src.activities.detailed_activities import (
 from src.activities.get_streams import ActivityStreamsFetcher
 from src.activities.last_200_activities import RecentActivitiesFetcher
 from src.activities.one_activity import SingleActivityFetcher
+from src.interfaces.strava_api import BaseStravaAPI
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
-from src.strava_api.api.sync_strava_api import SyncStravaAPI
 from src.utils import constants as constant
 
 
 class StravaService:
-    def __init__(self, api_sync: SyncStravaAPI, api_async: AsyncStravaAPI):
+    def __init__(self, api_sync: BaseStravaAPI, api_async: AsyncStravaAPI):
         self.api_sync = api_sync
         self.api_async = api_async
 

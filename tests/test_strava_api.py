@@ -3,8 +3,8 @@ from unittest.mock import patch
 import aiohttp
 import pytest
 
+from src.interfaces.strava_api import StravaAPIConfig
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
-from src.strava_api.api.base_strava_api import StravaAPIConfig
 from src.strava_api.api.sync_strava_api import SyncStravaAPI
 from src.utils import exceptions
 

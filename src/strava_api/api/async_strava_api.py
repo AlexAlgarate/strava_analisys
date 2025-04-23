@@ -1,8 +1,10 @@
+from typing import Dict
+
 from src.database.supabase_deleter import SupabaseDeleter
 from src.encryptor import FernetEncryptor
+from src.interfaces.strava_api import BaseStravaAPI, StravaAPIConfig
 
 from ..http.http_clients import AsyncHTTPClient
-from .base_strava_api import BaseStravaAPI, StravaAPIConfig
 
 
 class AsyncStravaAPI(BaseStravaAPI):
@@ -22,8 +24,14 @@ class AsyncStravaAPI(BaseStravaAPI):
             config=config,
         )
 
+    def get_headers(self) -> Dict[str, str]:
+        return {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": self.config.content_type,
+        }
+
     async def make_request_async(self, endpoint: str, params: dict = None) -> dict:
         url = self.get_url(endpoint)
-        return await self.http_client.get(
-            url=url, headers=self.get_headers(), params=params
-        )
+        headers = self.get_headers()
+
+        return await self.http_client.get(url=url, headers=headers, params=params)

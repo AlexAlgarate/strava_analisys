@@ -1,32 +1,9 @@
-# from abc import ABC, abstractmethod
-# from typing import Any, Dict
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict
 
 from src.database.supabase_deleter import SupabaseDeleter
 from src.strava_api.http.base_http_client import BaseHTTPClient
-
-# class HTTPClient(ABC):
-#     @abstractmethod
-#     def get(
-#         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
-#     ) -> Dict[str, Any]:
-#         pass
-
-
-# class BaseStravaAPI(ABC):
-#     @abstractmethod
-#     def __init__(self, access_token: str, http_client: HTTPClient, config: Any = None):
-#         pass
-
-#     @abstractmethod
-#     def get_headers(self) -> Dict[str, str]:
-#         pass
-
-#     @abstractmethod
-#     def get_url(self, endpoint: str) -> str:
-#         pass
 
 
 @dataclass
@@ -52,13 +29,6 @@ class BaseStravaAPI(ABC):
 
     @abstractmethod
     def get_headers(self, access_token: str, content_type: str) -> Dict[str, str]: ...
-
-    # @abstractmethod
-    # def get_headers(self,access_token:str,content_type:str) -> Dict[str, str]:
-    #     return {
-    #         "Authorization": f"Bearer {self.access_token}",
-    #         "Content-Type": self.config.content_type,
-    #     }
 
     def get_url(self, endpoint: str) -> str:
         return f"{self.config.base_url}{endpoint}"

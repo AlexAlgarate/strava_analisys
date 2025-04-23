@@ -1,9 +1,8 @@
 from typing import Dict
 
-from src.interfaces.strava_api import BaseStravaAPI
+from src.interfaces.strava_api import BaseStravaAPI, StravaAPIConfig
 
 from ..http.http_clients import SyncHTTPClient
-from .base_strava_api import StravaAPIConfig
 
 
 class SyncStravaAPI(BaseStravaAPI):
