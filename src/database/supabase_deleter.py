@@ -3,9 +3,7 @@ from typing import List
 
 from supabase import Client
 
-from src.interfaces.database import (
-    IDatabaseDeleter,
-)
+from src.interfaces.database_deleter import IDatabaseDeleter
 from src.utils import exceptions as exception
 
 

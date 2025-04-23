@@ -1,8 +1,8 @@
 from supabase import Client
 
-from src.interfaces.database import IDatabaseReader
-from src.interfaces.database import T as type_T
+from src.interfaces.database_reader import IDatabaseReader
 from src.utils import exceptions as exception
+from src.utils import types as types
 
 
 class SupabaseReader(IDatabaseReader):
@@ -11,7 +11,7 @@ class SupabaseReader(IDatabaseReader):
 
     def fetch_latest_record(
         self, table: str, column: str, order_by: str | None = None
-    ) -> type_T | None:
+    ) -> types.T | None:
         try:
             query = self.client.table(table).select(column)
             if order_by:
