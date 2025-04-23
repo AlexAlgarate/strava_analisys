@@ -8,7 +8,7 @@ class IEncryptation(ABC):
         pass
 
     @abstractmethod
-    def decrypt_data(self, data: Dict[str, str]) -> Dict[str, str | int]:
+    def decrypt_data(self, data: Dict[str, str | int]) -> Dict[str, str | int]:
         pass
 
     @abstractmethod
