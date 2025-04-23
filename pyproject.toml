@@ -52,3 +52,8 @@ docstring-code-line-length = "dynamic"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
+
+[dependency-groups]
+dev = [
+    "types-requests>=2.32.0.20250328",
+]
