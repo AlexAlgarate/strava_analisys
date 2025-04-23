@@ -1,3 +1,5 @@
+import logging
+
 import supabase
 from dotenv import load_dotenv
 
@@ -8,13 +10,13 @@ from src.database.supabase_writer import SupabaseWriter
 from src.encryptor import FernetEncryptor
 from src.token_handler import TokenHandler
 from src.token_manager import TokenManager
-from src.utils.logger_config import LoggerConfig
+
+logger = logging.getLogger(__name__)
 
 
 class GetAccessToken:
-    def __init__(self, logger: LoggerConfig):
+    def __init__(self):
         load_dotenv()
-        self.logger = logger
 
         self.credentials = self._load_credentials()
         self.supabase_client = self._create_supabase_client()
@@ -66,12 +68,11 @@ class GetAccessToken:
         return TokenManager(
             client_id=strava_secrets.STRAVA_CLIENT_ID,
             secret_key=strava_secrets.STRAVA_SECRET_KEY,
-            logger=self.logger,
         )
 
     def _create_encryptor(self) -> FernetEncryptor:
         fernet_secrets = self.credentials["fernet_secrets"]
-        return FernetEncryptor(cipher=fernet_secrets.CIPHER, logger=self.logger)
+        return FernetEncryptor(cipher=fernet_secrets.CIPHER)
 
     def _create_token_handler(self) -> TokenHandler:
         strava_secrets = self.credentials["strava_secrets"]
@@ -82,5 +83,4 @@ class GetAccessToken:
             token_manager=self.token_manager,
             encryptor=self.encryptor,
             client_id=strava_secrets.STRAVA_CLIENT_ID,
-            logger=self.logger,
         )

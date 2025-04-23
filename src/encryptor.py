@@ -1,17 +1,18 @@
+import logging
 from typing import Dict
 
 from cryptography.fernet import Fernet
 
 from src.interfaces.encryptor import IEncryptation
-from src.utils.logger_config import LoggerConfig
+
+logger = logging.getLogger(__name__)
 
 
 class FernetEncryptor(IEncryptation):
-    def __init__(self, cipher: Fernet, logger: LoggerConfig):
+    def __init__(self, cipher: Fernet):
         if not isinstance(cipher, Fernet):
             raise ValueError("Cipher must be an instance of Fernet.")
         self.cipher = cipher
-        self.logger = logger
 
     def encrypt_data(self, data: Dict[str, str | int]) -> Dict[str, str]:
         try:
@@ -19,11 +20,11 @@ class FernetEncryptor(IEncryptation):
                 key: self.cipher.encrypt(str(value).encode()).decode()
                 for key, value in data.items()
             }
-            self.logger.info("Data encrypted successfully.")
+            logger.info("Data encrypted successfully.")
             return encrypted_data
 
         except Exception as e:
-            self.logger.error(f"Error encrypting data: {e}", exc_info=True)
+            logger.error(f"Error encrypting data: {e}", exc_info=True)
             raise ValueError("Encryptation failed due to an error") from e
 
     def decrypt_data(self, data: Dict[str, str | int]) -> Dict[str, str | int]:
@@ -36,11 +37,11 @@ class FernetEncryptor(IEncryptation):
                 )
                 for key, value in data.items()
             }
-            self.logger.info("Data decrypted successfully.")
+            logger.info("Data decrypted successfully.")
             return decrypted_data
 
         except Exception as e:
-            self.logger.error(f"Error decrypting data: {e}", exc_info=True)
+            logger.error(f"Error decrypting data: {e}", exc_info=True)
             raise ValueError("Decryption failed due to an error.") from e
 
     def decrypt_value(self, data_to_decrypt: dict, value: str) -> str | int:
@@ -48,7 +49,7 @@ class FernetEncryptor(IEncryptation):
             decrypted_data = self.decrypt_data(data_to_decrypt)
             return decrypted_data[value]
         except Exception as e:
-            self.logger.error(f"Error decripting the value: {e}", exc_info=True)
+            logger.error(f"Error decripting the value: {e}", exc_info=True)
             raise KeyError(
                 f"Decryption failed, {decrypted_data[value]} doesn't exist."
             ) from e

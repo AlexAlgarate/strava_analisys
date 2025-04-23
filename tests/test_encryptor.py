@@ -2,7 +2,6 @@ import pytest
 from cryptography.fernet import Fernet
 
 from src.encryptor import FernetEncryptor
-from src.utils.logger_config import LoggerConfig
 
 
 class TestEncryptor:
@@ -11,12 +10,8 @@ class TestEncryptor:
         return Fernet(Fernet.generate_key())
 
     @pytest.fixture
-    def logger(self):
-        return LoggerConfig().setup_logger()
-
-    @pytest.fixture
-    def encryptor(self, cipher, logger):
-        return FernetEncryptor(cipher, logger)
+    def encryptor(self, cipher):
+        return FernetEncryptor(cipher)
 
     @pytest.fixture
     def sample_data(self):
@@ -27,13 +22,15 @@ class TestEncryptor:
             "access_token_creation": "2025-01-30 08:40:21",
         }
 
-    def test_init_with_valid_cipher(self, cipher, logger):
-        encryptor = FernetEncryptor(cipher, logger)
+    def test_init_with_valid_cipher(self, cipher):
+        encryptor = FernetEncryptor(
+            cipher,
+        )
         assert isinstance(encryptor.cipher, Fernet)
 
-    def test_init_with_invalid_cipher(self, logger):
+    def test_init_with_invalid_cipher(self):
         with pytest.raises(ValueError, match="Cipher must be an instance of Fernet."):
-            FernetEncryptor("invalid_cipher", logger)
+            FernetEncryptor("invalid_cipher")
 
     def test_encrypt_data(self, encryptor, sample_data):
         encrypted_data = encryptor.encrypt_data(sample_data)

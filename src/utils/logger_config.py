@@ -1,17 +1,12 @@
 import logging
 
-FORMAT_LOGGING = "%(asctime)s - %(levelname)s - %(message)s"
+FORMAT_LOGGING = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 DATEFMT_LOGGING = "%Y-%m-%d %H:%M:%S"
 
 
-class LoggerConfig:
-    @staticmethod
-    def setup_logger():
-        logging.basicConfig(
-            level=logging.INFO,
-            format=FORMAT_LOGGING,
-            datefmt=DATEFMT_LOGGING,
-        )
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-        return logger
+def setup_logging(level: int = logging.INFO) -> None:
+    logging.basicConfig(
+        level=level,
+        format=FORMAT_LOGGING,
+        datefmt=DATEFMT_LOGGING,
+    )

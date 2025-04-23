@@ -1,7 +1,8 @@
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
-from typing import Dict
+from typing import Dict, Optional
 
 from src.database.supabase_deleter import SupabaseDeleter
 from src.database.supabase_reader import SupabaseReader
@@ -11,7 +12,8 @@ from src.oauth_code import GetOauthCode
 from src.token_manager import TokenManager
 from src.utils import constants as constant
 from src.utils import exceptions as exception
-from src.utils.logger_config import LoggerConfig
+
+logger = logging.getLogger(__name__)
 
 TokenResponse = Dict[str, int | str]
 
@@ -22,7 +24,7 @@ def handle_token_errors(func):
         try:
             return func(self, *args, **kwargs)
         except Exception as e:
-            self.logger.error(f"Error in {func.__name__}: {str(e)}", exc_info=True)
+            logger.error(f"Error in {func.__name__}: {str(e)}", exc_info=True)
             raise exception.TokenError(f"Token operation failed: {str(e)}") from e
 
     return wrapper
@@ -42,14 +44,13 @@ class TokenHandler:
         token_manager: TokenManager,
         encryptor: FernetEncryptor,
         client_id: str,
-        logger: LoggerConfig,
+        logger: Optional[logging.Logger] = None,
     ):
         self.supabase_reader = supabase_reader
         self.supabase_writer = supabase_writer
         self.supabase_deleter = supabase_deleter
         self.token_manager = token_manager
         self.encryptor = encryptor
-        self.logger = logger
         self.credentials = Credentials(client_id)
 
     def process_token(self, table: str):
@@ -59,9 +60,7 @@ class TokenHandler:
         record = self.supabase_reader.fetch_latest_record(table, "*", "expires_at")
 
         if not record:
-            self.logger.info(
-                "No data found in Supabase. Generating initial tokens...\n"
-            )
+            logger.info("No data found in Supabase. Generating initial tokens...\n")
             self._handle_initial_token_flow(table)
             return
         return self._handle_exisiting_token(record, table)
@@ -70,16 +69,16 @@ class TokenHandler:
     def _cleanup_expired_tokens(self, table: str) -> None:
         try:
             if self.supabase_deleter.cleanup_expired_tokens(table, self.encryptor):
-                self.logger.info("Successfully cleaned up expired tokens")
+                logger.info("Successfully cleaned up expired tokens")
         except exception.DatabaseOperationError as e:
-            self.logger.warning(f"Failed to cleanup expired tokens: {e}")
+            logger.warning(f"Failed to cleanup expired tokens: {e}")
 
     @handle_token_errors
     def _handle_exisiting_token(self, record: dict, table: str) -> TokenResponse | None:
         decrypted_record = self.encryptor.decrypt_data(record)
 
         if self.token_manager.token_has_expired(int(decrypted_record["expires_at"])):
-            self.logger.info("Token expired, refreshing...")
+            logger.info("Token expired, refreshing...")
             return self._refresh_and_store_token(
                 decrypted_record["refresh_token"], table
             )

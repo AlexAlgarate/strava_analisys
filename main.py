@@ -1,3 +1,5 @@
+import logging
+
 from src import strava_service
 from src.access_token import GetAccessToken
 from src.menu.console_error_handler import ConsoleErrorHandler
@@ -6,13 +8,16 @@ from src.menu.options import MenuOption
 from src.menu.result_console_printer import ResultConsolePrinter
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
 from src.strava_api.api.sync_strava_api import SyncStravaAPI
-from src.utils.logger_config import LoggerConfig
+from src.utils.logger_config import setup_logging
 
 
 def main():
-    logger = LoggerConfig().setup_logger()
+    setup_logging()
 
-    token = GetAccessToken(logger=logger)
+    logger = logging.getLogger(__name__)
+    logger.info("Starting Strava CLI")
+
+    token = GetAccessToken()
     access_token = token.get_access_token()
 
     strava_API_sync = SyncStravaAPI(access_token=access_token)

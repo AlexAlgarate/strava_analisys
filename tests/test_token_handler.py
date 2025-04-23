@@ -32,18 +32,12 @@ def mock_encryptor():
 
 
 @pytest.fixture
-def mock_logger():
-    return Mock()
-
-
-@pytest.fixture
 def token_handler(
     mock_supabase_reader,
     mock_supabase_writer,
     mock_supabase_deleter,
     mock_token_manager,
     mock_encryptor,
-    mock_logger,
 ):
     return TokenHandler(
         supabase_reader=mock_supabase_reader,
@@ -52,7 +46,6 @@ def token_handler(
         token_manager=mock_token_manager,
         encryptor=mock_encryptor,
         client_id="test_client_id",
-        logger=mock_logger,
     )
 
 
