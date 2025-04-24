@@ -15,7 +15,7 @@ def main():
     setup_logging()
 
     logger = logging.getLogger(__name__)
-    logger.info("Starting Strava CLI")
+    logger.info("Starting Strava CLI\n")
 
     token = GetAccessToken()
     access_token = token.get_access_token()
