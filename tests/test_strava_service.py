@@ -6,34 +6,41 @@ import pytest
 from src.strava_service import StravaService
 
 
-@pytest.fixture
-def sync_api():
+def _create_base_api_mock():
     api = Mock()
+    api.get_headers = Mock(return_value={"Authorization": "Bearer test"})
+    api.get_url = Mock(return_value="https://test.api.com/v3")
+    return api
+
+
+@pytest.fixture
+def mock_async_api():
+    api = _create_base_api_mock()
+    api.make_request = AsyncMock()
+    return api
+
+
+@pytest.fixture
+def mock_sync_api():
+    api = _create_base_api_mock()
     api.make_request = Mock()
     return api
 
 
 @pytest.fixture
-def async_api():
-    api = Mock()
-    api.make_request_async = AsyncMock()
-    return api
-
-
-@pytest.fixture
-def service(sync_api, async_api):
-    return StravaService(api_sync=sync_api, api_async=async_api)
+def service(mock_sync_api, mock_async_api):
+    return StravaService(api_sync=mock_sync_api, api_async=mock_async_api)
 
 
 class TestStravaService:
     @pytest.mark.asyncio
-    async def test_get_streams_for_activity(self, service, async_api):
+    async def test_get_streams_for_activity(self, service, mock_async_api):
         mock_response = {
             "time": {"data": [0, 1]},
             "distance": {"data": [0, 100]},
             "heartrate": {"data": [60, 65]},
         }
-        async_api.make_request_async.return_value = mock_response
+        mock_async_api.make_request.return_value = mock_response
 
         result = await service.get_streams_for_activity(activity_id=123)
 
@@ -43,13 +50,13 @@ class TestStravaService:
         assert all(result["id"] == 123)
 
     @pytest.mark.asyncio
-    async def test_get_streams_for_multiple_activities(self, service, async_api):
+    async def test_get_streams_for_multiple_activities(self, service, mock_async_api):
         mock_response = {
             "time": {"data": [0, 1]},
             "distance": {"data": [0, 100]},
             "heartrate": {"data": [60, 65]},
         }
-        async_api.make_request_async.return_value = mock_response
+        mock_async_api.make_request.return_value = mock_response
 
         result = await service.get_streams_for_multiple_activities(activity_ids=[1, 2])
 
@@ -58,19 +65,19 @@ class TestStravaService:
         assert set(result["id"].unique()) == {1, 2}
 
     @pytest.mark.asyncio
-    async def test_get_activity_range(self, service, async_api):
+    async def test_get_activity_range(self, service, mock_async_api):
         mock_response = [{"id": 1}, {"id": 2}]
-        async_api.make_request_async.return_value = mock_response
+        mock_async_api.make_request.return_value = mock_response
 
         result = await service.get_activity_range(previous_week=False)
 
         assert result == mock_response
-        assert async_api.make_request_async.called
+        assert mock_async_api.make_request.called
 
     @pytest.mark.asyncio
-    async def test_get_activity_details(self, service, async_api):
+    async def test_get_activity_details(self, service, mock_async_api):
         # Mock responses for both weekly activities and detailed activities
-        async_api.make_request_async.side_effect = [
+        mock_async_api.make_request.side_effect = [
             [{"id": 1}, {"id": 2}],  # Weekly activities
             {"id": 1, "name": "Activity 1"},  # Detailed activity 1
             {"id": 2, "name": "Activity 2"},  # Detailed activity 2
@@ -80,24 +87,24 @@ class TestStravaService:
 
         assert len(result) == 2
         assert all(isinstance(activity, dict) for activity in result)
-        assert async_api.make_request_async.call_count == 3
+        assert mock_async_api.make_request.call_count == 3
 
-    def test_get_one_activity(self, service, sync_api):
+    def test_get_one_activity(self, service, mock_sync_api):
         expected_response = {"id": 123, "name": "Morning Run"}
-        sync_api.make_request.return_value = expected_response
+        mock_sync_api.make_request.return_value = expected_response
 
         result = service.get_one_activity(activity_id=123)
 
         assert result == expected_response
-        sync_api.make_request.assert_called_once_with("/activities/123")
+        mock_sync_api.make_request.assert_called_once_with("/activities/123")
 
-    def test_get_last_200_activities(self, service, sync_api):
+    def test_get_last_200_activities(self, service, mock_sync_api):
         expected_response = [{"id": 1}, {"id": 2}]
-        sync_api.make_request.return_value = expected_response
+        mock_sync_api.make_request.return_value = expected_response
 
         result = service.get_last_200_activities()
 
         assert result == expected_response
-        sync_api.make_request.assert_called_once_with(
+        mock_sync_api.make_request.assert_called_once_with(
             endpoint="/activities", params={"per_page": 200, "page": 1}
         )

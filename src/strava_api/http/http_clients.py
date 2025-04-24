@@ -11,7 +11,7 @@ from .base_http_client import BaseHTTPClient
 
 
 class SyncHTTPClient(BaseHTTPClient):
-    def get(
+    def get_method(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         try:
@@ -39,7 +39,7 @@ class AsyncHTTPClient(BaseHTTPClient):
         self.table = table
         self.encryptor = encryptor
 
-    async def get(
+    async def get_method(
         self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         async with aiohttp.ClientSession() as session:
