@@ -3,7 +3,8 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from src.interfaces.console_printer import IPrinterResult
-from src.menu.formatter import ActivityFormatter
+
+from .formatter import ActivityFormatter
 
 
 class ResultConsolePrinter(IPrinterResult):

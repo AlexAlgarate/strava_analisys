@@ -1,10 +1,10 @@
 from enum import Enum
-from typing import Dict
 
 
 class ActivityDetailKey(Enum):
     NAME = "name"
     DISTANCE = "distance"
+    ID_ACTIVITY = "id"
     MOVING_TIME = "moving_time"
     ELAPSED_TIME = "elapsed_time"
     START_DATE_LOCAL = "start_date_local"
@@ -37,17 +37,3 @@ EXAMPLE_ID_ACTIVITIES = [
 
 URL_GET_ACCESS_TOKEN = "https://www.strava.com/oauth/token"
 OAUTH_URL = "https://www.strava.com/oauth/authorize"
-
-
-MENU_DESCRIPTIONS: Dict[str, str] = {
-    "ONE_ACTIVITY": "Show information for a specific activity",
-    "LAST_200_ACTIVITIES": "Show information for activities the last 200 activities",
-    "ACTIVITY_DETAILS": "Show detailed information for activities from current week",
-    "ACTIVITY_DETAILS_PREV_WEEK": "Show detailed information for activities from previous week",
-    "ACTIVITY_RANGE": "Show all the information for activities from current week",
-    "ACTIVITY_RANGE_PREV_WEEK": "Show all the information for activities from last week",
-    "SINGLE_STREAM": "Show the streams for a specific activity",
-    "MULTIPLE_STREAMS": "Show the streams for MULTIPLE activities",
-    "CURRENT_WEEK_REPORT": "Show the weekly report for the current week",
-    "LAST_WEEK_REPORT": "Show the weekly report for the last week",
-}
