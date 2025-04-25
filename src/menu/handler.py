@@ -1,6 +1,7 @@
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 from src.menu.console_error_handler import ConsoleErrorHandler
 from src.menu.options import MenuOption

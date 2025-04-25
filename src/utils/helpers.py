@@ -1,6 +1,6 @@
 import datetime
 import time
-from typing import Dict, Tuple
+from typing import Dict
 
 import pandas as pd
 
@@ -16,7 +16,7 @@ def func_time_execution(func):
     return wrapper
 
 
-def get_week_epoch_range(previous_week: bool = False) -> Tuple[int, int]:
+def get_week_epoch_range(previous_week: bool = False) -> tuple[int, int]:
     today = datetime.datetime.today()
     _, _, iso_weekday = today.isocalendar()
     days_to_monday = 1 - iso_weekday
