@@ -14,6 +14,7 @@ permissions:
   packages: write
 
 jobs:
+  # Run tests
   test:
     runs-on: ubuntu-latest
 
@@ -33,7 +34,8 @@ jobs:
 
       - name: Run tests
         run: uv run pytest tests/ 
-        
+  
+  # Lint code with ruff
   lint:
     name: Lint Code
     runs-on: ubuntu-latest
@@ -49,16 +51,39 @@ jobs:
       - name: Set up uv with cache
         uses: astral-sh/setup-uv@v5
         with:
-          version: "0.6.14"
+          version: "0.6.16"
           enable-cache: true
 
       - name: Lint code with Ruff
         run: uv run ruff check . --fix
 
+  # Static type check with mypy
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Set up uv with cache
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.16"
+          enable-cache: true
+
+      - name: Type check with mypy
+        run: uv run mypy .
+
+  # Build and push Docker image
   docker:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: [test, lint]
+    needs: [test, lint, typecheck]
 
     steps:
       - uses: actions/checkout@v4
