@@ -1,11 +1,11 @@
 [project]
 name = "strava-analisys"
 version = "0.1.0"
-description = "Simple (or not) tool to analyze your running workouts using Strava's API"
+description = "Tool to analyze your running workouts using Strava's API"
 readme = "README.md"
 requires-python = ">=3.12"
-license = { text = "MIT" }  # Cambia esto si usas otra licencia
-authors = [{ name = "Alex Algarate", email = "alex@example.com" }]  # Actualiza si quieres
+license = { text = "MIT" }  
+authors = [{ name = "Alex Algarate", email = "alex.algarate@gmail.com" }]  
 dependencies = [
     "aioresponses>=0.7.8",
     "cryptography>=44.0.2",
@@ -17,9 +17,10 @@ dependencies = [
     "pytest-cov>=6.1.1",
     "python-dotenv>=1.1.0",
     "requests>=2.32.3",
-    "ruff>=0.11.6",
+    "ruff>=0.11.7",
     "setuptools>=78.1.0",
     "supabase>=2.15.0",
+    "uv>=0.6.16",
 ]
 
 [project.urls]
