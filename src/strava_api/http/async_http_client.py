@@ -1,39 +1,19 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import aiohttp
-import requests
 
 from src.database.supabase_deleter import SupabaseDeleter
 from src.encryptor import FernetEncryptor
+from src.interfaces.async_http_client import BaseASyncHTTPClient
 from src.utils import exceptions
 
-from .base_http_client import BaseHTTPClient
 
-
-class SyncHTTPClient(BaseHTTPClient):
-    def get_method(
-        self, url: str, headers: Dict[str, str], params: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        try:
-            response = requests.get(url, headers=headers, params=params)
-            response.raise_for_status()
-            if response.status_code == 401:
-                raise exceptions.UnauthorizedError(
-                    "\n\nUnauthorized. Check your token."
-                )
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"\n\nError making request to {url}: {e}")
-            print("Deleting token from Supabase.")
-            return {}
-
-
-class AsyncHTTPClient(BaseHTTPClient):
+class AsyncHTTPClient(BaseASyncHTTPClient):
     def __init__(
         self,
-        database_deleter: Optional[SupabaseDeleter] = None,
-        table: Optional[str] = None,
-        encryptor: Optional[FernetEncryptor] = None,
+        database_deleter: SupabaseDeleter | None = None,
+        table: str | None = None,
+        encryptor: FernetEncryptor | None = None,
     ):
         self.database_deleter = database_deleter
         self.table = table

@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict
 
-from src.strava_api.http.base_http_client import BaseHTTPClient
+from src.interfaces.async_http_client import BaseASyncHTTPClient
+from src.interfaces.sync_http_client import BaseSyncHTTPClient
 
 
 @dataclass
@@ -15,7 +16,7 @@ class BaseStravaAPI(ABC):
     def __init__(
         self,
         access_token: str,
-        http_client: BaseHTTPClient,
+        http_client: BaseSyncHTTPClient | BaseASyncHTTPClient,
         config: StravaAPIConfig = None,
     ):
         if not access_token:

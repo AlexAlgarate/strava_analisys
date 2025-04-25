@@ -1,8 +1,11 @@
+from typing import Any, Dict, cast
+
 from src.database.supabase_deleter import SupabaseDeleter
 from src.encryptor import FernetEncryptor
+from src.interfaces.async_http_client import BaseASyncHTTPClient
 from src.interfaces.strava_api import BaseStravaAPI, StravaAPIConfig
 
-from ..http.http_clients import AsyncHTTPClient
+from ..http.async_http_client import AsyncHTTPClient
 
 
 class AsyncStravaAPI(BaseStravaAPI):
@@ -24,12 +27,12 @@ class AsyncStravaAPI(BaseStravaAPI):
             config=config,
         )
 
-    # def make_request(self, endpoint, params=None): ...
-    async def make_request(self, endpoint: str, params: dict = None) -> dict:
+    async def make_request(self, endpoint: str, params: dict = None) -> Dict[str, Any]:
         url = self.get_url(endpoint)
         headers = self.get_headers()
+        client = cast(BaseASyncHTTPClient, self.http_client)
 
-        return await self.http_client.get_method(
+        return await client.get_method(
             url=url,
             headers=headers,
             params=params,
