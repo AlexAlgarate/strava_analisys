@@ -52,7 +52,7 @@ class TestMenuHandler:
         assert isinstance(handler.dependencies.error_printer, ConsoleErrorHandler)
 
     def test_get_menu_options(self, menu_handler):
-        options = menu_handler.get_menu_options(MenuOption)
+        options = menu_handler.get_menu_options()
         assert isinstance(options, dict)
         assert len(options) == len(MenuOption)
         assert all(isinstance(key, str) for key in options.keys())

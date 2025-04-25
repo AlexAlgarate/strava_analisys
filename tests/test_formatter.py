@@ -12,7 +12,7 @@ from src.menu.formatter import (
 
 
 class TestValidFormatter:
-    invalid_inputs = ["abc", None, {}, [], "", "  "]
+    invalid_inputs: list = ["abc", None, {}, [], "", "  "]
 
     @pytest.mark.parametrize(
         "formatter_cls, input_value, expected_output",

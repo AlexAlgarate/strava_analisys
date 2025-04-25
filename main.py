@@ -4,7 +4,6 @@ from src import strava_service
 from src.access_token import GetAccessToken
 from src.menu.console_error_handler import ConsoleErrorHandler
 from src.menu.handler import MenuHandler
-from src.menu.options import MenuOption
 from src.menu.result_console_printer import ResultConsolePrinter
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
 from src.strava_api.api.sync_strava_api import SyncStravaAPI
@@ -40,7 +39,7 @@ def main():
     )
 
     while True:
-        menu.print_menu(menu_option=MenuOption)
+        menu.print_menu()
         option = input("\nChoose an option (number or 'q' to exit): ")
 
         if option.lower() == "q":

@@ -73,7 +73,7 @@ class TestStravaAPI:
         expected_url = f"{self.TEST_CONFIG.base_url}{endpoint}"
         assert sync_api.get_url(endpoint) == expected_url
 
-    @patch("src.strava_api.http.http_clients.requests.get")
+    @patch("src.strava_api.http.sync_http_client.requests.get")
     def test_make_request_sync(self, mock_get, sync_api):
         mock_response = mock_get.return_value
         mock_response.status_code = 200

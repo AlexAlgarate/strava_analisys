@@ -74,8 +74,8 @@ class MenuHandler:
             )
         )
 
-    def get_menu_options(self, menu_option: MenuOption) -> Dict[str, str]:
-        return {str(option.id): option.description for option in menu_option}
+    def get_menu_options(self) -> Dict[str, str]:
+        return {str(option.id): option.description for option in MenuOption}
 
     def execute_option(self, option: str) -> Optional[Any]:
         try:
@@ -93,7 +93,7 @@ class MenuHandler:
             raise ValueError(f"Option {option} not found")
         return valid_options[option]
 
-    def print_menu(self, menu_option: MenuOption) -> None:
+    def print_menu(self) -> None:
         print("\n📌 Choose an option: \n")
-        for key, desc in self.get_menu_options(menu_option=menu_option).items():
+        for key, desc in self.get_menu_options().items():
             print(f"{key}. {desc}")

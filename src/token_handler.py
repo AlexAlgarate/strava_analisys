@@ -15,8 +15,6 @@ from src.utils import exceptions as exception
 
 logger = logging.getLogger(__name__)
 
-TokenResponse = Dict[str, int | str]
-
 
 def handle_token_errors(func):
     @wraps(func)
@@ -74,7 +72,9 @@ class TokenHandler:
             logger.warning(f"Failed to cleanup expired tokens: {e}")
 
     @handle_token_errors
-    def _handle_exisiting_token(self, record: dict, table: str) -> TokenResponse | None:
+    def _handle_exisiting_token(
+        self, record: Dict[str, int | str], table: str
+    ) -> Dict[str, int | str] | None:
         decrypted_record = self.encryptor.decrypt_data(record)
 
         if self.token_manager.token_has_expired(int(decrypted_record["expires_at"])):
@@ -86,7 +86,7 @@ class TokenHandler:
         return decrypted_record
 
     @handle_token_errors
-    def _handle_initial_token_flow(self, table: str) -> TokenResponse | None:
+    def _handle_initial_token_flow(self, table: str) -> Dict[str, int | str] | None:
         oauth_helper = GetOauthCode()
         code = oauth_helper.get_authorization_code(
             constant.OAUTH_URL,
@@ -103,10 +103,12 @@ class TokenHandler:
         if initial_tokens:
             return self._store_and_return_tokens(initial_tokens, table)
 
+        return None
+
     @handle_token_errors
     def _refresh_and_store_token(
         self, refresh_token: str, table: str
-    ) -> TokenResponse | None:
+    ) -> Dict[str, int | str] | None:
         new_tokens = self.token_manager.refresh_access_token(refresh_token)
 
         if not new_tokens:
@@ -115,7 +117,9 @@ class TokenHandler:
         return self._store_and_return_tokens(new_tokens, table)
 
     @handle_token_errors
-    def _store_and_return_tokens(self, tokens: dict, table: str) -> TokenResponse:
+    def _store_and_return_tokens(
+        self, tokens: Dict[str, str | int], table: str
+    ) -> Dict[str, int | str]:
         data_to_insert = self._prepare_token_data(tokens)
         encrypted_data = self.encryptor.encrypt_data(data_to_insert)
 
@@ -125,7 +129,7 @@ class TokenHandler:
         return data_to_insert
 
     @staticmethod
-    def _prepare_token_data(tokens: Dict[str, str]) -> Dict[str, str]:
+    def _prepare_token_data(tokens: Dict[str, str | int]) -> Dict[str, str | int]:
         return {
             "access_token": tokens["access_token"],
             "refresh_token": tokens["refresh_token"],

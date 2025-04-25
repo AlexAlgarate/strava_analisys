@@ -1,3 +1,5 @@
+from typing import Dict
+
 from supabase import Client
 
 from src.interfaces.database_reader import IDatabaseReader
@@ -11,7 +13,7 @@ class SupabaseReader(IDatabaseReader):
 
     def fetch_latest_record(
         self, table: str, column: str, order_by: str | None = None
-    ) -> types.T | None:
+    ) -> Dict[str, str | int] | None:
         try:
             query = self.client.table(table).select(column)
             if order_by:
