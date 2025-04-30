@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from src.utils import types as types
-
 
 class IDatabaseReader(ABC):
     @abstractmethod

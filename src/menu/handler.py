@@ -33,10 +33,6 @@ class MenuHandler:
 
     def _init_menu_options(self) -> None:
         self.menu_options: Dict[MenuOption, Callable[[], Any]] = {
-            MenuOption.ONE_ACTIVITY: lambda: self.dependencies.service.get_one_activity(
-                activity_id=constant.EXAMPLE_ID_ONE_ACTIVITY
-            ),
-            MenuOption.LAST_200_ACTIVITIES: self.dependencies.service.get_last_200_activities,
             MenuOption.ACTIVITY_DETAILS: lambda: self._handle_async(
                 self.dependencies.service.get_activity_details, False
             ),
@@ -63,7 +59,7 @@ class MenuHandler:
     def _provisional_handle_feature(self) -> Any:
         return "This feature is not yet implemented."
 
-    def _handle_async(self, func: Callable, previous_week: bool) -> Any:
+    def _handle_async(self, func: Callable, previous_week: bool = None) -> Any:
         return asyncio.run(func(previous_week=previous_week))
 
     def _handle_single_stream(self) -> Any:

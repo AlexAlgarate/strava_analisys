@@ -4,7 +4,6 @@ from supabase import Client
 
 from src.interfaces.database_reader import IDatabaseReader
 from src.utils import exceptions as exception
-from src.utils import types as types
 
 
 class SupabaseReader(IDatabaseReader):

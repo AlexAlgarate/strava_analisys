@@ -7,7 +7,6 @@ from src.menu.console_error_handler import ConsoleErrorHandler
 from src.menu.handler import MenuHandler
 from src.menu.result_console_printer import ResultConsolePrinter
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
-from src.strava_api.api.sync_strava_api import SyncStravaAPI
 from src.utils.logger_config import setup_logging
 
 
@@ -20,7 +19,6 @@ def main():
     token = GetAccessToken()
     access_token = token.get_access_token()
 
-    strava_API_sync = SyncStravaAPI(access_token=access_token)
     strava_API_async = AsyncStravaAPI(
         access_token=access_token,
         deleter=token.supabase_deleter,
@@ -31,10 +29,7 @@ def main():
     result_console_printer = ResultConsolePrinter()
     error_console_printer = ConsoleErrorHandler()
 
-    service = strava_service.StravaService(
-        api_async=strava_API_async,
-        api_sync=strava_API_sync,
-    )
+    service = strava_service.StravaService(api_async=strava_API_async)
 
     menu = MenuHandler(
         service=service,

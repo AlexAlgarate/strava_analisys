@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import Dict
 
 from src.interfaces.async_http_client import BaseASyncHTTPClient
-from src.interfaces.sync_http_client import BaseSyncHTTPClient
 
 
 @dataclass
@@ -16,7 +15,7 @@ class BaseStravaAPI(ABC):
     def __init__(
         self,
         access_token: str,
-        http_client: BaseSyncHTTPClient | BaseASyncHTTPClient,
+        http_client: BaseASyncHTTPClient,
         config: StravaAPIConfig = None,
     ):
         if not access_token:

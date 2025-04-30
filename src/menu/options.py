@@ -2,8 +2,6 @@ from enum import Enum, auto
 from typing import Dict
 
 MENU_DESCRIPTIONS: Dict[str, str] = {
-    "ONE_ACTIVITY": "Show information for a specific activity",
-    "LAST_200_ACTIVITIES": "Show information for activities the last 200 activities",
     "ACTIVITY_DETAILS": "Show detailed information for activities from current week",
     "ACTIVITY_DETAILS_PREV_WEEK": "Show detailed information for activities from previous week",
     "ACTIVITY_RANGE": "Show all the information for activities from current week",
@@ -16,8 +14,6 @@ MENU_DESCRIPTIONS: Dict[str, str] = {
 
 
 class MenuOption(Enum):
-    ONE_ACTIVITY = auto()
-    LAST_200_ACTIVITIES = auto()
     ACTIVITY_DETAILS = auto()
     ACTIVITY_DETAILS_PREV_WEEK = auto()
     ACTIVITY_RANGE = auto()
