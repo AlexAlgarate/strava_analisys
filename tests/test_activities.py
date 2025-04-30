@@ -8,8 +8,6 @@ from src.activities.detailed_activities import (
     WeeklyActivitiesFetcher,
 )
 from src.activities.get_streams import ActivityStreamsFetcher
-from src.activities.last_200_activities import RecentActivitiesFetcher
-from src.activities.one_activity import SingleActivityFetcher
 from src.utils import constants as constant
 from src.utils import exceptions
 
@@ -33,45 +31,6 @@ def mock_sync_api():
     api = _create_base_api_mock()
     api.make_request = Mock()
     return api
-
-
-class TestSingleActivityFetcher:
-    @pytest.fixture
-    def activity_fetcher(self, mock_sync_api):
-        return SingleActivityFetcher(api=mock_sync_api, id_activity=123)
-
-    def test_fetch_activity_data_success(self, activity_fetcher, mock_sync_api):
-        expected_response = {"id": 123, "name": "Morning Run"}
-        mock_sync_api.make_request.return_value = expected_response
-
-        result = activity_fetcher.fetch_activity_data()
-
-        assert result == expected_response
-        mock_sync_api.make_request.assert_called_once_with("/activities/123")
-
-    def test_fetch_activity_data_no_id(self, mock_sync_api):
-        fetcher = SingleActivityFetcher(api=mock_sync_api)
-        with pytest.raises(
-            ValueError, match="Activity ID is required for this operation"
-        ):
-            fetcher.fetch_activity_data()
-
-
-class TestRecentActivitiesFetcher:
-    @pytest.fixture
-    def activity_fetcher(self, mock_sync_api):
-        return RecentActivitiesFetcher(api=mock_sync_api)
-
-    def test_fetch_activity_data_success(self, activity_fetcher, mock_sync_api):
-        expected_response = [{"id": 1}, {"id": 2}]
-        mock_sync_api.make_request.return_value = expected_response
-
-        result = activity_fetcher.fetch_activity_data()
-
-        assert result == expected_response
-        mock_sync_api.make_request.assert_called_once_with(
-            endpoint="/activities", params={"per_page": 200, "page": 1}
-        )
 
 
 class TestWeeklyActivitiesFetcher:

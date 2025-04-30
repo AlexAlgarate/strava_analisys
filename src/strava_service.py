@@ -105,12 +105,6 @@ class StravaService:
         self.stream_manager = StreamManager(api_async)
         self.data_exporter = DataExporter(exporter_map)
 
-    async def get_one_activity(self, activity_id: int) -> Dict[str, Any]:
-        return await self.activity_manager.get_one_activity(activity_id)
-
-    async def get_last_200_activities(self) -> Dict[str, Any]:
-        return await self.activity_manager.get_last_200_activities()
-
     async def get_activity_range(self, previous_week: bool = False) -> Dict[str, Any]:
         return await self.activity_manager.get_activity_range(previous_week)
 

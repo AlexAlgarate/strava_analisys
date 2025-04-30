@@ -58,34 +58,6 @@ class TestMenuHandler:
         assert all(isinstance(key, str) for key in options.keys())
         assert all(isinstance(value, str) for value in options.values())
 
-    def test_execute_option_one_activity(
-        self, menu_handler, mock_service, mock_result_printer
-    ):
-        expected_result = {"id": 123, "name": "Morning Run"}
-        mock_service.get_one_activity.return_value = expected_result
-
-        result = menu_handler.execute_option("1")  # ONE_ACTIVITY option
-
-        assert result == expected_result
-        mock_service.get_one_activity.assert_called_once()
-        mock_result_printer.print_result.assert_called_once_with(
-            option="1", result=expected_result
-        )
-
-    def test_execute_option_last_200(
-        self, menu_handler, mock_service, mock_result_printer
-    ):
-        expected_result = [{"id": 1}, {"id": 2}]
-        mock_service.get_last_200_activities.return_value = expected_result
-
-        result = menu_handler.execute_option("2")  # LAST_200_ACTIVITIES option
-
-        assert result == expected_result
-        mock_service.get_last_200_activities.assert_called_once()
-        mock_result_printer.print_result.assert_called_once_with(
-            option="2", result=expected_result
-        )
-
     def test_execute_invalid_option(self, menu_handler, mock_error_printer):
         result = menu_handler.execute_option("999")
 
@@ -96,7 +68,7 @@ class TestMenuHandler:
         valid_option = "1"
         result = menu_handler._validate_option(valid_option)
         assert isinstance(result, MenuOption)
-        assert result == MenuOption.ONE_ACTIVITY
+        assert result == MenuOption.ACTIVITY_DETAILS
 
     def test_validate_option_failure(self, menu_handler):
         invalid_option = "999"

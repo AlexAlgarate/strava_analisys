@@ -5,9 +5,9 @@ import src.menu.options as options_module
 
 class TestMenuOption:
     def test_menu_option_values(self):
-        assert options_module.MenuOption.ONE_ACTIVITY.id == 1
-        assert options_module.MenuOption.LAST_200_ACTIVITIES.id == 2
-        assert options_module.MenuOption.ACTIVITY_DETAILS.id == 3
+        assert options_module.MenuOption.ACTIVITY_DETAILS.id == 1
+        assert options_module.MenuOption.ACTIVITY_DETAILS_PREV_WEEK.id == 2
+        assert options_module.MenuOption.SINGLE_STREAM.id == 5
 
     def test_menu_option_descriptions(self):
         for option in options_module.MenuOption:
@@ -19,26 +19,29 @@ class TestMenuOption:
 
     def test_validate_descriptions_missing(self, monkeypatch):
         incomplete = options_module.MENU_DESCRIPTIONS.copy()
-        del incomplete["ONE_ACTIVITY"]
+        del incomplete["ACTIVITY_DETAILS"]
 
         monkeypatch.setitem(options_module.__dict__, "MENU_DESCRIPTIONS", incomplete)
 
         from src.menu.options import MenuOption
 
         with pytest.raises(
-            ValueError, match="Missing descriptions for menu options: ONE_ACTIVITY"
+            ValueError, match="Missing descriptions for menu options: ACTIVITY_DETAILS"
         ):
             MenuOption.validate_descriptions()
 
     def test_menu_option_str_representation(self):
-        assert str(options_module.MenuOption.ONE_ACTIVITY) == "MenuOption.ONE_ACTIVITY"
+        assert (
+            str(options_module.MenuOption.ACTIVITY_DETAILS)
+            == "MenuOption.ACTIVITY_DETAILS"
+        )
 
     def test_menu_option_equality(self):
         assert (
-            options_module.MenuOption.ONE_ACTIVITY
-            == options_module.MenuOption.ONE_ACTIVITY
+            options_module.MenuOption.ACTIVITY_DETAILS
+            == options_module.MenuOption.ACTIVITY_DETAILS
         )
         assert (
-            options_module.MenuOption.ONE_ACTIVITY
-            != options_module.MenuOption.LAST_200_ACTIVITIES
+            options_module.MenuOption.ACTIVITY_DETAILS
+            != options_module.MenuOption.ACTIVITY_DETAILS_PREV_WEEK
         )

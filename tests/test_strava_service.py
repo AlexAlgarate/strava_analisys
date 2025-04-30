@@ -29,7 +29,7 @@ def mock_sync_api():
 
 @pytest.fixture
 def service(mock_sync_api, mock_async_api):
-    return StravaService(api_sync=mock_sync_api, api_async=mock_async_api)
+    return StravaService(api_async=mock_async_api)
 
 
 class TestStravaService:
@@ -88,23 +88,3 @@ class TestStravaService:
         assert len(result) == 2
         assert all(isinstance(activity, dict) for activity in result)
         assert mock_async_api.make_request.call_count == 3
-
-    def test_get_one_activity(self, service, mock_sync_api):
-        expected_response = {"id": 123, "name": "Morning Run"}
-        mock_sync_api.make_request.return_value = expected_response
-
-        result = service.get_one_activity(activity_id=123)
-
-        assert result == expected_response
-        mock_sync_api.make_request.assert_called_once_with("/activities/123")
-
-    def test_get_last_200_activities(self, service, mock_sync_api):
-        expected_response = [{"id": 1}, {"id": 2}]
-        mock_sync_api.make_request.return_value = expected_response
-
-        result = service.get_last_200_activities()
-
-        assert result == expected_response
-        mock_sync_api.make_request.assert_called_once_with(
-            endpoint="/activities", params={"per_page": 200, "page": 1}
-        )

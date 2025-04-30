@@ -5,7 +5,6 @@ import pytest
 
 from src.interfaces.strava_api import StravaAPIConfig
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
-from src.strava_api.api.sync_strava_api import SyncStravaAPI
 from src.utils import exceptions
 
 
@@ -40,10 +39,6 @@ class TestStravaAPI:
     )
 
     @pytest.fixture
-    def sync_api(self):
-        return SyncStravaAPI(access_token=self.TEST_TOKEN, config=self.TEST_CONFIG)
-
-    @pytest.fixture
     def async_api(self):
         return AsyncStravaAPI(
             access_token=self.TEST_TOKEN,
@@ -53,39 +48,17 @@ class TestStravaAPI:
             deleter=self.TEST_DELETER,
         )
 
-    def test_init_without_token(self):
-        with pytest.raises(ValueError, match="Access token must be provided."):
-            SyncStravaAPI("")
-
-    def test_init_with_token(self):
-        api = SyncStravaAPI(self.TEST_TOKEN)
-        assert api.access_token == self.TEST_TOKEN
-
-    def test_get_headers(self, sync_api):
-        headers = sync_api.get_headers()
+    def test_get_headers(self, async_api):
+        headers = async_api.get_headers()
         assert headers == {
             "Authorization": f"Bearer {self.TEST_TOKEN}",
             "Content-Type": "application/json",
         }
 
-    def test_get_url(self, sync_api):
+    def test_get_url(self, async_api):
         endpoint = "/athlete"
         expected_url = f"{self.TEST_CONFIG.base_url}{endpoint}"
-        assert sync_api.get_url(endpoint) == expected_url
-
-    @patch("src.strava_api.http.sync_http_client.requests.get")
-    def test_make_request_sync(self, mock_get, sync_api):
-        mock_response = mock_get.return_value
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"id": 12345, "name": "Test Athlete"}
-
-        response = sync_api.make_request("/athlete")
-        assert response == {"id": 12345, "name": "Test Athlete"}
-        mock_get.assert_called_once_with(
-            f"{self.TEST_CONFIG.base_url}/athlete",
-            headers=sync_api.get_headers(),
-            params=None,
-        )
+        assert async_api.get_url(endpoint) == expected_url
 
     @pytest.mark.asyncio
     async def test_make_request_async(self, async_api):
