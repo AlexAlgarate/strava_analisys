@@ -26,7 +26,7 @@ class AsyncHTTPClient(BaseASyncHTTPClient):
             async with session.get(url, headers=headers, params=params) as response:
                 if response.status == 429:
                     raise exceptions.TooManyRequestError(
-                        "\n\nToo Many Requests. Wait and try again later."
+                        "\n\n You have reached the request limit. Please, try again in 15 minutes."
                     )
                 if response.status == 401:
                     if self.database_deleter and self.table and self.encryptor:
