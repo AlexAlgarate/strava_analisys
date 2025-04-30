@@ -1,12 +1,15 @@
-test/conftest.py
-test/test_database.py
-test/test_token_manager.py
 read_zones.py
 prueba.py
 analisys_zones.py
 prueba_supabase.py
 update_uv.sh
-src/refactor.py
+streams_current_week.csv
+streams_previous_week.csv
+
+
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

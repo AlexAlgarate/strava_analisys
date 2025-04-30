@@ -1,6 +1,6 @@
 import datetime
 import time
-from typing import Dict
+from typing import Dict, List
 
 import pandas as pd
 
@@ -63,3 +63,7 @@ def process_streams(response: Dict, id_activity: int) -> pd.DataFrame:
     df = pd.DataFrame(data)
     df["id"] = id_activity
     return df
+
+
+async def get_activity_ids(activities: List[dict]) -> List[int]:
+    return [activity["id"] for activity in activities]

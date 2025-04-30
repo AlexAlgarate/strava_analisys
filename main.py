@@ -30,7 +30,10 @@ def main():
     result_console_printer = ResultConsolePrinter()
     error_console_printer = ConsoleErrorHandler()
 
-    service = strava_service.StravaService(strava_API_sync, strava_API_async)
+    service = strava_service.StravaService(
+        api_async=strava_API_async,
+        api_sync=strava_API_sync,
+    )
 
     menu = MenuHandler(
         service=service,

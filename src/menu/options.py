@@ -10,8 +10,8 @@ MENU_DESCRIPTIONS: Dict[str, str] = {
     "ACTIVITY_RANGE_PREV_WEEK": "Show all the information for activities from last week",
     "SINGLE_STREAM": "Show the streams for a specific activity",
     "MULTIPLE_STREAMS": "Show the streams for MULTIPLE activities",
-    "CURRENT_WEEK_REPORT": "Show the weekly report for the current week",
-    "LAST_WEEK_REPORT": "Show the weekly report for the last week",
+    "STREAMS_CURRENT_WEEK": "Show the streams for the current week",
+    "STREAMS_PREV_WEEK": "Show the streams for the previous week",
 }
 
 
@@ -24,8 +24,8 @@ class MenuOption(Enum):
     ACTIVITY_RANGE_PREV_WEEK = auto()
     SINGLE_STREAM = auto()
     MULTIPLE_STREAMS = auto()
-    CURRENT_WEEK_REPORT = auto()
-    LAST_WEEK_REPORT = auto()
+    STREAMS_CURRENT_WEEK = auto()
+    STREAMS_PREV_WEEK = auto()
 
     @property
     def id(self) -> int:

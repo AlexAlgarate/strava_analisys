@@ -51,8 +51,13 @@ class MenuHandler:
             ),
             MenuOption.SINGLE_STREAM: self._handle_single_stream,
             MenuOption.MULTIPLE_STREAMS: self._handle_multiple_streams,
-            MenuOption.CURRENT_WEEK_REPORT: self._provisional_handle_feature,
-            MenuOption.LAST_WEEK_REPORT: self._provisional_handle_feature,
+            MenuOption.STREAMS_CURRENT_WEEK: lambda: self._handle_async(
+                self.dependencies.service.export_streams_for_selected_week,
+                False,
+            ),
+            MenuOption.STREAMS_PREV_WEEK: lambda: self._handle_async(
+                self.dependencies.service.export_streams_for_selected_week, True
+            ),
         }
 
     def _provisional_handle_feature(self) -> Any:
@@ -65,6 +70,13 @@ class MenuHandler:
         return asyncio.run(
             self.dependencies.service.get_streams_for_activity(
                 activity_id=constant.EXAMPLE_ID_ONE_ACTIVITY
+            )
+        )
+
+    def _handle_weekly_streams(self, previous_week: bool) -> Any:
+        return asyncio.run(
+            self.dependencies.service.export_streams_for_selected_week(
+                previous_week=previous_week
             )
         )
 
