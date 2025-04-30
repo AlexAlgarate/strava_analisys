@@ -981,15 +981,9 @@ source = { virtual = "." }
 dependencies = [
     { name = "aioresponses" },
     { name = "cryptography" },
-    { name = "freezegun" },
-    { name = "mypy" },
     { name = "pandas" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
     { name = "python-dotenv" },
     { name = "requests" },
-    { name = "ruff" },
     { name = "setuptools" },
     { name = "supabase" },
     { name = "uv" },
@@ -997,6 +991,12 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "freezegun" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
     { name = "types-requests" },
 ]
 
@@ -1004,22 +1004,24 @@ dev = [
 requires-dist = [
     { name = "aioresponses", specifier = ">=0.7.8" },
     { name = "cryptography", specifier = ">=44.0.2" },
-    { name = "freezegun", specifier = ">=1.5.1" },
-    { name = "mypy", specifier = ">=1.15.0" },
     { name = "pandas", specifier = ">=2.2.3" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "pytest-asyncio", specifier = ">=0.26.0" },
-    { name = "pytest-cov", specifier = ">=6.1.1" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "ruff", specifier = ">=0.11.7" },
     { name = "setuptools", specifier = ">=78.1.0" },
     { name = "supabase", specifier = ">=2.15.1" },
     { name = "uv", specifier = ">=0.7.1" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "types-requests", specifier = ">=2.32.0.20250328" }]
+dev = [
+    { name = "freezegun", specifier = ">=1.5.1" },
+    { name = "mypy", specifier = ">=1.15.0" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-asyncio", specifier = ">=0.26.0" },
+    { name = "pytest-cov", specifier = ">=6.1.1" },
+    { name = "ruff", specifier = ">=0.11.7" },
+    { name = "types-requests", specifier = ">=2.32.0.20250328" },
+]
 
 [[package]]
 name = "strenum"
