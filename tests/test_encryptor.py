@@ -1,7 +1,7 @@
 import pytest
 from cryptography.fernet import Fernet
 
-from src.encryptor import FernetEncryptor
+from src.infrastructure.encryption.encryptor import FernetEncryptor
 
 
 class TestEncryptor:

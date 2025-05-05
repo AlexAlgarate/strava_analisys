@@ -3,7 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.token_manager import Credentials, GranType, TokenException, TokenManager
+from src.auth.token_manager import GranType, TokenManager
+from src.utils import exceptions
 
 TEST_CLIENT_ID = "test_client_id"
 TEST_SECRET_KEY = "test_secret_key"
@@ -33,9 +34,10 @@ def mock_successful_response():
 class TestTokenManager:
     def test_init_creates_credentials(self):
         manager = TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY)
-        assert isinstance(manager.credentials, Credentials)
-        assert manager.credentials.client_id == TEST_CLIENT_ID
-        assert manager.credentials.secret_key == TEST_SECRET_KEY
+        assert isinstance((manager.client_id), str)
+        assert isinstance((manager.secret_key), str)
+        assert manager.client_id == TEST_CLIENT_ID
+        assert manager.secret_key == TEST_SECRET_KEY
 
     def test_init_sets_up_logger(self):
         TokenManager(TEST_CLIENT_ID, TEST_SECRET_KEY)
@@ -87,7 +89,7 @@ class TestTokenManager:
 
     @patch("requests.post")
     def test_send_token_request_failure(self, mock_post, token_manager):
-        mock_post.side_effect = TokenException("API ERROR")
+        mock_post.side_effect = exceptions.TokenException("API ERROR")
 
         result = token_manager._send_token_request({"test": "data"})
 
@@ -115,7 +117,7 @@ class TestTokenManager:
 
     @patch("requests.post")
     def test_get_initial_tokens_failure(self, mock_post, token_manager):
-        mock_post.side_effect = TokenException("API ERROR")
+        mock_post.side_effect = exceptions.TokenException("API ERROR")
 
         result = token_manager.get_initial_tokens(TEST_AUTHORIZATION_CODE)
 
@@ -143,7 +145,7 @@ class TestTokenManager:
 
     @patch("requests.post")
     def test_refresh_access_token_failure(self, mock_post, token_manager):
-        mock_post.side_effect = TokenException("API ERROR")
+        mock_post.side_effect = exceptions.TokenException("API ERROR")
 
         result = token_manager.refresh_access_token(TEST_REFRESH_TOKEN)
 

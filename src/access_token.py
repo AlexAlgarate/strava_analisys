@@ -3,13 +3,13 @@ import logging
 import supabase
 from dotenv import load_dotenv
 
-from src.credentials import FernetSecrets, StravaSecrets, SupabaseSecrets
+from src.auth.credentials import FernetSecrets, StravaSecrets, SupabaseSecrets
+from src.auth.token_handler import TokenHandler
+from src.auth.token_manager import TokenManager
 from src.database.supabase_deleter import SupabaseDeleter
 from src.database.supabase_reader import SupabaseReader
 from src.database.supabase_writer import SupabaseWriter
-from src.encryptor import FernetEncryptor
-from src.token_handler import TokenHandler
-from src.token_manager import TokenManager
+from src.infrastructure.encryption.encryptor import FernetEncryptor
 
 logger = logging.getLogger(__name__)
 

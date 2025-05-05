@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from src.oauth_code import GetOauthCode
+from src.auth.oauth_code import GetOauthCode
 
 
 class TestGetOauthCode:

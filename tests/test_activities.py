@@ -7,7 +7,7 @@ from src.activities.detailed_activities import (
     DetailedActivitiesFetcher,
     WeeklyActivitiesFetcher,
 )
-from src.activities.get_streams import ActivityStreamsFetcher
+from src.core.streams.fetcher import ActivityStreamsFetcher
 from src.utils import constants as constant
 from src.utils import exceptions
 

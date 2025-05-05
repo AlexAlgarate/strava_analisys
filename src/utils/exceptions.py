@@ -16,3 +16,7 @@ class TokenError(Exception):
 
 class UnauthorizedError(Exception):
     pass
+
+
+class TokenException(Exception):
+    pass

@@ -4,12 +4,12 @@ from datetime import datetime
 from functools import wraps
 from typing import Dict, Optional
 
+from src.auth.oauth_code import GetOauthCode
+from src.auth.token_manager import TokenManager
 from src.database.supabase_deleter import SupabaseDeleter
 from src.database.supabase_reader import SupabaseReader
 from src.database.supabase_writer import SupabaseWriter
-from src.encryptor import FernetEncryptor
-from src.oauth_code import GetOauthCode
-from src.token_manager import TokenManager
+from src.infrastructure.encryption.encryptor import FernetEncryptor
 from src.utils import constants as constant
 from src.utils import exceptions as exception
 
@@ -52,9 +52,6 @@ class TokenHandler:
         self.credentials = Credentials(client_id)
 
     def process_token(self, table: str):
-        # Cleanup expired tokens before processing
-        # self._cleanup_expired_tokens(table)
-
         record = self.supabase_reader.fetch_latest_record(table, "*", "expires_at")
 
         if not record:

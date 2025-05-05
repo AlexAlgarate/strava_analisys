@@ -1,69 +1,41 @@
-import datetime
+import functools
+import os
 import time
-from typing import Dict, List
+from datetime import datetime, timedelta, timezone
+from typing import Any, Callable, Tuple
 
-import pandas as pd
 
+def func_time_execution(func: Callable) -> Callable:
+    """Decorator to measure function execution time."""
 
-def func_time_execution(func):
-    async def wrapper(*args, **kwargs):
-        start = time.time()
+    @functools.wraps(func)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        start_time = time.perf_counter()
         result = await func(*args, **kwargs)
-        end = time.time()
-        print(f"\nExecution time: {end - start:.2f} seconds\n")
+        end_time = time.perf_counter()
+        execution_time = end_time - start_time
+        print(f"{func.__name__} took {execution_time:.2f} seconds to execute.")
         return result
 
     return wrapper
 
 
-def get_week_epoch_range(previous_week: bool = False) -> tuple[int, int]:
-    today = datetime.datetime.today()
-    _, _, iso_weekday = today.isocalendar()
-    days_to_monday = 1 - iso_weekday
+def check_path(path: str) -> bool:
+    """Check if a path exists."""
+    return os.path.exists(path)
+
+
+def get_week_epoch_range(previous_week: bool = False) -> Tuple[int, int]:
+    """Get epoch timestamp range for current or previous week."""
+    now = datetime.now(timezone.utc)
+    current_weekday = now.weekday()
+    monday = now - timedelta(days=current_weekday)
 
     if previous_week:
-        days_to_monday -= 7
+        monday = monday - timedelta(weeks=1)
 
-    start_of_week = today + datetime.timedelta(days=days_to_monday)
-    end_of_week = start_of_week + datetime.timedelta(days=6)
+    # Reset to start of Monday (00:00:00)
+    monday = monday.replace(hour=0, minute=0, second=0, microsecond=0)
+    sunday = monday + timedelta(days=7)
 
-    start_timestamp = int(
-        start_of_week.replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
-    )
-    end_timestamp = int(
-        end_of_week.replace(
-            hour=23, minute=59, second=59, microsecond=999999
-        ).timestamp()
-    )
-
-    return start_timestamp, end_timestamp
-
-
-def process_streams(response: Dict, id_activity: int) -> pd.DataFrame:
-    max_length = (
-        max(
-            len(stream_data.get("data", []))
-            for stream_data in response.values()
-            if isinstance(stream_data, dict)
-        )
-        if response
-        else 0
-    )
-
-    data = {}
-    for stream_type, stream_data in response.items():
-        if isinstance(stream_data, dict) and "data" in stream_data:
-            data[stream_type] = stream_data["data"]
-
-            if len(data[stream_type]) < max_length:
-                data[stream_type].extend([None] * (max_length - len(data[stream_type])))
-        else:
-            data[stream_type] = [None] * max_length
-
-    df = pd.DataFrame(data)
-    df["id"] = id_activity
-    return df
-
-
-async def get_activity_ids(activities: List[dict]) -> List[int]:
-    return [activity["id"] for activity in activities]
+    return int(monday.timestamp()), int(sunday.timestamp())
