@@ -55,6 +55,7 @@ class TestStreamProcessor:
         result = process_streams(test_data, id_activity=123)
 
         assert isinstance(result, pd.DataFrame)
-        assert len(result) == 3  # Should use max length
-        assert result["distance"].isna().sum() == 1  # Last value should be NaN
-        assert all(~result["time"].isna())  # Time should have no NaN values
+        assert len(result) == 4  # Should use max length
+        assert result["distance"].isna().sum() == 2  # Last value should be NaN
+        assert result["time"].isna().sum() == 1
+        assert result["heartrate"].isna().sum() == 0

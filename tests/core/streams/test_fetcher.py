@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock
 import pandas as pd
 import pytest
 
-from src.core.streams import ActivityStreamsFetcher
+from src.core.streams.fetcher import ActivityStreamsFetcher
 from src.utils import constants as constant
 from src.utils import exceptions
 
