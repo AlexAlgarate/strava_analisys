@@ -1,6 +1,6 @@
 from typing import Any, Dict, cast
 
-from src.database.supabase_deleter import SupabaseDeleter
+from src.infrastructure.database.supabase_deleter import SupabaseDeleter
 from src.infrastructure.encryption.encryptor import FernetEncryptor
 from src.interfaces.async_http_client import BaseASyncHTTPClient
 from src.interfaces.strava_api import BaseStravaAPI, StravaAPIConfig

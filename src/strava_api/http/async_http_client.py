@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import aiohttp
 
-from src.database.supabase_deleter import SupabaseDeleter
+from src.infrastructure.database.supabase_deleter import SupabaseDeleter
 from src.infrastructure.encryption.encryptor import FernetEncryptor
 from src.interfaces.async_http_client import BaseASyncHTTPClient
 from src.utils import exceptions

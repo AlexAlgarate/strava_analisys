@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.database.supabase_reader import SupabaseReader
-from src.database.supabase_writer import SupabaseWriter
+from src.infrastructure.database.supabase_reader import SupabaseReader
+from src.infrastructure.database.supabase_writer import SupabaseWriter
 from src.utils import exceptions as exception
 
 

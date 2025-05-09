@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 from src.auth.credentials import FernetSecrets, StravaSecrets, SupabaseSecrets
 from src.auth.token_handler import TokenHandler
 from src.auth.token_manager import TokenManager
-from src.database.supabase_deleter import SupabaseDeleter
-from src.database.supabase_reader import SupabaseReader
-from src.database.supabase_writer import SupabaseWriter
+from src.infrastructure.database.supabase_deleter import SupabaseDeleter
+from src.infrastructure.database.supabase_reader import SupabaseReader
+from src.infrastructure.database.supabase_writer import SupabaseWriter
 from src.infrastructure.encryption.encryptor import FernetEncryptor
 
 logger = logging.getLogger(__name__)
