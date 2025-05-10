@@ -29,10 +29,10 @@ class GetAccessToken:
 
     def get_access_token(self) -> str | int:
         self.token_handler.process_token(
-            self.credentials["supabase_secrets"].SUPABASE_TABLE
+            self.credentials["supabase_secrets"].supabase_table,
         )
         access_token = self.supabase_reader.fetch_latest_record(
-            self.credentials["supabase_secrets"].SUPABASE_TABLE,
+            self.credentials["supabase_secrets"].supabase_table,
             "access_token",
             "access_token",
         )
@@ -50,8 +50,8 @@ class GetAccessToken:
     def _create_supabase_client(self) -> supabase.Client:
         supabase_secrets = self.credentials["supabase_secrets"]
         return supabase.create_client(
-            supabase_secrets.SUPABASE_URL,
-            supabase_secrets.SUPABASE_API_KEY,
+            supabase_secrets.supabase_url,
+            supabase_secrets.supabase_api_key,
         )
 
     def _create_supabase_reader(self) -> SupabaseReader:
@@ -66,13 +66,13 @@ class GetAccessToken:
     def _create_token_manager(self) -> TokenManager:
         strava_secrets = self.credentials["strava_secrets"]
         return TokenManager(
-            client_id=strava_secrets.STRAVA_CLIENT_ID,
-            secret_key=strava_secrets.STRAVA_SECRET_KEY,
+            client_id=strava_secrets.strava_client_id,
+            secret_key=strava_secrets.strava_secret_key,
         )
 
     def _create_encryptor(self) -> FernetEncryptor:
         fernet_secrets = self.credentials["fernet_secrets"]
-        return FernetEncryptor(cipher=fernet_secrets.CIPHER)
+        return FernetEncryptor(cipher=fernet_secrets.cipher)
 
     def _create_token_handler(self) -> TokenHandler:
         strava_secrets = self.credentials["strava_secrets"]
@@ -82,5 +82,5 @@ class GetAccessToken:
             supabase_deleter=self.supabase_deleter,
             token_manager=self.token_manager,
             encryptor=self.encryptor,
-            client_id=strava_secrets.STRAVA_CLIENT_ID,
+            client_id=strava_secrets.strava_client_id,
         )

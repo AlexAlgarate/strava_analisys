@@ -22,7 +22,7 @@ def main():
     strava_API_async = AsyncStravaAPI(
         access_token=access_token,
         deleter=token.supabase_deleter,
-        table=token.credentials["supabase_secrets"].SUPABASE_TABLE,
+        table=token.credentials["supabase_secrets"].supabase_table,
         encryptor=token.encryptor,
     )
 

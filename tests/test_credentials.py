@@ -70,29 +70,29 @@ class TestCredentials:
 
     def test_strava_secrets(self, environment_setup: dict):
         secrets = StravaSecrets()
-        assert secrets.STRAVA_CLIENT_ID == environment_setup["STRAVA_CLIENT_ID"]
-        assert secrets.STRAVA_SECRET_KEY == environment_setup["STRAVA_SECRET_KEY"]
+        assert secrets.strava_client_id == environment_setup["STRAVA_CLIENT_ID"]
+        assert secrets.strava_secret_key == environment_setup["STRAVA_SECRET_KEY"]
 
     def test_supabase_secrets(self, environment_setup: dict):
         secrets = SupabaseSecrets()
-        assert secrets.SUPABASE_URL == environment_setup["SUPABASE_URL"]
-        assert secrets.SUPABASE_API_KEY == environment_setup["SUPABASE_API_KEY"]
-        assert secrets.SUPABASE_TABLE == environment_setup["SUPABASE_TABLE"]
+        assert secrets.supabase_url == environment_setup["SUPABASE_URL"]
+        assert secrets.supabase_api_key == environment_setup["SUPABASE_API_KEY"]
+        assert secrets.supabase_table == environment_setup["SUPABASE_TABLE"]
 
     def test_fernet_secrets_with_env_key(self, environment_setup: dict):
         secrets = FernetSecrets()
-        assert secrets.FERNET_KEY == environment_setup["FERNET_KEY"]
-        assert isinstance(secrets.CIPHER, Fernet)
+        assert secrets.fernet_key == environment_setup["FERNET_KEY"]
+        assert isinstance(secrets.cipher, Fernet)
 
     def test_fernet_secrets_auto_generation(self):
         if "FERNET_KEY" in os.environ:
             del os.environ["FERNET_KEY"]
 
         secrets = FernetSecrets()
-        assert secrets.FERNET_KEY is not None
-        assert isinstance(secrets.CIPHER, Fernet)
+        assert secrets.fernet_key is not None
+        assert isinstance(secrets.cipher, Fernet)
 
         test_message = b"Hello, World!"
-        encrypted = secrets.CIPHER.encrypt(test_message)
-        decrypted = secrets.CIPHER.decrypt(encrypted)
+        encrypted = secrets.cipher.encrypt(test_message)
+        decrypted = secrets.cipher.decrypt(encrypted)
         assert decrypted == test_message
