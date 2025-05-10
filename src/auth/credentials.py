@@ -12,18 +12,20 @@ def get_env_variable(var_name: str, default_value: str = None) -> str:
 
 class StravaSecrets:
     def __init__(self):
-        self.STRAVA_CLIENT_ID = get_env_variable("STRAVA_CLIENT_ID")
-        self.STRAVA_SECRET_KEY = get_env_variable("STRAVA_SECRET_KEY")
+        self.strava_client_id = get_env_variable("STRAVA_CLIENT_ID")
+        self.strava_secret_key = get_env_variable("STRAVA_SECRET_KEY")
 
 
 class SupabaseSecrets:
     def __init__(self):
-        self.SUPABASE_URL = get_env_variable("SUPABASE_URL")
-        self.SUPABASE_API_KEY = get_env_variable("SUPABASE_API_KEY")
-        self.SUPABASE_TABLE = get_env_variable("SUPABASE_TABLE")
+        self.supabase_url = get_env_variable("SUPABASE_URL")
+        if self.supabase_url.startswith("https\\x3a"):
+            self.supabase_url = self.supabase_url.replace("https\\x3a", "https:")
+        self.supabase_api_key = get_env_variable("SUPABASE_API_KEY")
+        self.supabase_table = get_env_variable("SUPABASE_TABLE")
 
 
 class FernetSecrets:
     def __init__(self):
-        self.FERNET_KEY = get_env_variable("FERNET_KEY", Fernet.generate_key().decode())
-        self.CIPHER = Fernet(self.FERNET_KEY.encode())
+        self.fernet_key = get_env_variable("FERNET_KEY", Fernet.generate_key().decode())
+        self.cipher = Fernet(self.fernet_key.encode())
