@@ -4,12 +4,13 @@ version = "0.1.0"
 description = "Tool to analyze your running workouts using Strava's API"
 readme = "README.md"
 requires-python = ">=3.12"
-license = { text = "MIT" }  
-authors = [{ name = "Alex Algarate", email = "alex.algarate@gmail.com" }]  
+license = { text = "MIT" }
+authors = [{ name = "Alex Algarate", email = "alex.algarate@gmail.com" }]
 dependencies = [
     "aioresponses>=0.7.8",
     "cryptography>=44.0.3",
     "pandas>=2.2.3",
+    "pre-commit>=4.2.0",
     "python-dotenv>=1.1.0",
     "requests>=2.32.3",
     "setuptools>=78.1.0",
@@ -56,5 +57,3 @@ docstring-code-line-length = "dynamic"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
-
-
