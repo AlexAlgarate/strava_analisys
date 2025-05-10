@@ -47,7 +47,7 @@ Strava Analysis is a Python-based tool designed to analyze your running workouts
 1. Run the main script:
 
    ```bash
-   uv run main.py 
+   uv run main.py
    ```
 
 2. Follow the on-screen instructions to interact with the menu and analyze your Strava activities.

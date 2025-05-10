@@ -33,8 +33,8 @@ jobs:
           enable-cache: true
 
       - name: Run tests
-        run: uv run pytest tests/ 
-  
+        run: uv run pytest tests/
+
   # Lint code with ruff
   lint:
     name: Lint Code
