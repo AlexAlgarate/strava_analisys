@@ -14,8 +14,8 @@ class AsyncStravaAPI(BaseStravaAPI):
         access_token: str,
         table: str,
         encryptor: IEncryptation,
-        config: StravaAPIConfig = None,
-        deleter: SupabaseDeleter = None,
+        config: StravaAPIConfig | None = None,
+        deleter: SupabaseDeleter | None = None,
     ):
         super().__init__(
             access_token=access_token,
@@ -27,7 +27,9 @@ class AsyncStravaAPI(BaseStravaAPI):
             config=config,
         )
 
-    async def make_request(self, endpoint: str, params: dict = None) -> Dict[str, Any]:
+    async def make_request(
+        self, endpoint: str, params: dict | None = None
+    ) -> Dict[str, Any]:
         url = self.get_url(endpoint)
         headers = self.get_headers()
         client = cast(BaseASyncHTTPClient, self.http_client)

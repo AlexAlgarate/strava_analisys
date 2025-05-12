@@ -59,7 +59,7 @@ class MenuHandler:
     def _provisional_handle_feature(self) -> Any:
         return "This feature is not yet implemented."
 
-    def _handle_async(self, func: Callable, previous_week: bool = None) -> Any:
+    def _handle_async(self, func: Callable, previous_week: bool | None = None) -> Any:
         return asyncio.run(func(previous_week=previous_week))
 
     def _handle_single_stream(self) -> Any:

@@ -23,7 +23,7 @@ class AsyncHTTPClient(BaseASyncHTTPClient):
         self.encryptor = encryptor
 
     async def make_async_request(
-        self, url, headers: Dict[str, str], params: Dict[str, Any] = None
+        self, url, headers: Dict[str, str], params: Dict[str, Any] | None = None
     ) -> Dict[str, Any]:
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, params=params) as response:

@@ -3,7 +3,7 @@ import os
 from cryptography.fernet import Fernet
 
 
-def get_env_variable(var_name: str, default_value: str = None) -> str:
+def get_env_variable(var_name: str, default_value: str | None = None) -> str:
     value = os.environ.get(var_name, default_value)
     if value is None:
         raise ValueError(f"Environment variable {var_name} is required but not set.")

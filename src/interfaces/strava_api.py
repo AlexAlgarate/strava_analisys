@@ -16,7 +16,7 @@ class BaseStravaAPI(ABC):
         self,
         access_token: str,
         http_client: BaseASyncHTTPClient,
-        config: StravaAPIConfig = None,
+        config: StravaAPIConfig | None = None,
     ):
         if not access_token:
             raise ValueError("\n\nAccess token must be provided.")
@@ -34,4 +34,4 @@ class BaseStravaAPI(ABC):
         return f"{self.config.base_url}{endpoint}"
 
     @abstractmethod
-    def make_request(self, endpoint: str, params: dict = None): ...
+    def make_request(self, endpoint: str, params: dict | None = None): ...

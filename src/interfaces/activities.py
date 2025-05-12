@@ -7,7 +7,7 @@ class IActivityFetcher(ABC):
     def __init__(
         self,
         api: BaseStravaAPI,
-        id_activity: int = None,
+        id_activity: int | None = None,
     ):
         self.api = api
         self.id_activity = id_activity
