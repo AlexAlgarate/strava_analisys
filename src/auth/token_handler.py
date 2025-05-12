@@ -9,7 +9,7 @@ from src.auth.token_manager import TokenManager
 from src.infrastructure.database.supabase_deleter import SupabaseDeleter
 from src.infrastructure.database.supabase_reader import SupabaseReader
 from src.infrastructure.database.supabase_writer import SupabaseWriter
-from src.infrastructure.encryption.encryptor import FernetEncryptor
+from src.interfaces.encryptor import IEncryptation
 from src.utils import constants as constant
 from src.utils import exceptions as exception
 
@@ -40,7 +40,7 @@ class TokenHandler:
         supabase_writer: SupabaseWriter,
         supabase_deleter: SupabaseDeleter,
         token_manager: TokenManager,
-        encryptor: FernetEncryptor,
+        encryptor: IEncryptation,
         client_id: str,
         logger: Optional[logging.Logger] = None,
     ):

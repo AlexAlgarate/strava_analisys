@@ -1,8 +1,8 @@
 from typing import Any, Dict, cast
 
 from src.infrastructure.database.supabase_deleter import SupabaseDeleter
-from src.infrastructure.encryption.encryptor import FernetEncryptor
 from src.interfaces.async_http_client import BaseASyncHTTPClient
+from src.interfaces.encryptor import IEncryptation
 from src.interfaces.strava_api import BaseStravaAPI, StravaAPIConfig
 
 from ..http.async_http_client import AsyncHTTPClient
@@ -13,7 +13,7 @@ class AsyncStravaAPI(BaseStravaAPI):
         self,
         access_token: str,
         table: str,
-        encryptor: FernetEncryptor,
+        encryptor: IEncryptation,
         config: StravaAPIConfig = None,
         deleter: SupabaseDeleter = None,
     ):
@@ -32,7 +32,7 @@ class AsyncStravaAPI(BaseStravaAPI):
         headers = self.get_headers()
         client = cast(BaseASyncHTTPClient, self.http_client)
 
-        return await client.get_method(
+        return await client.make_async_request(
             url=url,
             headers=headers,
             params=params,

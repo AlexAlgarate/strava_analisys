@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from src.interfaces.encryptor import IEncryptation
+
 
 class IDatabaseDeleter(ABC):
     @abstractmethod
@@ -8,9 +10,9 @@ class IDatabaseDeleter(ABC):
         pass
 
     @abstractmethod
-    def get_expired_token_ids(self, table: str, encryptor) -> List[int]:
+    def get_expired_token_ids(self, table: str, encryptor: IEncryptation) -> List[int]:
         pass
 
     @abstractmethod
-    def cleanup_expired_tokens(self, table: str, encryptor) -> bool:
+    def cleanup_expired_tokens(self, table: str, encryptor: IEncryptation) -> bool:
         pass
