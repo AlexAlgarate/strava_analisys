@@ -7,20 +7,22 @@ from src.core.streams.manager import StreamManager
 
 
 @pytest.fixture
-def mock_async_api():
+def mock_async_api() -> Mock:
     api = Mock()
     api.make_request = AsyncMock()
     return api
 
 
 @pytest.fixture
-def stream_manager(mock_async_api):
+def stream_manager(mock_async_api: Mock) -> StreamManager:
     return StreamManager(mock_async_api)
 
 
 class TestStreamManager:
     @pytest.mark.asyncio
-    async def test_get_streams_for_activity(self, stream_manager, mock_async_api):
+    async def test_get_streams_for_activity(
+        self, stream_manager: StreamManager, mock_async_api: Mock
+    ) -> None:
         mock_response = {
             "time": {"data": [0, 1]},
             "distance": {"data": [0, 100]},
@@ -38,8 +40,8 @@ class TestStreamManager:
 
     @pytest.mark.asyncio
     async def test_get_streams_for_multiple_activities(
-        self, stream_manager, mock_async_api
-    ):
+        self, stream_manager: StreamManager, mock_async_api: Mock
+    ) -> None:
         mock_response = {
             "time": {"data": [0, 1]},
             "distance": {"data": [0, 100]},
@@ -57,8 +59,9 @@ class TestStreamManager:
         assert mock_async_api.make_request.call_count == 2  # One call per activity
 
     @pytest.mark.asyncio
-    async def test_get_weekly_streams(self, stream_manager, mock_async_api):
-        # Mock responses for the weekly activities and their streams
+    async def test_get_weekly_streams(
+        self, stream_manager: StreamManager, mock_async_api: Mock
+    ) -> None:
         mock_activities = [{"id": 1}, {"id": 2}]
         mock_stream_data = {
             "time": {"data": [0, 1]},
