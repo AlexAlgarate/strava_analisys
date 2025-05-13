@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 import pandas as pd
 
 from src.activities.detailed_activities import WeeklyActivitiesFetcher
@@ -15,7 +13,7 @@ class StreamManager:
     def __init__(self, api_async: AsyncStravaAPI):
         self.api_async = api_async
 
-    async def get_streams_for_activity(self, activity_id: int) -> Dict[str, Any]:
+    async def get_streams_for_activity(self, activity_id: int) -> pd.DataFrame:
         """Get detailed stream data for a specific activity."""
         return await ActivityStreamsFetcher(
             api=self.api_async, id_activity=activity_id
@@ -23,7 +21,7 @@ class StreamManager:
 
     async def get_streams_for_multiple_activities(
         self, activity_ids: list[int]
-    ) -> Dict[str, Any]:
+    ) -> pd.DataFrame:
         """Get detailed stream data for multiple activities."""
         return await ActivityStreamsFetcher.fetch_multiple_activities_streams(
             api=self.api_async,

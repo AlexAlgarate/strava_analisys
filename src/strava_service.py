@@ -21,7 +21,7 @@ class StravaService:
         self.stream_manager = StreamManager(api_async)
         self.data_exporter = DataExporter(exporter_map)
 
-    async def get_activity_range(self, previous_week: bool = False) -> Dict[str, Any]:
+    async def get_activity_range(self, previous_week: bool = False) -> Any:
         """Get activity data for a specific date range."""
         return await self.activity_manager.get_activity_range(previous_week)
 
@@ -31,13 +31,13 @@ class StravaService:
         """Get detailed activity information."""
         return await self.activity_manager.get_activity_details(previous_week)
 
-    async def get_streams_for_activity(self, activity_id: int) -> Dict[str, Any]:
+    async def get_streams_for_activity(self, activity_id: int) -> pd.DataFrame:
         """Get stream data for a specific activity."""
         return await self.stream_manager.get_streams_for_activity(activity_id)
 
     async def get_streams_for_multiple_activities(
         self, activity_ids: list[int]
-    ) -> Dict[str, Any]:
+    ) -> pd.DataFrame:
         """Get stream data for multiple activities."""
         return await self.stream_manager.get_streams_for_multiple_activities(
             activity_ids
