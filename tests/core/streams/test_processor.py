@@ -4,7 +4,7 @@ from src.core.streams.processor import process_streams
 
 
 class TestStreamProcessor:
-    def test_process_streams_basic(self):
+    def test_process_streams_basic(self) -> None:
         test_data = {
             "time": {"data": [0, 1, 2]},
             "distance": {"data": [0, 100, 200]},
@@ -18,8 +18,8 @@ class TestStreamProcessor:
         assert len(result) == 3
         assert all(result["id"] == 123)
 
-    def test_process_streams_empty_data(self):
-        test_data = {
+    def test_process_streams_empty_data(self) -> None:
+        test_data: dict[str, dict[str, list]] = {
             "time": {"data": []},
             "distance": {"data": []},
             "heartrate": {"data": []},
@@ -31,7 +31,7 @@ class TestStreamProcessor:
         assert len(result) == 0
         assert "id" in result.columns
 
-    def test_process_streams_missing_data(self):
+    def test_process_streams_missing_data(self) -> None:
         test_data = {
             "time": {"data": [0, 1]},
             "distance": {},  # Missing data
@@ -45,7 +45,7 @@ class TestStreamProcessor:
         assert len(result) == 2
         assert all(result["distance"].isna())  # Distance column should be NaN
 
-    def test_process_streams_uneven_data(self):
+    def test_process_streams_uneven_data(self) -> None:
         test_data = {
             "time": {"data": [0, 1, 2]},
             "distance": {"data": [0, 100]},  # One less data point
