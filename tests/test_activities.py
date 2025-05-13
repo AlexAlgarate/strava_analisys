@@ -1,3 +1,4 @@
+from typing import Dict, List
 from unittest.mock import AsyncMock, Mock
 
 import pandas as pd
@@ -12,7 +13,7 @@ from src.utils import constants as constant
 from src.utils import exceptions
 
 
-def _create_base_api_mock():
+def _create_base_api_mock() -> Mock:
     api = Mock()
     api.get_headers = Mock(return_value={"Authorization": "Bearer test"})
     api.get_url = Mock(return_value="https://test.api.com/v3")
@@ -20,26 +21,21 @@ def _create_base_api_mock():
 
 
 @pytest.fixture
-def mock_async_api():
+def mock_async_api() -> Mock:
     api = _create_base_api_mock()
     api.make_request = AsyncMock()
     return api
 
 
-@pytest.fixture
-def mock_sync_api():
-    api = _create_base_api_mock()
-    api.make_request = Mock()
-    return api
-
-
 class TestWeeklyActivitiesFetcher:
     @pytest.fixture
-    def activity_fetcher(self, mock_async_api):
+    def activity_fetcher(self, mock_async_api: Mock) -> WeeklyActivitiesFetcher:
         return WeeklyActivitiesFetcher(api=mock_async_api)
 
     @pytest.mark.asyncio
-    async def test_fetch_activity_data_success(self, activity_fetcher, mock_async_api):
+    async def test_fetch_activity_data_success(
+        self, activity_fetcher: WeeklyActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
         expected_response = [{"id": 1}, {"id": 2}]
         mock_async_api.make_request.return_value = expected_response
 
@@ -54,8 +50,8 @@ class TestWeeklyActivitiesFetcher:
 
     @pytest.mark.asyncio
     async def test_fetch_activity_data_previous_week(
-        self, activity_fetcher, mock_async_api
-    ):
+        self, activity_fetcher: WeeklyActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
         expected_response = [{"id": 3}, {"id": 4}]
         mock_async_api.make_request.return_value = expected_response
 
@@ -67,11 +63,13 @@ class TestWeeklyActivitiesFetcher:
 
 class TestDetailedActivitiesFetcher:
     @pytest.fixture
-    def activity_fetcher(self, mock_async_api):
+    def activity_fetcher(self, mock_async_api: Mock) -> DetailedActivitiesFetcher:
         return DetailedActivitiesFetcher(api=mock_async_api)
 
     @pytest.mark.asyncio
-    async def test_fetch_activity_data_success(self, activity_fetcher, mock_async_api):
+    async def test_fetch_activity_data_success(
+        self, activity_fetcher: DetailedActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
         mock_async_api.make_request.side_effect = [
             [{"id": 1}, {"id": 2}],
             {"id": 1, "name": "Activity 1"},
@@ -88,8 +86,8 @@ class TestDetailedActivitiesFetcher:
 
     @pytest.mark.asyncio
     async def test_fetch_activity_data_no_activities(
-        self, activity_fetcher, mock_async_api
-    ):
+        self, activity_fetcher: DetailedActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
         mock_async_api.make_request.return_value = []
 
         with pytest.raises(ValueError, match="No activities found."):
@@ -99,8 +97,8 @@ class TestDetailedActivitiesFetcher:
 
     @pytest.mark.asyncio
     async def test_fetch_activity_details_error_handling(
-        self, activity_fetcher, mock_async_api
-    ):
+        self, activity_fetcher: DetailedActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
         mock_async_api.make_request.side_effect = [
             [{"id": 1}],  # Weekly activities
             Exception("API Error"),  # Error fetching details
@@ -114,7 +112,8 @@ class TestDetailedActivitiesFetcher:
         assert result[0] == {}  # Empty dict returned for failed fetch
 
 
-STREAM_RESPONSES = [
+stream_response_type = List[Dict[str, Dict[str, List[float]]]]
+STREAM_RESPONSES: stream_response_type = [
     {
         "time": {"data": [0, 1, 2]},
         "distance": {"data": [0, 1, 2]},
@@ -135,14 +134,17 @@ STREAM_RESPONSES = [
 
 class TestActivityStreamsFetcher:
     @pytest.fixture
-    def stream_fetcher(self, mock_async_api):
+    def stream_fetcher(self, mock_async_api: Mock) -> ActivityStreamsFetcher:
         return ActivityStreamsFetcher(api=mock_async_api, id_activity=123)
 
     @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio
     async def test_fetch_activity_data_success(
-        self, stream_fetcher, mock_async_api, stream_response
-    ):
+        self,
+        stream_fetcher: ActivityStreamsFetcher,
+        mock_async_api: Mock,
+        stream_response: stream_response_type,
+    ) -> None:
         mock_async_api.make_request.return_value = stream_response
 
         result = await stream_fetcher.fetch_activity_data(
@@ -155,7 +157,7 @@ class TestActivityStreamsFetcher:
         assert all(result["id"] == 123)
 
     @pytest.mark.asyncio
-    async def test_fetch_activity_data_no_id(self, mock_async_api):
+    async def test_fetch_activity_data_no_id(self, mock_async_api: Mock) -> None:
         fetcher = ActivityStreamsFetcher(api=mock_async_api)
         with pytest.raises(
             ValueError, match="Activity ID is required for this operation"
@@ -167,8 +169,8 @@ class TestActivityStreamsFetcher:
     @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio
     async def test_fetch_multiple_activities_streams(
-        self, mock_async_api, stream_response
-    ):
+        self, mock_async_api: Mock, stream_response: stream_response_type
+    ) -> None:
         activity_ids = [1, 2]
 
         mock_async_api.make_request.return_value = stream_response
@@ -186,8 +188,8 @@ class TestActivityStreamsFetcher:
     @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio
     async def test_fetch_multiple_activities_streams_error_handling(
-        self, mock_async_api, stream_response
-    ):
+        self, mock_async_api: Mock, stream_response: stream_response_type
+    ) -> None:
         activity_ids = [1, 2]
         mock_async_api.make_request.side_effect = [
             stream_response,
