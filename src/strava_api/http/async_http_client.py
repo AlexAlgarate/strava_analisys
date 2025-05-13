@@ -2,8 +2,8 @@ from typing import Any, Dict, cast
 
 import aiohttp
 
-from src.infrastructure.database.supabase_deleter import SupabaseDeleter
 from src.interfaces.async_http_client import BaseASyncHTTPClient
+from src.interfaces.database_deleter import IDatabaseDeleter
 from src.interfaces.encryptor import IEncryptation
 from src.utils import exceptions
 
@@ -14,7 +14,7 @@ REACH_REQUEST_LIMIT = 429
 class AsyncHTTPClient(BaseASyncHTTPClient):
     def __init__(
         self,
-        database_deleter: SupabaseDeleter | None = None,
+        database_deleter: IDatabaseDeleter | None = None,
         table: str | None = None,
         encryptor: IEncryptation | None = None,
     ):
