@@ -64,7 +64,7 @@ class ActivityExertionFormatter(IValueFormatter):
 
 
 class ActivityFormatter:
-    def __init__(self):
+    def __init__(self) -> None:
         self.formatters = {
             "start_date": ActivityDateFormatter(),
             "start_date_local": ActivityDateFormatter(),

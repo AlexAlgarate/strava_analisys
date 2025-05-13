@@ -11,13 +11,13 @@ def get_env_variable(var_name: str, default_value: str | None = None) -> str:
 
 
 class StravaSecrets:
-    def __init__(self):
+    def __init__(self) -> None:
         self.strava_client_id = get_env_variable("STRAVA_CLIENT_ID")
         self.strava_secret_key = get_env_variable("STRAVA_SECRET_KEY")
 
 
 class SupabaseSecrets:
-    def __init__(self):
+    def __init__(self) -> None:
         self.supabase_url = get_env_variable("SUPABASE_URL")
         if self.supabase_url.startswith("https\\x3a"):
             self.supabase_url = self.supabase_url.replace("https\\x3a", "https:")
@@ -26,6 +26,6 @@ class SupabaseSecrets:
 
 
 class FernetSecrets:
-    def __init__(self):
+    def __init__(self) -> None:
         self.fernet_key = get_env_variable("FERNET_KEY", Fernet.generate_key().decode())
         self.cipher = Fernet(self.fernet_key.encode())

@@ -37,7 +37,7 @@ class AsyncHTTPClient(BaseASyncHTTPClient):
                     return {}
                 return await response.json()
 
-    def _remove_expired_tokens(self):
+    def _remove_expired_tokens(self) -> None:
         if self.database_deleter and self.table and self.encryptor:
             self.database_deleter.cleanup_expired_tokens(
                 table=self.table, encryptor=self.encryptor

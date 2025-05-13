@@ -8,7 +8,7 @@ from .formatter import ActivityFormatter
 
 
 class ResultConsolePrinter(IPrinterResult):
-    def __init__(self):
+    def __init__(self) -> None:
         self.formatter = ActivityFormatter()
 
     def print_result(self, option: str, result: Dict | List | pd.DataFrame) -> None:

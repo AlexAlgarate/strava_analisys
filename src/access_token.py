@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class GetAccessToken:
-    def __init__(self):
+    def __init__(self) -> None:
         load_dotenv()
 
         self.credentials = self._load_credentials()
