@@ -37,6 +37,10 @@ class GetAccessToken:
             "access_token",
             "access_token",
         )
+        if access_token is None:
+            logger.error("No access token found in the database.")
+            raise ValueError("No access token found in the database.")
+
         return self.encryptor.decrypt_value(
             data_to_decrypt=access_token, value="access_token"
         )
