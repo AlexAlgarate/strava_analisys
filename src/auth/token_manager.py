@@ -1,7 +1,7 @@
 import logging
 import time
 from enum import Enum
-from typing import Dict
+from typing import Any, Dict, cast
 
 import requests
 
@@ -25,7 +25,9 @@ class TokenManager:
     def token_has_expired(expires_at: int) -> bool:
         return int(expires_at) < int(time.time())
 
-    def _prepare_request_data(self, gran_type: GranType, **kwargs) -> Dict[str, str]:
+    def _prepare_request_data(
+        self, gran_type: GranType, **kwargs: str
+    ) -> Dict[str, str]:
         data = {
             "client_id": self.client_id,
             "client_secret": self.secret_key,
@@ -34,17 +36,18 @@ class TokenManager:
         data.update(kwargs)
         return data
 
-    def _send_token_request(self, data: Dict[str, str]) -> Dict[str, str | int] | None:
+    def _send_token_request(self, data: Dict[str, str]) -> Dict[str, Any] | None:
         try:
             response = requests.post(constant.URL_GET_ACCESS_TOKEN, data=data)
             response.raise_for_status()
-            return response.json()
+            response_json = response.json()
+            return cast(Dict[str, Any], response_json)
 
         except exceptions.TokenException as e:
             logger.error(f"Error fetching initial tokens: {e}", exc_info=True)
             return None
 
-    def refresh_access_token(self, refresh_token: str) -> Dict[str, str | int] | None:
+    def refresh_access_token(self, refresh_token: str) -> Dict[str, Any] | None:
         data = self._prepare_request_data(
             gran_type=GranType.REFRESH_TOKEN,
             refresh_token=refresh_token,
@@ -52,7 +55,7 @@ class TokenManager:
 
         return self._send_token_request(data)
 
-    def get_initial_tokens(self, code: str) -> Dict[str, str | int] | None:
+    def get_initial_tokens(self, code: str) -> Dict[str, Any] | None:
         data = self._prepare_request_data(
             gran_type=GranType.AUTHORIZATION_CODE,
             code=code,

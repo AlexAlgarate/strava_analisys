@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict
+from typing import Any, Dict
 
 from src.interfaces.async_http_client import BaseASyncHTTPClient
 
@@ -34,4 +34,6 @@ class BaseStravaAPI(ABC):
         return f"{self.config.base_url}{endpoint}"
 
     @abstractmethod
-    def make_request(self, endpoint: str, params: dict | None = None): ...
+    def make_request(
+        self, endpoint: str, params: dict[str, Any] | None = None
+    ) -> Any: ...

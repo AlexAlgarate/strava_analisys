@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
-from typing import Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from src.auth.oauth_code import GetOauthCode
 from src.auth.token_manager import TokenManager
@@ -16,9 +16,9 @@ from src.utils import exceptions as exception
 logger = logging.getLogger(__name__)
 
 
-def handle_token_errors(func):
+def handle_token_errors(func: Callable[..., Any]) -> Callable[..., Any]:
     @wraps(func)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
         try:
             return func(self, *args, **kwargs)
         except Exception as e:
@@ -51,13 +51,13 @@ class TokenHandler:
         self.encryptor = encryptor
         self.credentials = Credentials(client_id)
 
-    def process_token(self, table: str):
+    def process_token(self, table: str) -> Any:
         record = self.supabase_reader.fetch_latest_record(table, "*", "expires_at")
 
         if not record:
             logger.info("No data found in Supabase. Generating initial tokens...\n")
             self._handle_initial_token_flow(table)
-            return
+            return {}
         return self._handle_exisiting_token(record, table)
 
     @handle_token_errors
@@ -69,9 +69,7 @@ class TokenHandler:
             logger.warning(f"Failed to cleanup expired tokens: {e}")
 
     @handle_token_errors
-    def _handle_exisiting_token(
-        self, record: Dict[str, int | str], table: str
-    ) -> Dict[str, int | str] | None:
+    def _handle_exisiting_token(self, record: Dict[str, int | str], table: str) -> Any:
         decrypted_record = self.encryptor.decrypt_data(record)
 
         if self.token_manager.token_has_expired(int(decrypted_record["expires_at"])):
@@ -83,7 +81,7 @@ class TokenHandler:
         return decrypted_record
 
     @handle_token_errors
-    def _handle_initial_token_flow(self, table: str) -> Dict[str, int | str] | None:
+    def _handle_initial_token_flow(self, table: str) -> Any:
         oauth_helper = GetOauthCode()
         code = oauth_helper.get_authorization_code(
             constant.OAUTH_URL,
@@ -103,9 +101,7 @@ class TokenHandler:
         return None
 
     @handle_token_errors
-    def _refresh_and_store_token(
-        self, refresh_token: str, table: str
-    ) -> Dict[str, int | str] | None:
+    def _refresh_and_store_token(self, refresh_token: str, table: str) -> Any:
         new_tokens = self.token_manager.refresh_access_token(refresh_token)
 
         if not new_tokens:

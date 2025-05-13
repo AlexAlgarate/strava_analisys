@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import supabase
 from dotenv import load_dotenv
@@ -40,7 +41,7 @@ class GetAccessToken:
             data_to_decrypt=access_token, value="access_token"
         )
 
-    def _load_credentials(self):
+    def _load_credentials(self) -> dict[str, Any]:
         return {
             "supabase_secrets": SupabaseSecrets(),
             "strava_secrets": StravaSecrets(),

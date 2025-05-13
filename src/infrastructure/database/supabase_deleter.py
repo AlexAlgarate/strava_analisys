@@ -4,6 +4,7 @@ from typing import List
 from supabase import Client
 
 from src.interfaces.database_deleter import IDatabaseDeleter
+from src.interfaces.encryptor import IEncryptation
 from src.utils import exceptions as exception
 
 
@@ -29,18 +30,18 @@ class SupabaseDeleter(IDatabaseDeleter):
         except Exception as e:
             raise exception.DatabaseOperationError(f"Failed to delete data: {e}")
 
-    def get_expired_token_ids(self, table: str, encryptor) -> List[int]:
+    def get_expired_token_ids(self, table: str, encryptor: IEncryptation) -> List[int]:
         try:
             # Fetch all tokens with their expiration times
             result = self.client.table(table).select("id, expires_at").execute()
             if not result or not result.data:
                 return []
 
-            expired_ids = []
+            expired_ids: List[int] = []
             for record in result.data:
                 decrypted_data = encryptor.decrypt_data(record)
                 if self._is_token_expired(decrypted_data["expires_at"]):
-                    expired_ids.append(decrypted_data["id"])
+                    expired_ids.append(int(decrypted_data["id"]))
 
             return sorted(expired_ids)
 
@@ -49,7 +50,7 @@ class SupabaseDeleter(IDatabaseDeleter):
                 f"Failed to fetch expired tokens: {e}"
             )
 
-    def cleanup_expired_tokens(self, table: str, encryptor) -> bool:
+    def cleanup_expired_tokens(self, table: str, encryptor: IEncryptation) -> bool:
         try:
             expired_ids = self.get_expired_token_ids(table, encryptor)
             if expired_ids:

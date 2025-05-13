@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import Any, Dict, List, cast
 
 from src.interfaces.activities import IActivityFetcher
 from src.utils import helpers as helper
@@ -7,7 +7,7 @@ from src.utils import helpers as helper
 
 class WeeklyActivitiesFetcher(IActivityFetcher):
     @helper.func_time_execution
-    async def fetch_activity_data(self, previous_week: bool = False) -> List[dict]:
+    async def fetch_activity_data(self, previous_week: bool = False) -> Any:
         monday, sunday = helper.get_week_epoch_range(previous_week=previous_week)
         params = {
             "per_page": 200,
@@ -21,7 +21,7 @@ class WeeklyActivitiesFetcher(IActivityFetcher):
 class DetailedActivitiesFetcher(IActivityFetcher):
     async def fetch_activity_data(
         self, keys: List[str], previuos_week: bool = False
-    ) -> List[dict]:
+    ) -> List[Dict[str, Any]]:
         activities = await WeeklyActivitiesFetcher(self.api).fetch_activity_data(
             previous_week=previuos_week
         )
@@ -39,9 +39,9 @@ class DetailedActivitiesFetcher(IActivityFetcher):
         tasks = [
             self._get_activity_details(activity_id) for activity_id in activity_ids
         ]
-        return await asyncio.gather(*tasks)
+        return cast(List[dict], await asyncio.gather(*tasks))
 
-    async def _get_activity_details(self, activity_id: int) -> dict:
+    async def _get_activity_details(self, activity_id: int) -> Any:
         try:
             return await self.api.make_request(f"/activities/{activity_id}")
         except Exception as e:

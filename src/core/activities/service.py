@@ -12,7 +12,7 @@ class ActivityService:
     def __init__(self, api_async: AsyncStravaAPI):
         self.api_async = api_async
 
-    async def get_activity_range(self, previous_week: bool = False) -> Dict[str, Any]:
+    async def get_activity_range(self, previous_week: bool = False) -> Any:
         """Get activities within a specific date range."""
         return await WeeklyActivitiesFetcher(self.api_async).fetch_activity_data(
             previous_week=previous_week

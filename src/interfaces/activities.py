@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 from .strava_api import BaseStravaAPI
 
@@ -13,5 +14,5 @@ class IActivityFetcher(ABC):
         self.id_activity = id_activity
 
     @abstractmethod
-    def fetch_activity_data(self, *args, **kwargs):
+    def fetch_activity_data(self, *args: Any, **kwargs: Any) -> Any:
         pass
