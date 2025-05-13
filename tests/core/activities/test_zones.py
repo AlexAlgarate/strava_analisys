@@ -9,20 +9,22 @@ from src.core.activities.zones import ActivityZones
 
 
 @pytest.fixture
-def mock_async_api():
+def mock_async_api() -> Mock:
     api = Mock()
     api.make_request = AsyncMock()
     return api
 
 
 @pytest.fixture
-def zones_manager(mock_async_api):
+def zones_manager(mock_async_api: Mock) -> ActivityZones:
     return ActivityZones(api=mock_async_api, id_activity=123)
 
 
 class TestActivityZones:
     @pytest.mark.asyncio
-    async def test_get_zones_success(self, zones_manager, mock_async_api):
+    async def test_get_zones_success(
+        self, zones_manager: ActivityZones, mock_async_api: Mock
+    ) -> None:
         mock_response = {"distribution_buckets": [10, 20, 30, 40, 50]}
         mock_async_api.make_request.return_value = mock_response
 
@@ -34,13 +36,15 @@ class TestActivityZones:
         assert list(result.values()) == [10, 20, 30, 40, 50]
 
     @pytest.mark.asyncio
-    async def test_get_zones_no_id(self, mock_async_api):
+    async def test_get_zones_no_id(self, mock_async_api: Mock) -> None:
         zones_manager = ActivityZones(api=mock_async_api, id_activity=None)
         with pytest.raises(ValueError, match="Activity ID is required"):
             await zones_manager.get_zones()
 
     @pytest.mark.asyncio
-    async def test_get_zones_no_heartrate(self, zones_manager, mock_async_api):
+    async def test_get_zones_no_heartrate(
+        self, zones_manager: ActivityZones, mock_async_api: Mock
+    ) -> None:
         mock_response = {"distribution_buckets": None}
         mock_async_api.make_request.return_value = mock_response
 
@@ -48,7 +52,9 @@ class TestActivityZones:
             await zones_manager.get_zones()
 
     @pytest.mark.asyncio
-    async def test_get_zones_with_save(self, zones_manager, mock_async_api):
+    async def test_get_zones_with_save(
+        self, zones_manager: ActivityZones, mock_async_api: Mock
+    ) -> None:
         mock_response = {"distribution_buckets": [10, 20, 30, 40, 50]}
         mock_async_api.make_request.return_value = mock_response
 

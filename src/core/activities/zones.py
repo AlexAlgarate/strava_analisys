@@ -9,7 +9,7 @@ from src.utils.helpers import check_path
 class ActivityZones:
     ZONES_KEY = ["Zone_1", "Zone_2", "Zone_3", "Zone_4", "Zone_5"]
 
-    def __init__(self, api: AsyncStravaAPI, id_activity: int):
+    def __init__(self, api: AsyncStravaAPI, id_activity: int | None):
         self.api = api
         self.id_activity = id_activity
 
