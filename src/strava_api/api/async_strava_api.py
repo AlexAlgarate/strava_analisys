@@ -1,7 +1,7 @@
 from typing import Any, Dict, cast
 
-from src.infrastructure.database.supabase_deleter import SupabaseDeleter
 from src.interfaces.async_http_client import BaseASyncHTTPClient
+from src.interfaces.database_deleter import IDatabaseDeleter
 from src.interfaces.encryptor import IEncryptation
 from src.interfaces.strava_api import BaseStravaAPI, StravaAPIConfig
 
@@ -15,7 +15,7 @@ class AsyncStravaAPI(BaseStravaAPI):
         table: str,
         encryptor: IEncryptation,
         config: StravaAPIConfig | None = None,
-        deleter: SupabaseDeleter | None = None,
+        deleter: IDatabaseDeleter | None = None,
     ):
         super().__init__(
             access_token=access_token,
