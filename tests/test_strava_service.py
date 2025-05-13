@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pandas as pd
@@ -6,7 +7,7 @@ import pytest
 from src.strava_service import StravaService
 
 
-def _create_base_api_mock():
+def _create_base_api_mock() -> Mock:
     api = Mock()
     api.get_headers = Mock(return_value={"Authorization": "Bearer test"})
     api.get_url = Mock(return_value="https://test.api.com/v3")
@@ -21,13 +22,15 @@ def mock_async_api() -> Mock:
 
 
 @pytest.fixture
-def service(mock_async_api):
+def service(mock_async_api: Mock) -> StravaService:
     return StravaService(api_async=mock_async_api)
 
 
 class TestStravaService:
     @pytest.mark.asyncio
-    async def test_get_streams_for_activity(self, service, mock_async_api) -> None:
+    async def test_get_streams_for_activity(
+        self, service: StravaService, mock_async_api: Mock
+    ) -> None:
         mock_response = {
             "time": {"data": [0, 1]},
             "distance": {"data": [0, 100]},
@@ -44,7 +47,7 @@ class TestStravaService:
 
     @pytest.mark.asyncio
     async def test_get_streams_for_multiple_activities(
-        self, service, mock_async_api
+        self, service: StravaService, mock_async_api: Mock
     ) -> None:
         mock_response = {
             "time": {"data": [0, 1]},
@@ -61,7 +64,7 @@ class TestStravaService:
 
     @pytest.mark.asyncio
     async def test_export_streams_for_selected_week(
-        self, service, mock_async_api, tmp_path
+        self, service: StravaService, mock_async_api: Mock, tmp_path: Path
     ) -> None:
         # Mock responses for activities and streams
         mock_activities = [{"id": 1}, {"id": 2}]
@@ -85,7 +88,9 @@ class TestStravaService:
         assert (tmp_path / "streams_previous_week.csv").exists()
 
     @pytest.mark.asyncio
-    async def test_get_activity_range(self, service, mock_async_api) -> None:
+    async def test_get_activity_range(
+        self, service: StravaService, mock_async_api: Mock
+    ) -> None:
         mock_response = [{"id": 1}, {"id": 2}]
         mock_async_api.make_request.return_value = mock_response
 
@@ -95,7 +100,9 @@ class TestStravaService:
         assert mock_async_api.make_request.called
 
     @pytest.mark.asyncio
-    async def test_get_activity_details(self, service, mock_async_api) -> None:
+    async def test_get_activity_details(
+        self, service: StravaService, mock_async_api: Mock
+    ) -> None:
         # Mock responses for both weekly activities and detailed activities
         mock_async_api.make_request.side_effect = [
             [{"id": 1}, {"id": 2}],  # Weekly activities
@@ -110,7 +117,9 @@ class TestStravaService:
         assert mock_async_api.make_request.call_count == 3
 
     @pytest.mark.asyncio
-    async def test_get_activity_zones(self, service, mock_async_api) -> None:
+    async def test_get_activity_zones(
+        self, service: StravaService, mock_async_api: Mock
+    ) -> None:
         mock_response = {"distribution_buckets": [10, 20, 30, 40, 50]}
         mock_async_api.make_request.return_value = mock_response
 
@@ -123,7 +132,7 @@ class TestStravaService:
 
     @pytest.mark.asyncio
     async def test_get_activity_zones_no_heartrate(
-        self, service, mock_async_api
+        self, service: StravaService, mock_async_api: Mock
     ) -> None:
         mock_response = {"distribution_buckets": None}
         mock_async_api.make_request.return_value = mock_response
