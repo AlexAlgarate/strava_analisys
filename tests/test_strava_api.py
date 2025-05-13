@@ -1,3 +1,4 @@
+from typing import Any, Optional, Type
 from unittest.mock import Mock, patch
 
 import aiohttp
@@ -11,23 +12,30 @@ from src.utils import exceptions
 
 
 class MockResponse:
-    def __init__(self, data, status=200) -> None:
+    def __init__(self, data: Any, status: int = 200) -> None:
         self._data = data
         self.status = status
 
-    async def json(self):
+    async def json(self) -> Any:
         return self._data
 
     def raise_for_status(self) -> None:
         if 400 <= self.status < 600:
             raise aiohttp.ClientResponseError(
-                request_info=None, history=None, status=self.status
+                request_info=None,  # type: ignore
+                history=None,  # type: ignore
+                status=self.status,
             )
 
     async def __aenter__(self) -> "MockResponse":
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[Any],
+    ) -> None:
         pass
 
 
