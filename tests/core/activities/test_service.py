@@ -6,20 +6,22 @@ from src.core.activities.service import ActivityService
 
 
 @pytest.fixture
-def mock_async_api():
+def mock_async_api() -> Mock:
     api = Mock()
     api.make_request = AsyncMock()
     return api
 
 
 @pytest.fixture
-def activity_service(mock_async_api):
+def activity_service(mock_async_api: Mock) -> ActivityService:
     return ActivityService(mock_async_api)
 
 
 class TestActivityService:
     @pytest.mark.asyncio
-    async def test_get_activity_range(self, activity_service, mock_async_api):
+    async def test_get_activity_range(
+        self, activity_service: ActivityService, mock_async_api: Mock
+    ) -> None:
         mock_response = [{"id": 1}, {"id": 2}]
         mock_async_api.make_request.return_value = mock_response
 
@@ -34,7 +36,9 @@ class TestActivityService:
         assert "page" in call_args.kwargs["params"]
 
     @pytest.mark.asyncio
-    async def test_get_activity_details(self, activity_service, mock_async_api):
+    async def test_get_activity_details(
+        self, activity_service: ActivityService, mock_async_api: Mock
+    ) -> None:
         mock_activities = [{"id": 1}, {"id": 2}]
         mock_details = [
             {"id": 1, "name": "Activity 1"},
