@@ -22,6 +22,7 @@ dependencies = [
 dev = [
     "freezegun>=1.5.1",
     "mypy>=1.15.0",
+    "pandas-stubs>=2.2.3.250308",
     "pytest>=8.3.5",
     "pytest-asyncio>=0.26.0",
     "pytest-cov>=6.1.1",
