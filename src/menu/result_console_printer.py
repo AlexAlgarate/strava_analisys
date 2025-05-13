@@ -11,7 +11,9 @@ class ResultConsolePrinter(IPrinterResult):
     def __init__(self) -> None:
         self.formatter = ActivityFormatter()
 
-    def print_result(self, option: str, result: Dict | List | pd.DataFrame) -> None:
+    def print_result(
+        self, option: str, result: Dict | List | pd.DataFrame | None
+    ) -> None:
         print(f"\n✅ Result for option {option}:\n")
 
         if isinstance(result, pd.DataFrame):
