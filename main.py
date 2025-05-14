@@ -10,7 +10,7 @@ from src.presentation.console_output.result_console_printer import ResultConsole
 from src.utils.logger_config import setup_logging
 
 
-def main():
+def main() -> None:
     setup_logging()
 
     logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ def main():
     access_token = token.get_access_token()
 
     strava_API_async = AsyncStravaAPI(
-        access_token=access_token,
+        access_token=access_token,  # type: ignore
         deleter=token.supabase_deleter,
         table=token.credentials["supabase_secrets"].supabase_table,
         encryptor=token.encryptor,
@@ -50,7 +50,7 @@ def main():
         menu.execute_option(option)
 
 
-def _remove_testing_files(option, default_letter: str):
+def _remove_testing_files(option: str, default_letter: str) -> None:
     if option.lower() == default_letter:
         current_week = "streams_current_week.csv"
         previous_week = "streams_previous_week.csv"

@@ -1,16 +1,11 @@
-from typing import TypedDict
+from typing import Any
 
 import pytest
 from cryptography.fernet import Fernet
 
 from src.infrastructure.encryption.encryptor import FernetEncryptor
 
-
-class SampleData(TypedDict):
-    access_token: str
-    refresh_token: str
-    expires_at: int
-    access_token_creation: str
+sample_data_type = dict[str, int | str]
 
 
 class TestEncryptor:
@@ -23,7 +18,7 @@ class TestEncryptor:
         return FernetEncryptor(cipher)
 
     @pytest.fixture
-    def sample_data(self) -> SampleData:
+    def sample_data(self) -> sample_data_type:
         return {
             "access_token": "qwerty12345",
             "refresh_token": "12345qwerty",
@@ -39,10 +34,10 @@ class TestEncryptor:
 
     def test_init_with_invalid_cipher(self) -> None:
         with pytest.raises(ValueError, match="Cipher must be an instance of Fernet."):
-            FernetEncryptor("invalid_cipher")
+            FernetEncryptor("invalid_cipher")  # type: ignore[arg-type]
 
     def test_encrypt_data(
-        self, encryptor: FernetEncryptor, sample_data: SampleData
+        self, encryptor: FernetEncryptor, sample_data: sample_data_type
     ) -> None:
         encrypted_data = encryptor.encrypt_data(sample_data)
 
@@ -58,18 +53,18 @@ class TestEncryptor:
         assert encrypted_data == {}
 
     def test_decrypt_data_success(
-        self, encryptor: FernetEncryptor, sample_data: SampleData
+        self, encryptor: FernetEncryptor, sample_data: dict[str, int | str]
     ) -> None:
         encrypted_data = encryptor.encrypt_data(sample_data)
 
-        decrypted_data = encryptor.decrypt_data(encrypted_data)
+        decrypted_data: dict[str, Any] = encryptor.decrypt_data(encrypted_data)
         decrypted_data["expires_at"] = int(decrypted_data["expires_at"])
 
         assert decrypted_data == sample_data
-        assert all(isinstance(value, (str, int)) for value in decrypted_data.values())
+        assert all(isinstance(value, (int, str)) for value in decrypted_data.values())
 
     def test_decrypt_data_with_mixed_values(
-        self, encryptor: FernetEncryptor, sample_data: SampleData
+        self, encryptor: FernetEncryptor, sample_data: sample_data_type
     ) -> None:
         encrypted_data = encryptor.encrypt_data(sample_data)
 
@@ -80,7 +75,7 @@ class TestEncryptor:
             "access_token_creation": encrypted_data["access_token_creation"],
         }
 
-        decrypted_data = encryptor.decrypt_data(mixed_data)
+        decrypted_data = encryptor.decrypt_data(mixed_data)  # type: ignore[arg-type]
         assert decrypted_data["access_token"] == "qwerty12345"
         assert decrypted_data["refresh_token"] == 30
         assert decrypted_data["expires_at"] == "1738222356"
@@ -93,7 +88,7 @@ class TestEncryptor:
             encryptor.decrypt_data(invalid_data)
 
     def test_decrypt_one_value_successfully(
-        self, encryptor: FernetEncryptor, sample_data: SampleData
+        self, encryptor: FernetEncryptor, sample_data: sample_data_type
     ) -> None:
         encrypted_data = encryptor.encrypt_data(sample_data)
 
@@ -104,7 +99,7 @@ class TestEncryptor:
         assert decrypted_int_expires_at == str(sample_data["expires_at"])
 
     def test_decrypt_one_value_key_error(
-        self, encryptor: FernetEncryptor, sample_data: SampleData
+        self, encryptor: FernetEncryptor, sample_data: sample_data_type
     ) -> None:
         encrypted_data = encryptor.encrypt_data(sample_data)
 
@@ -113,6 +108,6 @@ class TestEncryptor:
 
     def test_large_data_handling(self, encryptor: FernetEncryptor) -> None:
         large_data = {f"key_{i}": f"value_{i}" for i in range(10000)}
-        encrypted = encryptor.encrypt_data(large_data)
+        encrypted = encryptor.encrypt_data(large_data)  # type: ignore[arg-type]
         decrypted = encryptor.decrypt_data(encrypted)
         assert decrypted == large_data

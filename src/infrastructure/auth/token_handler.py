@@ -68,7 +68,7 @@ class TokenHandler:
             logger.warning(f"Failed to cleanup expired tokens: {e}")
 
     @handle_token_errors
-    def _handle_exisiting_token(self, record: Dict[str, int | str], table: str) -> Any:
+    def _handle_exisiting_token(self, record: Dict[str, str], table: str) -> Any:
         decrypted_record = self.encryptor.decrypt_data(record)
 
         if self.token_manager.token_has_expired(int(decrypted_record["expires_at"])):
