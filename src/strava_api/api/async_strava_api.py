@@ -1,9 +1,9 @@
 from typing import Any, Dict, cast
 
-from src.interfaces.async_http_client import BaseASyncHTTPClient
+from src.interfaces.api_clients.async_http_client import BaseASyncHTTPClient
+from src.interfaces.api_clients.strava_api import BaseStravaAPI, StravaAPIConfig
 from src.interfaces.database.database_deleter import IDatabaseDeleter
 from src.interfaces.encryption.encryptor import IEncryptation
-from src.interfaces.strava_api import BaseStravaAPI, StravaAPIConfig
 
 from ..http.async_http_client import AsyncHTTPClient
 

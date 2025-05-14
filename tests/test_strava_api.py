@@ -4,9 +4,9 @@ from unittest.mock import Mock, patch
 import aiohttp
 import pytest
 
+from src.interfaces.api_clients.strava_api import StravaAPIConfig
 from src.interfaces.database.database_deleter import IDatabaseDeleter
 from src.interfaces.encryption.encryptor import IEncryptation
-from src.interfaces.strava_api import StravaAPIConfig
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
 from src.utils import exceptions
 

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .strava_api import BaseStravaAPI
+from .api_clients.strava_api import BaseStravaAPI
 
 
 class IActivityFetcher(ABC):

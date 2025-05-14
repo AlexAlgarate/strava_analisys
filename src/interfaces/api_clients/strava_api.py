@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from src.interfaces.async_http_client import BaseASyncHTTPClient
+from .async_http_client import BaseASyncHTTPClient
 
 
 @dataclass
