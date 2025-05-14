@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -17,10 +17,10 @@ class TestGetOauthCode:
     }
 
     @pytest.fixture
-    def oauth_handler(self):
+    def oauth_handler(self) -> GetOauthCode:
         return GetOauthCode()
 
-    def test_create_full_url(self, oauth_handler):
+    def test_create_full_url(self, oauth_handler: GetOauthCode) -> None:
         result = oauth_handler._create_full_url(self.base_url, self.params)
 
         parsed_url = urlparse(result)
@@ -37,25 +37,32 @@ class TestGetOauthCode:
             query_params["scope"][0] == "read,read_all,activity:read,activity:read_all"
         )
 
-    def test_create_full_url_with_empty_params(self, oauth_handler):
-        params = {}
+    def test_create_full_url_with_empty_params(
+        self, oauth_handler: GetOauthCode
+    ) -> None:
+        params: dict = {}
 
         result = oauth_handler._create_full_url(self.base_url, params)
         assert result == self.base_url
 
-    def test_extract_code_successful(self, oauth_handler):
+    def test_extract_code_successful(self, oauth_handler: GetOauthCode) -> None:
         test_url = "https://example.com/callback?state=xyz&code=abc123def456&scope=read"
         code = oauth_handler._extract_code(test_url)
         assert code == "abc123def456"
 
-    def test_extract_code_no_code(self, oauth_handler):
+    def test_extract_code_no_code(self, oauth_handler: GetOauthCode) -> None:
         test_url = "https://example.com/callback?state=xyz&scope=read"
         with pytest.raises(ValueError, match="No authorization code found in the URL"):
             oauth_handler._extract_code(test_url)
 
     @patch("webbrowser.open")
     @patch("builtins.input")
-    def test_get_authorization_code(self, mock_input, mock_browser_open, oauth_handler):
+    def test_get_authorization_code(
+        self,
+        mock_input: MagicMock,
+        mock_browser_open: MagicMock,
+        oauth_handler: GetOauthCode,
+    ) -> None:
         mock_input.return_value = (
             "https://example.com/callback?state=xyz&code=abc123def456&scope=read"
         )
@@ -71,14 +78,19 @@ class TestGetOauthCode:
     @patch("webbrowser.open")
     @patch("builtins.input")
     def test_get_authorization_code_invalid_url(
-        self, mock_input, mock_browser_open, oauth_handler
-    ):
+        self,
+        mock_input: MagicMock,
+        mock_browser_open: MagicMock,
+        oauth_handler: GetOauthCode,
+    ) -> None:
         mock_input.return_value = "https://example.com/callback?state=xyz&scope=read"
 
         with pytest.raises(ValueError, match="No authorization code found in the URL"):
             oauth_handler.get_authorization_code(self.base_url, self.params)
 
-    def test_create_full_url_with_special_characters(self, oauth_handler):
+    def test_create_full_url_with_special_characters(
+        self, oauth_handler: GetOauthCode
+    ) -> None:
         params = {
             "client_id": "123+456",
             "scope": "read write",
