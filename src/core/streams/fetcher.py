@@ -4,8 +4,8 @@ from typing import List
 import pandas as pd
 
 from src.core.streams.processor import process_streams
+from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
 from src.interfaces.activities import IActivityFetcher
-from src.strava_api.api.async_strava_api import AsyncStravaAPI
 
 
 class ActivityStreamsFetcher(IActivityFetcher):

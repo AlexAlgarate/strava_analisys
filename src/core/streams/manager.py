@@ -3,7 +3,7 @@ import pandas as pd
 from src.activities.detailed_activities import WeeklyActivitiesFetcher
 from src.core.activities.utils import get_activity_ids
 from src.core.streams.fetcher import ActivityStreamsFetcher
-from src.strava_api.api.async_strava_api import AsyncStravaAPI
+from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
 from src.utils import constants as constant
 
 

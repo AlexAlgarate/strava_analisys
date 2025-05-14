@@ -3,10 +3,10 @@ import os
 
 from src import strava_service
 from src.access_token import GetAccessToken
+from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
 from src.menu.console_error_handler import ConsoleErrorHandler
 from src.menu.handler import MenuHandler
 from src.menu.result_console_printer import ResultConsolePrinter
-from src.strava_api.api.async_strava_api import AsyncStravaAPI
 from src.utils.logger_config import setup_logging
 
 

@@ -6,8 +6,8 @@ from src.core.activities.service import ActivityService
 from src.core.activities.zones import ActivityZones
 from src.core.streams.exporter import DataExporter
 from src.core.streams.manager import StreamManager
+from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
 from src.interfaces.stream_exporter import IStreamExporter
-from src.strava_api.api.async_strava_api import AsyncStravaAPI
 
 
 class StravaService:

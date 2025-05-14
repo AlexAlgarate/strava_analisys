@@ -2,7 +2,7 @@ import json
 import os
 from typing import Dict
 
-from src.strava_api.api.async_strava_api import AsyncStravaAPI
+from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
 from src.utils.helpers import check_path
 
 
