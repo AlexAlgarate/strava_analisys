@@ -1,3 +1,5 @@
+from typing import Type
+
 import pytest
 
 from src.menu.formatter import (
@@ -12,7 +14,7 @@ from src.menu.formatter import (
 
 
 class TestValidFormatter:
-    invalid_inputs: list = ["abc", None, {}, [], "", "  "]
+    invalid_inputs: list[str | None | dict | list] = ["abc", None, {}, [], "", "  "]
 
     @pytest.mark.parametrize(
         "formatter_cls, input_value, expected_output",
@@ -33,7 +35,9 @@ class TestValidFormatter:
             (ActivityExertionFormatter, 10, "10 RPE"),
         ],
     )
-    def test_valid_formatter(self, formatter_cls, input_value, expected_output):
+    def test_valid_formatter(
+        self, formatter_cls: Type, input_value: int | float | str, expected_output: str
+    ) -> None:
         formatter = formatter_cls()
         assert formatter.format(input_value) == expected_output
 
@@ -50,6 +54,8 @@ class TestValidFormatter:
         ],
     )
     @pytest.mark.parametrize("invalid_input", invalid_inputs)
-    def test_invalid_inputs_return_str(self, formatter_cls, invalid_input):
+    def test_invalid_inputs_return_str(
+        self, formatter_cls: Type, invalid_input: list[str | None | dict | list]
+    ) -> None:
         formatter = formatter_cls()
         assert formatter.format(invalid_input) == str(invalid_input)
