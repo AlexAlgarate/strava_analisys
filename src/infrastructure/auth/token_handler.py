@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 
 from src.infrastructure.auth.oauth_code import GetOauthCode
 from src.infrastructure.auth.token_manager import TokenManager
@@ -42,7 +42,6 @@ class TokenHandler:
         token_manager: TokenManager,
         encryptor: IEncryptation,
         client_id: str,
-        logger: Optional[logging.Logger] = None,
     ):
         self.supabase_reader = supabase_reader
         self.supabase_writer = supabase_writer
