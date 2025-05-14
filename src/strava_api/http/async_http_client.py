@@ -3,7 +3,7 @@ from typing import Any, Dict, cast
 import aiohttp
 
 from src.interfaces.async_http_client import BaseASyncHTTPClient
-from src.interfaces.database_deleter import IDatabaseDeleter
+from src.interfaces.database.database_deleter import IDatabaseDeleter
 from src.interfaces.encryptor import IEncryptation
 from src.utils import exceptions
 

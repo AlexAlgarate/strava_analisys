@@ -2,7 +2,7 @@ from typing import Dict
 
 from supabase import Client
 
-from src.interfaces.database_reader import IDatabaseReader
+from src.interfaces.database.database_reader import IDatabaseReader
 from src.utils import exceptions as exception
 
 
