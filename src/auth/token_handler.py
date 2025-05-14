@@ -114,7 +114,7 @@ class TokenHandler:
         self, tokens: Dict[str, str | int], table: str
     ) -> Dict[str, int | str]:
         data_to_insert = self._prepare_token_data(tokens)
-        encrypted_data = self.encryptor.encrypt_data(data_to_insert)
+        encrypted_data = self.encryptor.encrypt_data(data=data_to_insert)
 
         if not self.supabase_writer.insert_record(table, encrypted_data):
             raise exception.TokenError("Failed to store tokens in database")
