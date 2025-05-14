@@ -4,7 +4,7 @@ from typing import Generator
 import pytest
 from cryptography.fernet import Fernet
 
-from src.auth.credentials import (
+from src.infrastructure.auth.credentials import (
     FernetSecrets,
     StravaSecrets,
     SupabaseSecrets,

@@ -4,8 +4,8 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Dict, Optional
 
-from src.auth.oauth_code import GetOauthCode
-from src.auth.token_manager import TokenManager
+from src.infrastructure.auth.oauth_code import GetOauthCode
+from src.infrastructure.auth.token_manager import TokenManager
 from src.infrastructure.database.supabase_deleter import SupabaseDeleter
 from src.infrastructure.database.supabase_reader import SupabaseReader
 from src.infrastructure.database.supabase_writer import SupabaseWriter

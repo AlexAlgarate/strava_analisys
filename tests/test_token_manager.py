@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.auth.token_manager import GranType, TokenManager
+from src.infrastructure.auth.token_manager import GranType, TokenManager
 from src.utils import exceptions
 
 TEST_CLIENT_ID = "test_client_id"

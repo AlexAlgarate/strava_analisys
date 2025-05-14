@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.auth.token_handler import TokenHandler
+from src.infrastructure.auth.token_handler import TokenHandler
 from src.utils import exceptions
 
 
