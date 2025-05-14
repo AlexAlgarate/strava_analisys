@@ -4,12 +4,11 @@ import tempfile
 import pandas as pd
 import pytest
 
-from src.core.streams.exporter import DataExporter
-from src.core.streams.exporters.csv_exporter import CsvExporter
-from src.core.streams.exporters.exporter_interface import StreamExporter
+from src.core.streams.exporter import CsvExporter, DataExporter
+from src.interfaces.stream_exporter import IStreamExporter
 
 
-class MockExporter(StreamExporter):
+class MockExporter(IStreamExporter):
     def export(self, df: pd.DataFrame, path: str) -> None:
         pass
 
@@ -88,7 +87,7 @@ class TestDataExporter:
             pd.testing.assert_frame_equal(result_df, sample_df)
 
     def test_export_streams_custom_exporter(self, sample_df: pd.DataFrame) -> None:
-        class CountingExporter(StreamExporter):
+        class CountingExporter(IStreamExporter):
             def __init__(self) -> None:
                 self.export_count = 0
 

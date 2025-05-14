@@ -5,8 +5,8 @@ import pandas as pd
 from src.core.activities.service import ActivityService
 from src.core.activities.zones import ActivityZones
 from src.core.streams.exporter import DataExporter
-from src.core.streams.exporters.exporter_interface import StreamExporter
 from src.core.streams.manager import StreamManager
+from src.interfaces.stream_exporter import IStreamExporter
 from src.strava_api.api.async_strava_api import AsyncStravaAPI
 
 
@@ -14,7 +14,7 @@ class StravaService:
     def __init__(
         self,
         api_async: AsyncStravaAPI,
-        exporter_map: Dict[str, StreamExporter] | None = None,
+        exporter_map: Dict[str, IStreamExporter] | None = None,
     ):
         self.api_async = api_async
         self.activity_manager = ActivityService(api_async)
