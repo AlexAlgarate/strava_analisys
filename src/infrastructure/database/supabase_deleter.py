@@ -4,7 +4,7 @@ from typing import List
 from supabase import Client
 
 from src.interfaces.database.database_deleter import IDatabaseDeleter
-from src.interfaces.encryptor import IEncryptation
+from src.interfaces.encryption.encryptor import IEncryptation
 from src.utils import exceptions as exception
 
 

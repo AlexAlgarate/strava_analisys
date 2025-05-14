@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from src.interfaces.encryptor import IEncryptation
+from src.interfaces.encryption.encryptor import IEncryptation
 
 
 class IDatabaseDeleter(ABC):

@@ -4,7 +4,7 @@ import aiohttp
 
 from src.interfaces.async_http_client import BaseASyncHTTPClient
 from src.interfaces.database.database_deleter import IDatabaseDeleter
-from src.interfaces.encryptor import IEncryptation
+from src.interfaces.encryption.encryptor import IEncryptation
 from src.utils import exceptions
 
 UNAUTHORIZED_USER = 401

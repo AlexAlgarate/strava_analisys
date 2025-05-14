@@ -3,7 +3,7 @@ from typing import Dict
 
 from cryptography.fernet import Fernet
 
-from src.interfaces.encryptor import IEncryptation
+from src.interfaces.encryption.encryptor import IEncryptation
 
 logger = logging.getLogger(__name__)
 

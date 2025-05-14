@@ -9,7 +9,7 @@ from src.auth.token_manager import TokenManager
 from src.infrastructure.database.supabase_deleter import SupabaseDeleter
 from src.infrastructure.database.supabase_reader import SupabaseReader
 from src.infrastructure.database.supabase_writer import SupabaseWriter
-from src.interfaces.encryptor import IEncryptation
+from src.interfaces.encryption.encryptor import IEncryptation
 from src.utils import constants as constant
 from src.utils import exceptions as exception
 
