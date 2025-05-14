@@ -4,9 +4,9 @@ import os
 from src import strava_service
 from src.access_token import GetAccessToken
 from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
-from src.menu.console_error_handler import ConsoleErrorHandler
-from src.menu.handler import MenuHandler
-from src.menu.result_console_printer import ResultConsolePrinter
+from src.presentation.cli_entrypoint import MenuHandler
+from src.presentation.console_output.console_error_handler import ConsoleErrorHandler
+from src.presentation.console_output.result_console_printer import ResultConsolePrinter
 from src.utils.logger_config import setup_logging
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-import src.menu.options as options_module
+import src.presentation.menu.options as options_module
 
 
 class TestMenuOption:
@@ -25,7 +25,7 @@ class TestMenuOption:
 
         monkeypatch.setitem(options_module.__dict__, "MENU_DESCRIPTIONS", incomplete)
 
-        from src.menu.options import MenuOption
+        from src.presentation.menu.options import MenuOption
 
         with pytest.raises(
             ValueError, match="Missing descriptions for menu options: ACTIVITY_DETAILS"

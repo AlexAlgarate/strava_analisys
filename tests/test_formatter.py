@@ -2,7 +2,7 @@ from typing import Type
 
 import pytest
 
-from src.menu.formatter import (
+from src.presentation.console_output.formatter import (
     ActivityCaloriesFormatter,
     ActivityDateFormatter,
     ActivityDistanceFormatter,

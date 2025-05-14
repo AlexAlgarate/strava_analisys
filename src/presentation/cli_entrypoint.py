@@ -3,9 +3,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from src.menu.console_error_handler import ConsoleErrorHandler
-from src.menu.options import MenuOption
-from src.menu.result_console_printer import ResultConsolePrinter
+from src.presentation.console_output.console_error_handler import ConsoleErrorHandler
+from src.presentation.console_output.result_console_printer import ResultConsolePrinter
+from src.presentation.menu.options import MenuOption
 from src.strava_service import StravaService
 from src.utils import constants as constant
 

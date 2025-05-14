@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, Mock
 import pandas as pd
 import pytest
 
-from src.menu.console_error_handler import ConsoleErrorHandler
-from src.menu.handler import MenuDependencies, MenuHandler
-from src.menu.options import MenuOption
-from src.menu.result_console_printer import ResultConsolePrinter
+from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
+from src.presentation.console_output.console_error_handler import ConsoleErrorHandler
+from src.presentation.console_output.result_console_printer import ResultConsolePrinter
+from src.presentation.menu.options import MenuOption
 
 
 @pytest.fixture
