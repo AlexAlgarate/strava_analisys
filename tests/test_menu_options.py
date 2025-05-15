@@ -11,7 +11,10 @@ class TestMenuOption:
 
     def test_menu_option_descriptions(self) -> None:
         for option in options_module.MenuOption:
-            assert option.description == options_module.MENU_DESCRIPTIONS[option.name]
+            assert (
+                option.description
+                == options_module.MENU_DESCRIPTIONS[option.name]
+            )
 
     def test_validate_descriptions_success(self) -> None:
         # Should not raise any exception
@@ -23,12 +26,15 @@ class TestMenuOption:
         incomplete = options_module.MENU_DESCRIPTIONS.copy()
         del incomplete["ACTIVITY_DETAILS"]
 
-        monkeypatch.setitem(options_module.__dict__, "MENU_DESCRIPTIONS", incomplete)
+        monkeypatch.setitem(
+            options_module.__dict__, "MENU_DESCRIPTIONS", incomplete
+        )
 
         from src.presentation.menu.options import MenuOption
 
         with pytest.raises(
-            ValueError, match="Missing descriptions for menu options: ACTIVITY_DETAILS"
+            ValueError,
+            match="Missing descriptions for menu options: ACTIVITY_DETAILS",
         ):
             MenuOption.validate_descriptions()
 

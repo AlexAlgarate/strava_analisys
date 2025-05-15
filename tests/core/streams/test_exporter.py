@@ -78,7 +78,10 @@ class TestDataExporter:
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_exporter.export_streams(
-                sample_df, selected_format="csv", output_dir=tmp_dir, previous_week=True
+                sample_df,
+                selected_format="csv",
+                output_dir=tmp_dir,
+                previous_week=True,
             )
 
             expected_path = f"{tmp_dir}/streams_previous_week.csv"
@@ -86,7 +89,9 @@ class TestDataExporter:
             result_df = pd.read_csv(expected_path)
             pd.testing.assert_frame_equal(result_df, sample_df)
 
-    def test_export_streams_custom_exporter(self, sample_df: pd.DataFrame) -> None:
+    def test_export_streams_custom_exporter(
+        self, sample_df: pd.DataFrame
+    ) -> None:
         class CountingExporter(IStreamExporter):
             def __init__(self) -> None:
                 self.export_count = 0

@@ -6,7 +6,9 @@ import pandas as pd
 
 class IPrinterResult(ABC):
     @abstractmethod
-    def print_result(self, option: str, result: Dict | List | pd.DataFrame) -> None:
+    def print_result(
+        self, option: str, result: Dict | List | pd.DataFrame
+    ) -> None:
         pass
 
 

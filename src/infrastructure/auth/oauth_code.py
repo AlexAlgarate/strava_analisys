@@ -19,7 +19,9 @@ class GetOauthCode:
             raise ValueError("No authorization code found in the URL")
         return full_code.group(1)
 
-    def get_authorization_code(self, base_url: str, params: Dict[str, str]) -> str:
+    def get_authorization_code(
+        self, base_url: str, params: Dict[str, str]
+    ) -> str:
         auth_url = self._create_full_url(base_url, params)
         webbrowser.open(auth_url)
         print("Paste here the URL from the browser: ", end="")

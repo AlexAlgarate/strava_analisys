@@ -29,7 +29,9 @@ class ActivityStreamsFetcher(IActivityFetcher):
         response_json = await self.api.make_request(
             f"/activities/{self.id_activity}/streams", params
         )
-        return process_streams(response=response_json, id_activity=self.id_activity)
+        return process_streams(
+            response=response_json, id_activity=self.id_activity
+        )
 
     @classmethod
     async def fetch_multiple_activities_streams(

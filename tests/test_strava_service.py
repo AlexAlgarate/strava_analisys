@@ -56,7 +56,9 @@ class TestStravaService:
         }
         mock_async_api.make_request.return_value = mock_response
 
-        result = await service.get_streams_for_multiple_activities(activity_ids=[1, 2])
+        result = await service.get_streams_for_multiple_activities(
+            activity_ids=[1, 2]
+        )
 
         assert isinstance(result, pd.DataFrame)
         assert len(result) == 4  # 2 data points for each activity
@@ -137,5 +139,7 @@ class TestStravaService:
         mock_response = {"distribution_buckets": None}
         mock_async_api.make_request.return_value = mock_response
 
-        with pytest.raises(ValueError, match="does not have heartrate information"):
+        with pytest.raises(
+            ValueError, match="does not have heartrate information"
+        ):
             await service.get_activity_zones(activity_id=123)

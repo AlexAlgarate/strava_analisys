@@ -56,7 +56,9 @@ class TestStreamManager:
         assert isinstance(result, pd.DataFrame)
         assert len(result) == 4  # 2 data points for each activity
         assert set(result["id"].unique()) == {1, 2}
-        assert mock_async_api.make_request.call_count == 2  # One call per activity
+        assert (
+            mock_async_api.make_request.call_count == 2
+        )  # One call per activity
 
     @pytest.mark.asyncio
     async def test_get_weekly_streams(

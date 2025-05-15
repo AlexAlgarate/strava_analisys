@@ -32,11 +32,15 @@ class StreamManager:
     async def get_weekly_streams(self, previous_week: bool) -> pd.DataFrame:
         """Fetch streams for activities in the selected week."""
         week_fetcher = WeeklyActivitiesFetcher(self.api_async)
-        activities = await week_fetcher.fetch_activity_data(previous_week=previous_week)
+        activities = await week_fetcher.fetch_activity_data(
+            previous_week=previous_week
+        )
         ids = await get_activity_ids(activities)
-        raw_data = await ActivityStreamsFetcher.fetch_multiple_activities_streams(
-            api=self.api_async,
-            list_id_activities=ids,
-            stream_keys=constant.ACTIVITY_STREAMS_KEYS,
+        raw_data = (
+            await ActivityStreamsFetcher.fetch_multiple_activities_streams(
+                api=self.api_async,
+                list_id_activities=ids,
+                stream_keys=constant.ACTIVITY_STREAMS_KEYS,
+            )
         )
         return pd.DataFrame(raw_data)

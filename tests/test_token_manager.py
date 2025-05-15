@@ -45,11 +45,16 @@ class TestTokenManager:
 
     def test_token_has_expired_with_expired_token(self) -> None:
         token_has_expired = int(time.time()) - 3600
-        assert TokenManager.token_has_expired(expires_at=token_has_expired) is True
+        assert (
+            TokenManager.token_has_expired(expires_at=token_has_expired) is True
+        )
 
     def test_token_has_expired_with_valid_token(self) -> None:
         token_has_not_expired = int(time.time()) + 3600
-        assert TokenManager.token_has_expired(expires_at=token_has_not_expired) is False
+        assert (
+            TokenManager.token_has_expired(expires_at=token_has_not_expired)
+            is False
+        )
 
     def test_prepare_request_data_refresh_token(
         self, token_manager: TokenManager

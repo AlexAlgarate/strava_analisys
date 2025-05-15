@@ -14,13 +14,28 @@ from src.presentation.console_output.formatter import (
 
 
 class TestValidFormatter:
-    invalid_inputs: list[str | None | dict | list] = ["abc", None, {}, [], "", "  "]
+    invalid_inputs: list[str | None | dict | list] = [
+        "abc",
+        None,
+        {},
+        [],
+        "",
+        "  ",
+    ]
 
     @pytest.mark.parametrize(
         "formatter_cls, input_value, expected_output",
         [
-            (ActivityDateFormatter, "2025-04-16T10:30:00Z", "2025-04-16 10:30:00"),
-            (ActivityDateFormatter, "1990-01-01T01:01:00Z", "1990-01-01 01:01:00"),
+            (
+                ActivityDateFormatter,
+                "2025-04-16T10:30:00Z",
+                "2025-04-16 10:30:00",
+            ),
+            (
+                ActivityDateFormatter,
+                "1990-01-01T01:01:00Z",
+                "1990-01-01 01:01:00",
+            ),
             (ActivityDistanceFormatter, 1000, "1.00 km"),
             (ActivityDistanceFormatter, 100, "0.10 km"),
             (ActivityPaceFormatter, 5, "18.00 km/h"),
@@ -36,7 +51,10 @@ class TestValidFormatter:
         ],
     )
     def test_valid_formatter(
-        self, formatter_cls: Type, input_value: int | float | str, expected_output: str
+        self,
+        formatter_cls: Type,
+        input_value: int | float | str,
+        expected_output: str,
     ) -> None:
         formatter = formatter_cls()
         assert formatter.format(input_value) == expected_output

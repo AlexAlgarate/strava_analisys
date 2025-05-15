@@ -48,7 +48,9 @@ class TestActivityZones:
         mock_response = {"distribution_buckets": None}
         mock_async_api.make_request.return_value = mock_response
 
-        with pytest.raises(ValueError, match="does not have heartrate information"):
+        with pytest.raises(
+            ValueError, match="does not have heartrate information"
+        ):
             await zones_manager.get_zones()
 
     @pytest.mark.asyncio

@@ -23,7 +23,9 @@ class ActivityZones:
         zones = response_zones.get("distribution_buckets")
 
         if zones is None:
-            raise ValueError("The activity does not have heartrate information.")
+            raise ValueError(
+                "The activity does not have heartrate information."
+            )
 
         zones_dict = dict(zip(self.ZONES_KEY, zones))
         if save_zones:

@@ -12,7 +12,9 @@ class DataExporter:
     def __init__(self, exporter_map: Dict[str, IStreamExporter] | None = None):
         self.exporter = exporter_map or {"csv": CsvExporter()}
 
-    def _create_path(self, output_dir: str, previous_week: bool, fmt: str) -> str:
+    def _create_path(
+        self, output_dir: str, previous_week: bool, fmt: str
+    ) -> str:
         suffix = "previous_week" if previous_week else "current_week"
         filename = f"streams_{suffix}.{fmt}"
         return f"{output_dir}/{filename}"

@@ -14,15 +14,15 @@ class ActivityService:
 
     async def get_activity_range(self, previous_week: bool = False) -> Any:
         """Get activities within a specific date range."""
-        return await WeeklyActivitiesFetcher(self.api_async).fetch_activity_data(
-            previous_week=previous_week
-        )
+        return await WeeklyActivitiesFetcher(
+            self.api_async
+        ).fetch_activity_data(previous_week=previous_week)
 
     async def get_activity_details(
         self, previous_week: bool = False
     ) -> List[Dict[Any, Any]]:
         """Get detailed information for activities."""
         keys = [key.value for key in constant.ActivityDetailKey]
-        return await DetailedActivitiesFetcher(self.api_async).fetch_activity_data(
-            keys=keys, previuos_week=previous_week
-        )
+        return await DetailedActivitiesFetcher(
+            self.api_async
+        ).fetch_activity_data(keys=keys, previuos_week=previous_week)

@@ -63,7 +63,9 @@ class TestWeeklyActivitiesFetcher:
 
 class TestDetailedActivitiesFetcher:
     @pytest.fixture
-    def activity_fetcher(self, mock_async_api: Mock) -> DetailedActivitiesFetcher:
+    def activity_fetcher(
+        self, mock_async_api: Mock
+    ) -> DetailedActivitiesFetcher:
         return DetailedActivitiesFetcher(api=mock_async_api)
 
     @pytest.mark.asyncio
@@ -82,7 +84,9 @@ class TestDetailedActivitiesFetcher:
 
         assert len(result) == 2
         assert all(isinstance(activity, dict) for activity in result)
-        assert all(set(activity.keys()) == {"id", "name"} for activity in result)
+        assert all(
+            set(activity.keys()) == {"id", "name"} for activity in result
+        )
 
     @pytest.mark.asyncio
     async def test_fetch_activity_data_no_activities(
@@ -157,7 +161,9 @@ class TestActivityStreamsFetcher:
         assert all(result["id"] == 123)
 
     @pytest.mark.asyncio
-    async def test_fetch_activity_data_no_id(self, mock_async_api: Mock) -> None:
+    async def test_fetch_activity_data_no_id(
+        self, mock_async_api: Mock
+    ) -> None:
         fetcher = ActivityStreamsFetcher(api=mock_async_api)
         with pytest.raises(
             ValueError, match="Activity ID is required for this operation"

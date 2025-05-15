@@ -10,9 +10,13 @@ class IDatabaseDeleter(ABC):
         pass
 
     @abstractmethod
-    def get_expired_token_ids(self, table: str, encryptor: IEncryptation) -> List[int]:
+    def get_expired_token_ids(
+        self, table: str, encryptor: IEncryptation
+    ) -> List[int]:
         pass
 
     @abstractmethod
-    def cleanup_expired_tokens(self, table: str, encryptor: IEncryptation) -> bool:
+    def cleanup_expired_tokens(
+        self, table: str, encryptor: IEncryptation
+    ) -> bool:
         pass

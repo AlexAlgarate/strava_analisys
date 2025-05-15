@@ -33,7 +33,9 @@ class TestEncryptor:
         assert isinstance(encryptor.cipher, Fernet)
 
     def test_init_with_invalid_cipher(self) -> None:
-        with pytest.raises(ValueError, match="Cipher must be an instance of Fernet."):
+        with pytest.raises(
+            ValueError, match="Cipher must be an instance of Fernet."
+        ):
             FernetEncryptor("invalid_cipher")  # type: ignore[arg-type]
 
     def test_encrypt_data(
@@ -48,7 +50,9 @@ class TestEncryptor:
             assert isinstance(value, str | int)
             assert value not in sample_data.values()
 
-    def test_encrypt_data_with_empty_dict(self, encryptor: FernetEncryptor) -> None:
+    def test_encrypt_data_with_empty_dict(
+        self, encryptor: FernetEncryptor
+    ) -> None:
         encrypted_data = encryptor.encrypt_data({})
         assert encrypted_data == {}
 
@@ -61,7 +65,9 @@ class TestEncryptor:
         decrypted_data["expires_at"] = int(decrypted_data["expires_at"])
 
         assert decrypted_data == sample_data
-        assert all(isinstance(value, (int, str)) for value in decrypted_data.values())
+        assert all(
+            isinstance(value, (int, str)) for value in decrypted_data.values()
+        )
 
     def test_decrypt_data_with_mixed_values(
         self, encryptor: FernetEncryptor, sample_data: sample_data_type
@@ -81,10 +87,14 @@ class TestEncryptor:
         assert decrypted_data["expires_at"] == "1738222356"
         assert decrypted_data["access_token_creation"] == "2025-01-30 08:40:21"
 
-    def test_decrypt_data_invalid_token(self, encryptor: FernetEncryptor) -> None:
+    def test_decrypt_data_invalid_token(
+        self, encryptor: FernetEncryptor
+    ) -> None:
         invalid_data = {"key": "invalid_encrypted_value"}
 
-        with pytest.raises(ValueError, match="Decryption failed due to an error."):
+        with pytest.raises(
+            ValueError, match="Decryption failed due to an error."
+        ):
             encryptor.decrypt_data(invalid_data)
 
     def test_decrypt_one_value_successfully(
@@ -92,10 +102,14 @@ class TestEncryptor:
     ) -> None:
         encrypted_data = encryptor.encrypt_data(sample_data)
 
-        decrypted_access_token = encryptor.decrypt_value(encrypted_data, "access_token")
+        decrypted_access_token = encryptor.decrypt_value(
+            encrypted_data, "access_token"
+        )
         assert decrypted_access_token == sample_data["access_token"]
 
-        decrypted_int_expires_at = encryptor.decrypt_value(encrypted_data, "expires_at")
+        decrypted_int_expires_at = encryptor.decrypt_value(
+            encrypted_data, "expires_at"
+        )
         assert decrypted_int_expires_at == str(sample_data["expires_at"])
 
     def test_decrypt_one_value_key_error(
