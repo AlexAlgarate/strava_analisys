@@ -25,9 +25,7 @@ class ResultConsolePrinter(IPrinterResult):
         else:
             print("No data available")
 
-    def _print_activity_dict(
-        self, data: Dict[str, Any], indent: int = 0
-    ) -> None:
+    def _print_activity_dict(self, data: Dict[str, Any], indent: int = 0) -> None:
         for key, value in data.items():
             prefix = "  " * indent
             if isinstance(value, (dict, list)):

@@ -24,19 +24,13 @@ class SupabaseDeleter(IDatabaseDeleter):
                 .in_("id", values=ids_to_delete)
                 .execute()
             )
-            print(
-                f"Deleted {len(ids_to_delete)} records with IDs: {ids_to_delete}"
-            )
+            print(f"Deleted {len(ids_to_delete)} records with IDs: {ids_to_delete}")
             return bool(result and result.data)
 
         except Exception as e:
-            raise exception.DatabaseOperationError(
-                f"Failed to delete data: {e}"
-            )
+            raise exception.DatabaseOperationError(f"Failed to delete data: {e}")
 
-    def get_expired_token_ids(
-        self, table: str, encryptor: IEncryptation
-    ) -> List[int]:
+    def get_expired_token_ids(self, table: str, encryptor: IEncryptation) -> List[int]:
         try:
             # Fetch all tokens with their expiration times
             result = self.client.table(table).select("id, expires_at").execute()
@@ -56,9 +50,7 @@ class SupabaseDeleter(IDatabaseDeleter):
                 f"Failed to fetch expired tokens: {e}"
             )
 
-    def cleanup_expired_tokens(
-        self, table: str, encryptor: IEncryptation
-    ) -> bool:
+    def cleanup_expired_tokens(self, table: str, encryptor: IEncryptation) -> bool:
         try:
             expired_ids = self.get_expired_token_ids(table, encryptor)
             if expired_ids:

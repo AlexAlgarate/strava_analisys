@@ -89,9 +89,7 @@ class TestDataExporter:
             result_df = pd.read_csv(expected_path)
             pd.testing.assert_frame_equal(result_df, sample_df)
 
-    def test_export_streams_custom_exporter(
-        self, sample_df: pd.DataFrame
-    ) -> None:
+    def test_export_streams_custom_exporter(self, sample_df: pd.DataFrame) -> None:
         class CountingExporter(IStreamExporter):
             def __init__(self) -> None:
                 self.export_count = 0

@@ -30,9 +30,8 @@ class TestGetEnvVariable:
     def test_get_env_variable_raises_error(self) -> None:
         with pytest.raises(ValueError) as exc_info:
             get_env_variable("NONEXISTENT_VAR")
-        assert (
-            "Environment variable NONEXISTENT_VAR is required but not set"
-            in str(exc_info.value)
+        assert "Environment variable NONEXISTENT_VAR is required but not set" in str(
+            exc_info.value
         )
 
 
@@ -99,16 +98,12 @@ class TestSupabaseSecrets:
         monkeypatch.setenv("SUPABASE_API_KEY", "")
         monkeypatch.setenv("SUPABASE_TABLE", "table")
 
-        with pytest.raises(
-            ValueError, match="Supabase API key cannot be empty"
-        ):
+        with pytest.raises(ValueError, match="Supabase API key cannot be empty"):
             SupabaseSecrets()
 
 
 class TestFernetSecrets:
-    def test_fernet_secrets_uses_env_key(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fernet_secrets_uses_env_key(self, monkeypatch: pytest.MonkeyPatch) -> None:
         key = Fernet.generate_key().decode()
         monkeypatch.setenv("FERNET_KEY", key)
 

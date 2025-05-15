@@ -21,9 +21,7 @@ def process_streams(response: Dict, id_activity: int) -> pd.DataFrame:
             data[stream_type] = stream_data["data"]
 
             if len(data[stream_type]) < max_length:
-                data[stream_type].extend(
-                    [None] * (max_length - len(data[stream_type]))
-                )
+                data[stream_type].extend([None] * (max_length - len(data[stream_type])))
         else:
             data[stream_type] = [None] * max_length
 

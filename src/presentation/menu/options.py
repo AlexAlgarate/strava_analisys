@@ -34,9 +34,7 @@ class MenuOption(Enum):
     @classmethod
     def validate_descriptions(cls) -> None:
         missing = [
-            member.name
-            for member in cls
-            if member.name not in MENU_DESCRIPTIONS
+            member.name for member in cls if member.name not in MENU_DESCRIPTIONS
         ]
         if missing:
             raise ValueError(

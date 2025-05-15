@@ -50,9 +50,7 @@ class TestActivityService:
             mock_details[1],  # Detailed activity 2
         ]
 
-        result = await activity_service.get_activity_details(
-            previous_week=False
-        )
+        result = await activity_service.get_activity_details(previous_week=False)
 
         assert len(result) == 2
         assert all(isinstance(activity, dict) for activity in result)

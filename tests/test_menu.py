@@ -54,12 +54,8 @@ class TestMenuHandler:
     def test_init_creates_dependencies(self, mock_service: Mock) -> None:
         handler = MenuHandler(service=mock_service)
         assert isinstance(handler.dependencies, MenuDependencies)
-        assert isinstance(
-            handler.dependencies.result_printer, ResultConsolePrinter
-        )
-        assert isinstance(
-            handler.dependencies.error_printer, ConsoleErrorHandler
-        )
+        assert isinstance(handler.dependencies.result_printer, ResultConsolePrinter)
+        assert isinstance(handler.dependencies.error_printer, ConsoleErrorHandler)
 
     def test_get_menu_options(self, menu_handler: MenuHandler) -> None:
         options = menu_handler.get_menu_options()
@@ -143,7 +139,4 @@ class TestConsoleErrorHandler:
 
         assert "Invalid option selected" in captured.out
         assert "999" in captured.out
-        assert (
-            "Please select a number from the menu or 'q' to quit"
-            in captured.out
-        )
+        assert "Please select a number from the menu or 'q' to quit" in captured.out

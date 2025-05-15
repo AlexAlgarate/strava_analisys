@@ -16,6 +16,4 @@ class SupabaseWriter(IDatabaseWriter):
             return bool(result and result.data)
 
         except Exception as e:
-            raise exception.DatabaseOperationError(
-                f"Failed to insert data: {e}"
-            )
+            raise exception.DatabaseOperationError(f"Failed to insert data: {e}")

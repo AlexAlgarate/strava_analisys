@@ -44,9 +44,7 @@ class FernetEncryptor(IEncryptation):
             logger.error(f"Error decrypting data: {e}", exc_info=True)
             raise ValueError("Decryption failed due to an error.") from e
 
-    def decrypt_value(
-        self, data_to_decrypt: Dict[str, str], value: str
-    ) -> str | int:
+    def decrypt_value(self, data_to_decrypt: Dict[str, str], value: str) -> str | int:
         try:
             decrypted_data = self.decrypt_data(data_to_decrypt)
             return decrypted_data[value]

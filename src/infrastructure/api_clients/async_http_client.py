@@ -29,9 +29,7 @@ class AsyncHTTPClient(BaseASyncHTTPClient):
         params: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         async with aiohttp.ClientSession() as session:
-            async with session.get(
-                url, headers=headers, params=params
-            ) as response:
+            async with session.get(url, headers=headers, params=params) as response:
                 if response.status == REACH_REQUEST_LIMIT:
                     raise exceptions.TooManyRequestError(
                         "\n\n You have reached the request limit. Please, try again in 15 minutes."

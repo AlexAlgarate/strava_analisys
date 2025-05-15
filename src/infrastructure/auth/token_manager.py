@@ -36,9 +36,7 @@ class TokenManager:
         data.update(kwargs)
         return data
 
-    def _send_token_request(
-        self, data: Dict[str, str]
-    ) -> Dict[str, Any] | None:
+    def _send_token_request(self, data: Dict[str, str]) -> Dict[str, Any] | None:
         try:
             response = requests.post(constant.URL_GET_ACCESS_TOKEN, data=data)
             response.raise_for_status()

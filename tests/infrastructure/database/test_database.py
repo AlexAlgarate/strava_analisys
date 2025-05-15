@@ -96,13 +96,9 @@ class TestSupabaseReader:
             data=[{"access_token": "test_token"}]
         )
         supabase_reader.client = MagicMock()
-        supabase_reader.client.table.return_value.select.return_value = (
-            mock_query
-        )
+        supabase_reader.client.table.return_value.select.return_value = mock_query
 
-        result = supabase_reader.fetch_latest_record(
-            "test_table", "access_token"
-        )
+        result = supabase_reader.fetch_latest_record("test_table", "access_token")
         assert result == {"access_token": "test_token"}
 
     def test_fetch_latest_record_empty_result(
@@ -157,6 +153,4 @@ class TestSupabaseWriter:
             exception.DatabaseOperationError,
             match="Failed to insert data: Insert error",
         ):
-            supabase_writer.insert_record(
-                "test_table", {"access_token": "test_token"}
-            )
+            supabase_writer.insert_record("test_table", {"access_token": "test_token"})

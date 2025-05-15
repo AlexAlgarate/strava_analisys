@@ -54,9 +54,7 @@ class TestTokenHandler:
         self, token_handler: TokenHandler, mock_supabase_reader: Mock
     ) -> None:
         mock_supabase_reader.fetch_latest_record.return_value = None
-        with patch.object(
-            token_handler, "_handle_initial_token_flow"
-        ) as mock_initial:
+        with patch.object(token_handler, "_handle_initial_token_flow") as mock_initial:
             token_handler.process_token("test_table")
             mock_initial.assert_called_once_with("test_table")
 
@@ -65,9 +63,7 @@ class TestTokenHandler:
     ) -> None:
         mock_record = {"access_token": "test_token"}
         mock_supabase_reader.fetch_latest_record.return_value = mock_record
-        with patch.object(
-            token_handler, "_handle_exisiting_token"
-        ) as mock_existing:
+        with patch.object(token_handler, "_handle_exisiting_token") as mock_existing:
             token_handler.process_token("test_table")
             mock_existing.assert_called_once_with(mock_record, "test_table")
 
@@ -84,9 +80,7 @@ class TestTokenHandler:
         }
         mock_token_manager.token_has_expired.return_value = True
 
-        with patch.object(
-            token_handler, "_refresh_and_store_token"
-        ) as mock_refresh:
+        with patch.object(token_handler, "_refresh_and_store_token") as mock_refresh:
             token_handler._handle_exisiting_token(mock_record, "test_table")
             mock_refresh.assert_called_once_with("test_refresh", "test_table")
 
@@ -104,9 +98,7 @@ class TestTokenHandler:
         mock_encryptor.decrypt_data.return_value = decrypted_data
         mock_token_manager.token_has_expired.return_value = False
 
-        result = token_handler._handle_exisiting_token(
-            mock_record, "test_table"
-        )
+        result = token_handler._handle_exisiting_token(mock_record, "test_table")
         assert result == decrypted_data
 
     # @patch("src.oauth_code.GetOauthCode")
@@ -134,9 +126,7 @@ class TestTokenHandler:
         }
         mock_token_manager.refresh_access_token.return_value = new_tokens
 
-        with patch.object(
-            token_handler, "_store_and_return_tokens"
-        ) as mock_store:
+        with patch.object(token_handler, "_store_and_return_tokens") as mock_store:
             token_handler._refresh_and_store_token("old_refresh", "test_table")
             mock_store.assert_called_once_with(new_tokens, "test_table")
 

@@ -62,9 +62,7 @@ class TestActivityStreamsFetcher:
         assert all(result["id"] == 123)
 
     @pytest.mark.asyncio
-    async def test_fetch_activity_data_no_id(
-        self, mock_async_api: Mock
-    ) -> None:
+    async def test_fetch_activity_data_no_id(self, mock_async_api: Mock) -> None:
         fetcher = ActivityStreamsFetcher(api=mock_async_api)
         with pytest.raises(ValueError, match="Activity ID is required"):
             await fetcher.fetch_activity_data(

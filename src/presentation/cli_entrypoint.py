@@ -63,9 +63,7 @@ class MenuHandler:
     def _provisional_handle_feature(self) -> Any:
         return "This feature is not yet implemented."
 
-    def _handle_async(
-        self, func: Callable, previous_week: bool | None = None
-    ) -> Any:
+    def _handle_async(self, func: Callable, previous_week: bool | None = None) -> Any:
         return asyncio.run(func(previous_week=previous_week))
 
     def _handle_single_stream(self) -> Any:
@@ -96,9 +94,7 @@ class MenuHandler:
         try:
             menu_option = self._validate_option(option=option)
             result = self.menu_options[menu_option]()
-            self.dependencies.result_printer.print_result(
-                option=option, result=result
-            )
+            self.dependencies.result_printer.print_result(option=option, result=result)
             return result
         except (ValueError, KeyError):
             self.dependencies.error_printer.print_error(option=option)

@@ -23,9 +23,7 @@ def handle_token_errors(func: Callable[..., Any]) -> Callable[..., Any]:
             return func(self, *args, **kwargs)
         except Exception as e:
             logger.error(f"Error in {func.__name__}: {str(e)}", exc_info=True)
-            raise exception.TokenError(
-                f"Token operation failed: {str(e)}"
-            ) from e
+            raise exception.TokenError(f"Token operation failed: {str(e)}") from e
 
     return wrapper
 
@@ -53,14 +51,10 @@ class TokenHandler:
         self.credentials = Credentials(client_id)
 
     def process_token(self, table: str) -> Any:
-        record = self.supabase_reader.fetch_latest_record(
-            table, "*", "expires_at"
-        )
+        record = self.supabase_reader.fetch_latest_record(table, "*", "expires_at")
 
         if not record:
-            logger.info(
-                "No data found in Supabase. Generating initial tokens...\n"
-            )
+            logger.info("No data found in Supabase. Generating initial tokens...\n")
             self._handle_initial_token_flow(table)
             return {}
         return self._handle_exisiting_token(record, table)
@@ -68,22 +62,16 @@ class TokenHandler:
     @handle_token_errors
     def _cleanup_expired_tokens(self, table: str) -> None:
         try:
-            if self.supabase_deleter.cleanup_expired_tokens(
-                table, self.encryptor
-            ):
+            if self.supabase_deleter.cleanup_expired_tokens(table, self.encryptor):
                 logger.info("Successfully cleaned up expired tokens")
         except exception.DatabaseOperationError as e:
             logger.warning(f"Failed to cleanup expired tokens: {e}")
 
     @handle_token_errors
-    def _handle_exisiting_token(
-        self, record: Dict[str, str], table: str
-    ) -> Any:
+    def _handle_exisiting_token(self, record: Dict[str, str], table: str) -> Any:
         decrypted_record = self.encryptor.decrypt_data(record)
 
-        if self.token_manager.token_has_expired(
-            int(decrypted_record["expires_at"])
-        ):
+        if self.token_manager.token_has_expired(int(decrypted_record["expires_at"])):
             logger.info("Token expired, refreshing...")
             return self._refresh_and_store_token(
                 decrypted_record["refresh_token"], table
@@ -140,7 +128,5 @@ class TokenHandler:
             "access_token": tokens["access_token"],
             "refresh_token": tokens["refresh_token"],
             "expires_at": tokens["expires_at"],
-            "access_token_creation": datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S"
-            ),
+            "access_token_creation": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }

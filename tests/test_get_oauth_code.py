@@ -31,13 +31,10 @@ class TestGetOauthCode:
         assert parsed_url.path == "/auth"
         assert query_params["client_id"][0] == "123"
         assert query_params["response_type"][0] == "code"
-        assert (
-            query_params["redirect_uri"][0] == "http://localhost/exchange_token"
-        )
+        assert query_params["redirect_uri"][0] == "http://localhost/exchange_token"
         assert query_params["approval_prompt"][0] == "force"
         assert (
-            query_params["scope"][0]
-            == "read,read_all,activity:read,activity:read_all"
+            query_params["scope"][0] == "read,read_all,activity:read,activity:read_all"
         )
 
     def test_create_full_url_with_empty_params(
@@ -55,9 +52,7 @@ class TestGetOauthCode:
 
     def test_extract_code_no_code(self, oauth_handler: GetOauthCode) -> None:
         test_url = "https://example.com/callback?state=xyz&scope=read"
-        with pytest.raises(
-            ValueError, match="No authorization code found in the URL"
-        ):
+        with pytest.raises(ValueError, match="No authorization code found in the URL"):
             oauth_handler._extract_code(test_url)
 
     @patch("webbrowser.open")
@@ -68,7 +63,9 @@ class TestGetOauthCode:
         mock_browser_open: MagicMock,
         oauth_handler: GetOauthCode,
     ) -> None:
-        mock_input.return_value = "https://example.com/callback?state=xyz&code=abc123def456&scope=read"
+        mock_input.return_value = (
+            "https://example.com/callback?state=xyz&code=abc123def456&scope=read"
+        )
 
         params = {
             "client_id": "123",
@@ -90,13 +87,9 @@ class TestGetOauthCode:
         mock_browser_open: MagicMock,
         oauth_handler: GetOauthCode,
     ) -> None:
-        mock_input.return_value = (
-            "https://example.com/callback?state=xyz&scope=read"
-        )
+        mock_input.return_value = "https://example.com/callback?state=xyz&scope=read"
 
-        with pytest.raises(
-            ValueError, match="No authorization code found in the URL"
-        ):
+        with pytest.raises(ValueError, match="No authorization code found in the URL"):
             oauth_handler.get_authorization_code(self.base_url, self.params)
 
     def test_create_full_url_with_special_characters(
@@ -113,7 +106,4 @@ class TestGetOauthCode:
         query_params = parse_qs(parsed_url.query)
 
         assert query_params["client_id"][0] == "123+456"
-        assert (
-            query_params["redirect_uri"][0]
-            == "https://app.example.com/callback"
-        )
+        assert query_params["redirect_uri"][0] == "https://app.example.com/callback"

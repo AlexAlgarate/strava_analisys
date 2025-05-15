@@ -6,9 +6,7 @@ from cryptography.fernet import Fernet
 def get_env_variable(var_name: str, default_value: str | None = None) -> str:
     value = os.environ.get(var_name, default_value)
     if value is None:
-        raise ValueError(
-            f"Environment variable {var_name} is required but not set."
-        )
+        raise ValueError(f"Environment variable {var_name} is required but not set.")
     return value
 
 
@@ -36,9 +34,7 @@ class SupabaseSecrets:
 
     def _validate_credentials(self) -> None:
         if not self.supabase_url.startswith(("http://", "https://")):
-            raise ValueError(
-                f"Invalid Supabase URL format: {self.supabase_url}"
-            )
+            raise ValueError(f"Invalid Supabase URL format: {self.supabase_url}")
 
         if not self.supabase_api_key:
             raise ValueError("Supabase API key cannot be empty")

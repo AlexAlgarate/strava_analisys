@@ -50,9 +50,7 @@ class StravaService:
         previous_week: bool = False,
     ) -> pd.DataFrame:
         """Export stream data for activities in the selected week."""
-        df = await self.stream_manager.get_weekly_streams(
-            previous_week=previous_week
-        )
+        df = await self.stream_manager.get_weekly_streams(previous_week=previous_week)
         self.data_exporter.export_streams(
             df,
             selected_format=selected_format,
@@ -65,7 +63,5 @@ class StravaService:
         self, activity_id: int, save_zones: bool = False
     ) -> Dict[str, int]:
         """Get heart rate zones for a specific activity."""
-        zones_manager = ActivityZones(
-            api=self.api_async, id_activity=activity_id
-        )
+        zones_manager = ActivityZones(api=self.api_async, id_activity=activity_id)
         return await zones_manager.get_zones(save_zones=save_zones)
