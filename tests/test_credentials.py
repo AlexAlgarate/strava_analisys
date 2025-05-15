@@ -1,6 +1,3 @@
-import os
-from typing import Generator
-
 import pytest
 from cryptography.fernet import Fernet
 
@@ -12,59 +9,23 @@ from src.infrastructure.auth.credentials import (
 )
 
 
-@pytest.fixture
-def environment_setup() -> Generator[dict, None, None]:
-    env_vars = [
-        "STRAVA_CLIENT_ID",
-        "STRAVA_SECRET_KEY",
-        "SUPABASE_URL",
-        "SUPABASE_API_KEY",
-        "SUPABASE_TABLE",
-        "FERNET_KEY",
-    ]
-
-    original_env = {key: os.environ.get(key) for key in env_vars}
-
-    test_values = {
-        "STRAVA_CLIENT_ID": "test_strava_id",
-        "STRAVA_SECRET_KEY": "test_strava_secret",
-        "SUPABASE_URL": "https://test.supabase.co",
-        "SUPABASE_API_KEY": "test_supabase_key",
-        "SUPABASE_TABLE": "test_table",
-        "FERNET_KEY": Fernet.generate_key().decode(),
-    }
-
-    os.environ.update(test_values)
-
-    yield test_values
-
-    for key, value in original_env.items():
-        if value is None:
-            os.environ.pop(key, None)
-        else:
-            os.environ[key] = value
-
-
-class TestCredentials:
+class TestGetEnvVariable:
     @pytest.mark.parametrize(
         "var_name, var_value",
         [
             ("TEST_VAR", "test_value"),
             ("ANOTHER_TEST_VAR", "another_test_value"),
+            ("YET_ANOTHER_TEST_VAR", "yet_another_test_value"),
         ],
     )
     def test_get_env_variable_success(
-        self, var_name: str, var_value: str
+        self, monkeypatch: pytest.MonkeyPatch, var_name: str, var_value: str
     ) -> None:
-        os.environ[var_name] = var_value
+        monkeypatch.setenv(var_name, var_value)
         assert get_env_variable(var_name) == var_value
-        os.environ.pop(var_name)
 
     def test_get_env_variable_with_default(self) -> None:
-        assert (
-            get_env_variable("NONEXISTENT_VAR", "default_value")
-            == "default_value"
-        )
+        assert get_env_variable("NONEXISTENT_VAR", "default") == "default"
 
     def test_get_env_variable_raises_error(self) -> None:
         with pytest.raises(ValueError) as exc_info:
@@ -74,33 +35,98 @@ class TestCredentials:
             in str(exc_info.value)
         )
 
-    def test_strava_secrets(self, environment_setup: dict) -> None:
+
+class TestStravaSecrets:
+    def test_strava_secrets_loads_env_variables(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("STRAVA_CLIENT_ID", "test_strava_id")
+        monkeypatch.setenv("STRAVA_SECRET_KEY", "test_strava_secret")
+
         secrets = StravaSecrets()
-        assert secrets.strava_client_id == environment_setup["STRAVA_CLIENT_ID"]
-        assert (
-            secrets.strava_secret_key == environment_setup["STRAVA_SECRET_KEY"]
-        )
+        assert secrets.strava_client_id == "test_strava_id"
+        assert secrets.strava_secret_key == "test_strava_secret"
 
-    def test_supabase_secrets(self, environment_setup: dict) -> None:
+
+class TestSupabaseSecrets:
+    def test_supabase_secrets_loads_env_variables(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SUPABASE_URL", "https://test.supabase.co")
+        monkeypatch.setenv("SUPABASE_API_KEY", "test_api_key")
+        monkeypatch.setenv("SUPABASE_TABLE", "test_table")
+
         secrets = SupabaseSecrets()
-        assert secrets.supabase_url == environment_setup["SUPABASE_URL"]
-        assert secrets.supabase_api_key == environment_setup["SUPABASE_API_KEY"]
-        assert secrets.supabase_table == environment_setup["SUPABASE_TABLE"]
+        assert secrets.supabase_url == "https://test.supabase.co"
+        assert secrets.supabase_api_key == "test_api_key"
+        assert secrets.supabase_table == "test_table"
 
-    def test_fernet_secrets_with_env_key(self, environment_setup: dict) -> None:
+    @pytest.mark.parametrize(
+        "malformed_url, corrected_url",
+        [
+            ("https\\x3a//test.supabase.co", "https://test.supabase.co"),
+            ("https\\x3a//another.supabase.co", "https://another.supabase.co"),
+            ("https\\x3a//example.supabase.co", "https://example.supabase.co"),
+        ],
+    )
+    def test_supabase_secrets_malformed_url_is_fixed(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        malformed_url: str,
+        corrected_url: str,
+    ) -> None:
+        monkeypatch.setenv("SUPABASE_URL", malformed_url)
+        monkeypatch.setenv("SUPABASE_API_KEY", "api_key")
+        monkeypatch.setenv("SUPABASE_TABLE", "table")
+
+        secrets = SupabaseSecrets()
+        assert secrets.supabase_url == corrected_url
+
+    def test_supabase_secrets_invalid_url_raises(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SUPABASE_URL", "invalid_url")
+        monkeypatch.setenv("SUPABASE_API_KEY", "key")
+        monkeypatch.setenv("SUPABASE_TABLE", "table")
+
+        with pytest.raises(ValueError, match="Invalid Supabase URL format"):
+            SupabaseSecrets()
+
+    def test_supabase_secrets_empty_api_key_raises(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SUPABASE_URL", "https://valid.supabase.co")
+        monkeypatch.setenv("SUPABASE_API_KEY", "")
+        monkeypatch.setenv("SUPABASE_TABLE", "table")
+
+        with pytest.raises(
+            ValueError, match="Supabase API key cannot be empty"
+        ):
+            SupabaseSecrets()
+
+
+class TestFernetSecrets:
+    def test_fernet_secrets_uses_env_key(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        key = Fernet.generate_key().decode()
+        monkeypatch.setenv("FERNET_KEY", key)
+
         secrets = FernetSecrets()
-        assert secrets.fernet_key == environment_setup["FERNET_KEY"]
+        assert secrets.fernet_key == key
         assert isinstance(secrets.cipher, Fernet)
 
-    def test_fernet_secrets_auto_generation(self) -> None:
-        if "FERNET_KEY" in os.environ:
-            del os.environ["FERNET_KEY"]
+    def test_fernet_secrets_generates_key_if_not_set(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Asegúrate de que no está en el entorno
+        monkeypatch.delenv("FERNET_KEY", raising=False)
 
         secrets = FernetSecrets()
         assert secrets.fernet_key is not None
         assert isinstance(secrets.cipher, Fernet)
 
-        test_message = b"Hello, World!"
-        encrypted = secrets.cipher.encrypt(test_message)
+        message = b"Hello, world!"
+        encrypted = secrets.cipher.encrypt(message)
         decrypted = secrets.cipher.decrypt(encrypted)
-        assert decrypted == test_message
+        assert decrypted == message

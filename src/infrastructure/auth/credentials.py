@@ -19,19 +19,34 @@ class StravaSecrets:
 
 
 class SupabaseSecrets:
+    MALFORMED_PREFIX = "https\\x3a"
+    CORRECT_PREFIX = "https:"
+
     def __init__(self) -> None:
-        self.supabase_url = get_env_variable("SUPABASE_URL")
-        if self.supabase_url.startswith("https\\x3a"):
-            self.supabase_url = self.supabase_url.replace(
-                "https\\x3a", "https:"
-            )
+        raw_url = get_env_variable("SUPABASE_URL")
+        self.supabase_url = self._fix_malformed_url(raw_url)
         self.supabase_api_key = get_env_variable("SUPABASE_API_KEY")
         self.supabase_table = get_env_variable("SUPABASE_TABLE")
+        self._validate_credentials()
+
+    def _fix_malformed_url(self, url: str) -> str:
+        if url.startswith(self.MALFORMED_PREFIX):
+            return url.replace(self.MALFORMED_PREFIX, self.CORRECT_PREFIX)
+        return url
+
+    def _validate_credentials(self) -> None:
+        if not self.supabase_url.startswith(("http://", "https://")):
+            raise ValueError(
+                f"Invalid Supabase URL format: {self.supabase_url}"
+            )
+
+        if not self.supabase_api_key:
+            raise ValueError("Supabase API key cannot be empty")
 
 
 class FernetSecrets:
     def __init__(self) -> None:
-        self.fernet_key = get_env_variable(
-            "FERNET_KEY", Fernet.generate_key().decode()
-        )
-        self.cipher = Fernet(self.fernet_key.encode())
+        generate_fernet_key = Fernet.generate_key().decode()
+        self.fernet_key = get_env_variable("FERNET_KEY", generate_fernet_key)
+        encode_fernet_key = self.fernet_key.encode()
+        self.cipher = Fernet(encode_fernet_key)
