@@ -16,7 +16,7 @@ dependencies = [
     "setuptools>=78.1.0",
     "supabase>=2.15.1",
     "types-requests>=2.32.0.20250328",
-    "uv>=0.7.3",
+    "uv>=0.7.4",
 ]
 [dependency-groups]
 dev = [
@@ -27,7 +27,7 @@ dev = [
     "pytest>=8.3.5",
     "pytest-asyncio>=0.26.0",
     "pytest-cov>=6.1.1",
-    "ruff>=0.11.8",
+    "ruff>=0.11.10",
     "types-requests>=2.32.0.20250328",
 ]
 [project.urls]
