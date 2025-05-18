@@ -8,7 +8,7 @@ license = { text = "MIT" }
 authors = [{ name = "Alex Algarate", email = "alex.algarate@gmail.com" }]
 dependencies = [
     "aioresponses>=0.7.8",
-    "cryptography>=44.0.3",
+    "cryptography>=45.0.2",
     "pandas>=2.2.3",
     "pre-commit>=4.2.0",
     "python-dotenv>=1.1.0",
@@ -16,7 +16,7 @@ dependencies = [
     "setuptools>=78.1.0",
     "supabase>=2.15.1",
     "types-requests>=2.32.0.20250328",
-    "uv>=0.7.4",
+    "uv>=0.7.5",
 ]
 [dependency-groups]
 dev = [
