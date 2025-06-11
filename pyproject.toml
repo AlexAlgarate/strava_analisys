@@ -8,15 +8,15 @@ license = { text = "MIT" }
 authors = [{ name = "Alex Algarate", email = "alex.algarate@gmail.com" }]
 dependencies = [
     "aioresponses>=0.7.8",
-    "cryptography>=45.0.2",
-    "pandas>=2.2.3",
+    "cryptography>=45.0.4",
+    "pandas>=2.3.0",
     "pre-commit>=4.2.0",
     "python-dotenv>=1.1.0",
-    "requests>=2.32.3",
+    "requests>=2.32.4",
     "setuptools>=78.1.0",
     "supabase>=2.15.1",
     "types-requests>=2.32.0.20250328",
-    "uv>=0.7.5",
+    "uv>=0.7.12",
 ]
 [dependency-groups]
 dev = [
@@ -24,12 +24,12 @@ dev = [
     "freezegun>=1.5.1",
     "mypy>=1.15.0",
     "pandas-stubs>=2.2.3.250308",
-    "pytest>=8.3.5",
+    "pytest>=8.4.0",
     "pytest-asyncio>=0.26.0",
     "pytest-cov>=6.1.1",
-    "ruff>=0.11.10",
-    "ty>=0.0.1a7",
-    "types-requests>=2.32.0.20250328",
+    "ruff>=0.11.13",
+    "ty>=0.0.1a8",
+    "types-requests>=2.32.4.20250611",
 ]
 [project.urls]
 Homepage = "https://github.com/AlexAlgarate"
