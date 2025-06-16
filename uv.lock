@@ -1154,20 +1154,20 @@ requires-dist = [
     { name = "setuptools", specifier = ">=78.1.0" },
     { name = "supabase", specifier = ">=2.15.1" },
     { name = "types-requests", specifier = ">=2.32.0.20250328" },
-    { name = "uv", specifier = ">=0.7.12" },
+    { name = "uv", specifier = ">=0.7.13" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "coverage", specifier = ">=7.8.0" },
+    { name = "coverage", specifier = ">=7.9.1" },
     { name = "freezegun", specifier = ">=1.5.1" },
     { name = "mypy", specifier = ">=1.15.0" },
     { name = "pandas-stubs", specifier = ">=2.2.3.250308" },
     { name = "pytest", specifier = ">=8.4.0" },
     { name = "pytest-asyncio", specifier = ">=0.26.0" },
-    { name = "pytest-cov", specifier = ">=6.1.1" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "ruff", specifier = ">=0.11.13" },
-    { name = "ty", specifier = ">=0.0.1a8" },
+    { name = "ty", specifier = ">=0.0.1a10" },
     { name = "types-requests", specifier = ">=2.32.4.20250611" },
 ]
 
