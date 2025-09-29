@@ -16,19 +16,20 @@ dependencies = [
     "setuptools>=78.1.0",
     "supabase>=2.15.1",
     "types-requests>=2.32.0.20250328",
-    "uv>=0.7.12",
+    "uv>=0.7.13",
 ]
 [dependency-groups]
 dev = [
-    "coverage>=7.8.0",
+    "coverage>=7.9.1",
     "freezegun>=1.5.1",
+    "import-linter>=2.3",
     "mypy>=1.15.0",
     "pandas-stubs>=2.2.3.250308",
     "pytest>=8.4.0",
     "pytest-asyncio>=0.26.0",
-    "pytest-cov>=6.1.1",
+    "pytest-cov>=6.2.1",
     "ruff>=0.11.13",
-    "ty>=0.0.1a8",
+    "ty>=0.0.1a10",
     "types-requests>=2.32.4.20250611",
 ]
 [project.urls]

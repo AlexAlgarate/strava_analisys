@@ -1,0 +1,18 @@
+[importlinter]
+root_package = src
+include_external_packages = True
+
+[importlinter:contract:hexagonal_layers]
+name = hexagonal-architecture-layers: domain → application → infrastructure
+type = layers
+layers =
+    di
+    infrastructure
+    application
+    domain
+containers =
+    src
+exhaustive = true
+exhaustive_ignores =
+    __main__
+    config
