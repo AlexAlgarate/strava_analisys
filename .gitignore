@@ -6,7 +6,7 @@ update_uv.sh
 streams_current_week.csv
 streams_previous_week.csv
 data/
-
+.importlinter
 
 
 
