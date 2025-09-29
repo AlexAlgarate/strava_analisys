@@ -18,7 +18,6 @@ class DetailedActivity:
     sport_type: str
     gear: dict[str, bool | int | float | str]
 
-
     def validate(self) -> None:
         validation_rules = {
             "name": lambda x: bool(x),
@@ -41,4 +40,4 @@ class DetailedActivity:
             value = getattr(self, attribute)
             if not rule(value):  # type: ignore
                 raise ValueError(f"Invalid value for {attribute}: {value}")
-
+                
