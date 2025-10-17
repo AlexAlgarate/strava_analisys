@@ -7,7 +7,7 @@ streams_current_week.csv
 streams_previous_week.csv
 data/
 .importlinter
-
+logs.txt
 
 
 # Byte-compiled / optimized / DLL files
