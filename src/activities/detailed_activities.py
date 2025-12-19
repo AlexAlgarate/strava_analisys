@@ -30,7 +30,10 @@ class DetailedActivitiesFetcher(IActivityFetcher):
 
         activity_ids = [activity["id"] for activity in activities]
         detailed_activity = await self._fetch_all_activity_details(activity_ids)
+        import json
 
+        with open("activities.json", "w", encoding="utf-8") as f:
+            json.dump(detailed_activity, f, ensure_ascii=False, indent=4)
         return [
             self._filter_activity_keys(activity, keys) for activity in detailed_activity
         ]

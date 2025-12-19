@@ -3,6 +3,12 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+from src.core.activities.summary.handlers import (
+    ActivitySummaryBuilder,
+    ConsolePresenter,
+    JsonActivityLoader,
+)
+from src.core.activities.summary.service import ActivitySummaryService
 from src.presentation.console_output.console_error_handler import (
     ConsoleErrorHandler,
 )
@@ -58,6 +64,7 @@ class MenuHandler:
             MenuOption.STREAMS_PREV_WEEK: lambda: self._handle_async(
                 self.dependencies.service.export_streams_for_selected_week, True
             ),
+            MenuOption.WEEKLY_REPORT: lambda: self._load_json_weekly_report(),
         }
 
     def _provisional_handle_feature(self) -> Any:
@@ -86,6 +93,16 @@ class MenuHandler:
                 activity_ids=constant.EXAMPLE_ID_ACTIVITIES
             )
         )
+
+    def _load_json_weekly_report(self):
+        data_loader = JsonActivityLoader("activities.json")
+
+        summary_builder = ActivitySummaryBuilder()
+        presenter = ConsolePresenter()
+
+        # Create and run service
+        service = ActivitySummaryService(data_loader, summary_builder, presenter)
+        print(type(service.generate_summary()))
 
     def get_menu_options(self) -> Dict[str, str]:
         return {str(option.id): option.description for option in MenuOption}
