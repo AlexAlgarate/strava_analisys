@@ -1,6 +1,3 @@
-from collections.abc import Mapping
-from typing import cast
-
 from src.core.concurrency import DEFAULT_MAX_CONCURRENCY, map_concurrently
 from src.core.ports.strava import StravaAPI
 from src.domain.activity_stream import (
@@ -8,6 +5,7 @@ from src.domain.activity_stream import (
     StreamBatch,
     StreamFetchFailure,
 )
+from src.infrastructure.strava.stream_mapper import map_activity_stream
 
 
 class ActivityStreamsFetcher:
@@ -27,12 +25,7 @@ class ActivityStreamsFetcher:
         response = await self._api.make_request(
             f"/activities/{self._activity_id}/streams", params
         )
-        if not isinstance(response, Mapping):
-            raise TypeError("Strava streams response must be an object.")
-        return ActivityStream.from_mapping(
-            activity_id=self._activity_id,
-            payload=cast(Mapping[str, object], response),
-        )
+        return map_activity_stream(self._activity_id, response)
 
     @classmethod
     async def fetch_multiple_activities_streams(

@@ -1,7 +1,7 @@
-from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from math import isfinite
-from typing import Self
+
+from src.domain.activity_id import require_activity_id
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,14 +17,6 @@ class StreamSample:
         _validate_optional_float("distance", self.distance_metres)
         _validate_optional_integer("heartrate", self.heart_rate_bpm)
 
-    def as_dict(self) -> dict[str, int | float | None]:
-        return {
-            "time": self.elapsed_seconds,
-            "distance": self.distance_metres,
-            "heartrate": self.heart_rate_bpm,
-        }
-
-
 @dataclass(frozen=True, slots=True)
 class ActivityStream:
     """Validated stream samples belonging to one Strava activity."""
@@ -33,41 +25,7 @@ class ActivityStream:
     samples: tuple[StreamSample, ...]
 
     def __post_init__(self) -> None:
-        _require_positive_activity_id(self.activity_id)
-
-    @classmethod
-    def from_mapping(
-        cls,
-        activity_id: int,
-        payload: Mapping[str, object],
-    ) -> Self:
-        times = _integer_stream(payload, "time")
-        distances = _float_stream(payload, "distance")
-        heart_rates = _integer_stream(payload, "heartrate")
-        sample_count = max(
-            (len(times), len(distances), len(heart_rates)),
-            default=0,
-        )
-
-        return cls(
-            activity_id=activity_id,
-            samples=tuple(
-                StreamSample(
-                    elapsed_seconds=_value_at(times, index),
-                    distance_metres=_value_at(distances, index),
-                    heart_rate_bpm=_value_at(heart_rates, index),
-                )
-                for index in range(sample_count)
-            ),
-        )
-
-    def as_rows(self) -> list[dict[str, int | float | None]]:
-        rows: list[dict[str, int | float | None]] = []
-        for sample in self.samples:
-            row = sample.as_dict()
-            row["id"] = self.activity_id
-            rows.append(row)
-        return rows
+        require_activity_id(self.activity_id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,7 +37,7 @@ class StreamFetchFailure:
     message: str
 
     def __post_init__(self) -> None:
-        _require_positive_activity_id(self.activity_id)
+        require_activity_id(self.activity_id)
         if not self.error_type:
             raise ValueError("Stream failure error type cannot be empty.")
         if not self.message:
@@ -100,57 +58,6 @@ class StreamBatch:
     @property
     def is_partial(self) -> bool:
         return bool(self.streams and self.failures)
-
-    def as_rows(self) -> list[dict[str, int | float | None]]:
-        return [row for stream in self.streams for row in stream.as_rows()]
-
-
-def _stream_values(payload: Mapping[str, object], key: str) -> Sequence[object]:
-    stream = payload.get(key)
-    if stream is None:
-        return ()
-    if not isinstance(stream, Mapping):
-        raise TypeError(f"Stream '{key}' must be an object.")
-    values = stream.get("data")
-    if values is None:
-        return ()
-    if not isinstance(values, Sequence) or isinstance(values, (str, bytes)):
-        raise TypeError(f"Stream '{key}' data must be a sequence.")
-    return values
-
-
-def _integer_stream(payload: Mapping[str, object], key: str) -> tuple[int, ...]:
-    values: list[int] = []
-    for value in _stream_values(payload, key):
-        if isinstance(value, bool) or not isinstance(value, int):
-            raise TypeError(f"Stream '{key}' values must be integers.")
-        if value < 0:
-            raise ValueError(f"Stream '{key}' values cannot be negative.")
-        values.append(value)
-    return tuple(values)
-
-
-def _float_stream(payload: Mapping[str, object], key: str) -> tuple[float, ...]:
-    values: list[float] = []
-    for value in _stream_values(payload, key):
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise TypeError(f"Stream '{key}' values must be numeric.")
-        numeric_value = float(value)
-        if not isfinite(numeric_value) or numeric_value < 0:
-            raise ValueError(f"Stream '{key}' values must be finite and non-negative.")
-        values.append(numeric_value)
-    return tuple(values)
-
-
-def _value_at[T](values: Sequence[T], index: int) -> T | None:
-    return values[index] if index < len(values) else None
-
-
-def _require_positive_activity_id(activity_id: object) -> None:
-    if isinstance(activity_id, bool) or not isinstance(activity_id, int):
-        raise TypeError("Activity id must be an integer.")
-    if activity_id <= 0:
-        raise ValueError("Activity id must be a positive integer.")
 
 
 def _validate_optional_integer(name: str, value: object) -> None:
