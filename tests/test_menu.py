@@ -1,15 +1,23 @@
+from contextlib import nullcontext
+from io import StringIO
+from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from rich.console import Console
 
 from src.core.activities.summary.service import ActivitySummaryService
+from src.core.service import StreamExportResult
 from src.domain.activity_stream import ActivityStream, StreamBatch, StreamFetchFailure
 from src.domain.activity_summary import WeeklyActivitySummary
 from src.domain.detailed_activity import DetailedActivity
+from src.domain.heart_rate_zones import HeartRateZones
 from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
+from src.presentation.console_output.console import STRAVA_THEME
 from src.presentation.console_output.console_error_handler import (
     ConsoleErrorHandler,
 )
+from src.presentation.console_output.prompts import ConsolePrompts
 from src.presentation.console_output.result_console_printer import (
     ResultConsolePrinter,
 )
@@ -17,138 +25,226 @@ from src.presentation.console_output.weekly_summary_presenter import (
     ConsoleSummaryPresenter,
 )
 from src.presentation.menu.options import MenuOption
-from tests.factories import activity_payload, stream_payload
+from src.presentation.menu.renderer import MenuRenderer
+from tests.factories import activity_payload, stream_payload, zones_payload
+
+
+@pytest.fixture
+def output() -> StringIO:
+    return StringIO()
+
+
+@pytest.fixture
+def console(output: StringIO) -> Console:
+    return Console(
+        file=output,
+        theme=STRAVA_THEME,
+        color_system=None,
+        width=120,
+    )
 
 
 @pytest.fixture
 def mock_service() -> Mock:
     service = Mock()
-    service.get_one_activity = Mock()
-    service.get_last_200_activities = Mock()
     service.get_activity_details = AsyncMock()
     service.get_activity_range = AsyncMock()
     service.get_streams_for_activity = AsyncMock()
     service.get_streams_for_multiple_activities = AsyncMock()
+    service.export_streams_for_selected_week = AsyncMock()
+    service.get_activity_zones = AsyncMock()
     return service
 
 
 @pytest.fixture
 def mock_result_printer() -> Mock:
-    printer = Mock(spec=ResultConsolePrinter)
-    printer.print_result = Mock()
-    return printer
+    return Mock(spec=ResultConsolePrinter)
 
 
 @pytest.fixture
 def mock_error_printer() -> Mock:
-    printer = Mock(spec=ConsoleErrorHandler)
-    printer.print_error = Mock()
-    return printer
+    return Mock(spec=ConsoleErrorHandler)
+
+
+@pytest.fixture
+def mock_prompts() -> Mock:
+    prompts = Mock(spec=ConsolePrompts)
+    prompts.ask_activity_id.return_value = 123
+    prompts.ask_activity_ids.return_value = [123, 456]
+    prompts.ask_menu_option.return_value = "1"
+    return prompts
+
+
+@pytest.fixture
+def mock_menu_view() -> Mock:
+    return Mock(spec=MenuRenderer)
+
+
+@pytest.fixture
+def mock_progress() -> Mock:
+    progress = Mock()
+    progress.track.return_value = nullcontext()
+    return progress
 
 
 @pytest.fixture
 def menu_handler(
-    mock_service: Mock, mock_result_printer: Mock, mock_error_printer: Mock
+    mock_service: Mock,
+    mock_result_printer: Mock,
+    mock_error_printer: Mock,
+    mock_prompts: Mock,
+    mock_menu_view: Mock,
+    mock_progress: Mock,
 ) -> MenuHandler:
     return MenuHandler(
-        service=mock_service,
-        result_console_printer=mock_result_printer,
-        error_console_printer=mock_error_printer,
+        MenuDependencies(
+            service=mock_service,
+            result_printer=mock_result_printer,
+            error_printer=mock_error_printer,
+            summary_service=None,
+            summary_presenter=Mock(spec=ConsoleSummaryPresenter),
+            prompts=mock_prompts,
+            menu_view=mock_menu_view,
+            progress=mock_progress,
+        )
     )
 
 
 class TestMenuHandler:
-    def test_init_creates_dependencies(self, mock_service: Mock) -> None:
-        handler = MenuHandler(service=mock_service)
-        assert isinstance(handler.dependencies, MenuDependencies)
-        assert isinstance(handler.dependencies.result_printer, ResultConsolePrinter)
-        assert isinstance(handler.dependencies.error_printer, ConsoleErrorHandler)
+    def test_keeps_injected_dependencies(
+        self,
+        menu_handler: MenuHandler,
+        mock_service: Mock,
+        mock_prompts: Mock,
+    ) -> None:
+        assert isinstance(menu_handler.dependencies, MenuDependencies)
+        assert menu_handler.dependencies.service is mock_service
+        assert menu_handler.dependencies.prompts is mock_prompts
 
     def test_get_menu_options(self, menu_handler: MenuHandler) -> None:
         options = menu_handler.get_menu_options()
-        assert isinstance(options, dict)
+
         assert len(options) == len(MenuOption)
-        assert all(isinstance(key, str) for key in options)
-        assert all(isinstance(value, str) for value in options.values())
+        assert options["10"] == "View heart-rate zones"
+
+    def test_asks_for_a_valid_menu_option(
+        self,
+        menu_handler: MenuHandler,
+        mock_prompts: Mock,
+    ) -> None:
+        assert menu_handler.ask_option() == "1"
+        mock_prompts.ask_menu_option.assert_called_once_with(
+            menu_handler.get_menu_options()
+        )
 
     @pytest.mark.asyncio
     async def test_execute_invalid_option(
-        self, menu_handler: Mock, mock_error_printer: Mock
+        self,
+        menu_handler: MenuHandler,
+        mock_error_printer: Mock,
     ) -> None:
         result = await menu_handler.execute_option("999")
 
         assert result is None
-        mock_error_printer.print_error.assert_called_once_with(option="999")
-
-    @pytest.mark.asyncio
-    async def test_execute_async_option_prints_its_result(
-        self,
-        menu_handler: MenuHandler,
-        mock_service: Mock,
-        mock_result_printer: Mock,
-    ) -> None:
-        activities = [{"id": 1}]
-        mock_service.get_activity_details.return_value = activities
-
-        result = await menu_handler.execute_option(
-            str(MenuOption.ACTIVITY_DETAILS.value)
-        )
-
-        assert result == activities
-        mock_service.get_activity_details.assert_awaited_once_with(previous_week=False)
-        mock_result_printer.print_result.assert_called_once_with(
-            option=str(MenuOption.ACTIVITY_DETAILS.value),
-            result=activities,
-        )
+        mock_error_printer.print_invalid_option.assert_called_once_with("999")
 
     @pytest.mark.parametrize(
-        ("option", "service_method", "expected_keyword"),
+        ("option", "service_method", "previous_week"),
         [
+            (MenuOption.ACTIVITY_DETAILS, "get_activity_details", False),
+            (MenuOption.ACTIVITY_DETAILS_PREV_WEEK, "get_activity_details", True),
+            (MenuOption.ACTIVITY_RANGE, "get_activity_range", False),
+            (MenuOption.ACTIVITY_RANGE_PREV_WEEK, "get_activity_range", True),
             (
-                MenuOption.SINGLE_STREAM,
-                "get_streams_for_activity",
-                "activity_id",
+                MenuOption.STREAMS_CURRENT_WEEK,
+                "export_streams_for_selected_week",
+                False,
             ),
             (
-                MenuOption.MULTIPLE_STREAMS,
-                "get_streams_for_multiple_activities",
-                "activity_ids",
+                MenuOption.STREAMS_PREV_WEEK,
+                "export_streams_for_selected_week",
+                True,
             ),
         ],
     )
     @pytest.mark.asyncio
-    async def test_execute_stream_option(
+    async def test_executes_period_options(
+        self,
+        menu_handler: MenuHandler,
+        mock_service: Mock,
+        mock_result_printer: Mock,
+        option: MenuOption,
+        service_method: str,
+        previous_week: bool,
+    ) -> None:
+        method = getattr(mock_service, service_method)
+        method.return_value = [DetailedActivity.from_mapping(activity_payload())]
+
+        result = await menu_handler.execute_option(str(option.id))
+
+        assert result == method.return_value
+        method.assert_awaited_once_with(previous_week=previous_week)
+        mock_result_printer.print_result.assert_called_once_with(
+            option=option,
+            result=method.return_value,
+        )
+
+    @pytest.mark.parametrize(
+        ("option", "service_method", "expected_argument"),
+        [
+            (MenuOption.SINGLE_STREAM, "get_streams_for_activity", 123),
+            (
+                MenuOption.MULTIPLE_STREAMS,
+                "get_streams_for_multiple_activities",
+                [123, 456],
+            ),
+            (MenuOption.ACTIVITY_ZONES, "get_activity_zones", 123),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_stream_and_zone_options_use_prompted_ids(
         self,
         menu_handler: MenuHandler,
         mock_service: Mock,
         option: MenuOption,
         service_method: str,
-        expected_keyword: str,
+        expected_argument: object,
     ) -> None:
         method = getattr(mock_service, service_method)
         method.return_value = StreamBatch()
 
-        await menu_handler.execute_option(str(option.value))
+        await menu_handler.execute_option(str(option.id))
 
-        assert expected_keyword in method.await_args.kwargs
+        method.assert_awaited_once_with(expected_argument)
+
+    @pytest.mark.asyncio
+    async def test_operation_errors_are_not_reported_as_invalid_options(
+        self,
+        menu_handler: MenuHandler,
+        mock_service: Mock,
+        mock_error_printer: Mock,
+    ) -> None:
+        error = RuntimeError("Strava is unavailable")
+        mock_service.get_activity_details.side_effect = error
+
+        result = await menu_handler.execute_option(str(MenuOption.ACTIVITY_DETAILS.id))
+
+        assert result is None
+        mock_error_printer.print_operation_error.assert_called_once_with(
+            MenuOption.ACTIVITY_DETAILS.description,
+            error,
+        )
+        mock_error_printer.print_invalid_option.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_weekly_report_requires_summary_service(
-        self, menu_handler: MenuHandler
-    ) -> None:
-        with pytest.raises(RuntimeError, match="summary service"):
-            await menu_handler.execute_option(str(MenuOption.WEEKLY_REPORT.value))
-
-    def test_print_menu_lists_available_options(
         self,
         menu_handler: MenuHandler,
-        capsys: pytest.CaptureFixture[str],
+        mock_error_printer: Mock,
     ) -> None:
-        menu_handler.print_menu()
+        await menu_handler.execute_option(str(MenuOption.WEEKLY_REPORT.id))
 
-        output = capsys.readouterr().out
-        assert "Choose an option" in output
-        assert MenuOption.WEEKLY_REPORT.description in output
+        mock_error_printer.print_operation_error.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_weekly_report_uses_live_summary_service(
@@ -156,131 +252,48 @@ class TestMenuHandler:
         mock_service: Mock,
         mock_result_printer: Mock,
         mock_error_printer: Mock,
+        mock_prompts: Mock,
+        mock_menu_view: Mock,
+        mock_progress: Mock,
     ) -> None:
         summary = WeeklyActivitySummary.from_activities([])
         summary_service = Mock(spec=ActivitySummaryService)
         summary_service.generate_summary = AsyncMock(return_value=summary)
         presenter = Mock(spec=ConsoleSummaryPresenter)
         handler = MenuHandler(
-            service=mock_service,
-            result_console_printer=mock_result_printer,
-            error_console_printer=mock_error_printer,
-            summary_service=summary_service,
-            summary_presenter=presenter,
+            MenuDependencies(
+                service=mock_service,
+                result_printer=mock_result_printer,
+                error_printer=mock_error_printer,
+                summary_service=summary_service,
+                summary_presenter=presenter,
+                prompts=mock_prompts,
+                menu_view=mock_menu_view,
+                progress=mock_progress,
+            )
         )
 
-        result = await handler.execute_option(str(MenuOption.WEEKLY_REPORT.value))
+        result = await handler.execute_option(str(MenuOption.WEEKLY_REPORT.id))
 
         assert result is None
         summary_service.generate_summary.assert_awaited_once_with()
         presenter.present_weekly_report.assert_called_once_with(summary)
         mock_result_printer.print_result.assert_not_called()
 
-    def test_validate_option_success(self, menu_handler: MenuHandler) -> None:
-        valid_option = "1"
-        result = menu_handler._validate_option(valid_option)
-        assert isinstance(result, MenuOption)
-        assert result == MenuOption.ACTIVITY_DETAILS
-
-    def test_validate_option_failure(self, menu_handler: MenuHandler) -> None:
-        invalid_option = "999"
-        with pytest.raises(ValueError, match="Option 999 not found"):
-            menu_handler._validate_option(invalid_option)
-
-
-class TestResultConsolePrinter:
-    @pytest.fixture
-    def printer(self) -> ResultConsolePrinter:
-        return ResultConsolePrinter()
-
-    def test_print_activity_stream(
-        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        stream = ActivityStream.from_mapping(7, stream_payload())
-
-        printer.print_result("1", stream)
-
-        captured = capsys.readouterr()
-        assert "Heartrate" in captured.out
-        assert "120" in captured.out
-
-    def test_print_stream_batch_failures(
-        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        batch = StreamBatch(
-            failures=(StreamFetchFailure(7, "TimeoutError", "timed out"),)
-        )
-
-        printer.print_result("1", batch)
-
-        output = capsys.readouterr().out
-        assert "Activity 7" in output
-        assert "timed out" in output
-
-    def test_print_list(
-        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        data = [{"name": "Activity 1"}, {"name": "Activity 2"}]
-        printer.print_result("1", data)
-        captured = capsys.readouterr()
-        assert "Activity 1" in captured.out
-        assert "Activity 2" in captured.out
-
-    def test_print_domain_activity(
-        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        activity = DetailedActivity.from_mapping(activity_payload())
-
-        printer.print_result("1", [activity])
-
-        captured = capsys.readouterr()
-        assert "Morning Run" in captured.out
-        assert "10.00 km" in captured.out
-
-    def test_print_dict(
-        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        data = {"name": "Activity 1", "distance": 1000}
-        printer.print_result("1", data)
-        captured = capsys.readouterr()
-        assert "Activity 1" in captured.out
-        assert "1.00 km" in captured.out  # Check for formatted distance
-
-    def test_print_nested_values(
-        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        data = {
-            "gear": {"name": "Daily Trainer"},
-            "laps": [{"distance": 1_000}],
-        }
-
-        printer.print_result("1", data)
-
-        output = capsys.readouterr().out
-        assert "Daily Trainer" in output
-        assert "1.00 km" in output
-
-    def test_print_empty_result(
-        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
-    ) -> None:
-        printer.print_result(option="1", result=None)
-        captured = capsys.readouterr()
-        assert "No data available" in captured.out
-
-
-class TestConsoleErrorHandler:
-    @pytest.fixture
-    def error_handler(self) -> ConsoleErrorHandler:
-        return ConsoleErrorHandler()
-
-    def test_print_error(
+    def test_renders_welcome_menu_and_goodbye(
         self,
-        error_handler: ConsoleErrorHandler,
-        capsys: pytest.CaptureFixture[str],
+        menu_handler: MenuHandler,
+        mock_menu_view: Mock,
     ) -> None:
-        error_handler.print_error("999")
-        captured = capsys.readouterr()
+        menu_handler.print_welcome()
+        menu_handler.print_menu()
+        menu_handler.print_goodbye()
 
-        assert "Invalid option selected" in captured.out
-        assert "999" in captured.out
-        assert "Please select a number from the menu or 'q' to quit" in captured.out
+        mock_menu_view.print_welcome.assert_called_once_with()
+        mock_menu_view.print_menu.assert_called_once_with(MenuOption)
+        mock_menu_view.print_goodbye.assert_called_once_with()
+
+    def test_validate_option(self, menu_handler: MenuHandler) -> None:
+        assert menu_handler._validate_option("1") is MenuOption.ACTIVITY_DETAILS
+        with pytest.raises(ValueError, match="Option 999 not found"):
+            menu_handler._validate_option("999")
