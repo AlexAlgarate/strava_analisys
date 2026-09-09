@@ -1,14 +1,14 @@
 import logging
 from enum import StrEnum
-from typing import cast
 
 import requests
 
 from src.domain.token import TokenSet
-from src.utils import constants
+from src.infrastructure.serialization.token import token_from_mapping
 from src.utils.exceptions import TokenError
 
 logger = logging.getLogger(__name__)
+TOKEN_URL = "https://www.strava.com/oauth/token"
 
 
 class GrantType(StrEnum):
@@ -42,15 +42,12 @@ class StravaTokenGateway:
     def _send_token_request(self, data: dict[str, str]) -> TokenSet:
         try:
             response = requests.post(
-                constants.URL_GET_ACCESS_TOKEN,
+                TOKEN_URL,
                 data=data,
                 timeout=self._request_timeout,
             )
             response.raise_for_status()
-            payload = response.json()
-            if not isinstance(payload, dict):
-                raise TypeError("Strava returned a non-object token payload.")
-            return TokenSet.from_mapping(cast(dict[str, object], payload))
+            return token_from_mapping(response.json())
         except (requests.RequestException, TypeError, ValueError) as exc:
             logger.exception("Strava token request failed")
             raise TokenError("Could not obtain OAuth tokens from Strava.") from exc

@@ -2,11 +2,12 @@ import json
 import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Final, cast
+from typing import Final
 
 from cryptography.fernet import Fernet, InvalidToken
 
 from src.domain.token import TokenSet
+from src.infrastructure.serialization.token import token_from_mapping, token_to_mapping
 from src.utils.exceptions import TokenStorageError
 
 _PRIVATE_DIRECTORY_MODE: Final = 0o700
@@ -26,10 +27,7 @@ class EncryptedFileTokenStore:
 
         try:
             plaintext = self._cipher.decrypt(self._path.read_bytes())
-            payload = json.loads(plaintext)
-            if not isinstance(payload, dict):
-                raise TypeError("Token payload must be a JSON object.")
-            return TokenSet.from_mapping(cast(dict[str, object], payload))
+            return token_from_mapping(json.loads(plaintext))
         except (
             OSError,
             InvalidToken,
@@ -43,7 +41,10 @@ class EncryptedFileTokenStore:
             ) from exc
 
     def save(self, tokens: TokenSet) -> None:
-        payload = json.dumps(tokens.as_dict(), separators=(",", ":")).encode()
+        payload = json.dumps(
+            token_to_mapping(tokens),
+            separators=(",", ":"),
+        ).encode()
         self._write_private_file(self._cipher.encrypt(payload))
 
     def clear(self) -> None:

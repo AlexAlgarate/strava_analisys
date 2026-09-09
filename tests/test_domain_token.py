@@ -3,30 +3,6 @@ import pytest
 from src.domain.token import TokenSet
 
 
-def test_token_set_round_trip() -> None:
-    tokens = TokenSet("access", "refresh", 123)
-
-    assert TokenSet.from_mapping(tokens.as_dict()) == tokens
-
-
-@pytest.mark.parametrize(
-    ("payload", "message"),
-    [
-        ({"refresh_token": "refresh", "expires_at": 123}, "access_token"),
-        ({"access_token": "access", "expires_at": 123}, "refresh_token"),
-        (
-            {"access_token": "access", "refresh_token": "refresh", "expires_at": "123"},
-            "expires_at",
-        ),
-    ],
-)
-def test_token_set_rejects_invalid_payload(
-    payload: dict[str, object], message: str
-) -> None:
-    with pytest.raises(TypeError, match=message):
-        TokenSet.from_mapping(payload)
-
-
 @pytest.mark.parametrize(
     "tokens",
     [TokenSet("access", "refresh", 100), TokenSet("access", "refresh", 99)],
@@ -55,3 +31,19 @@ def test_token_set_rejects_invalid_values(
 ) -> None:
     with pytest.raises(ValueError, match=message):
         TokenSet(access_token, refresh_token, expires_at)
+
+
+@pytest.mark.parametrize(
+    ("values", "message"),
+    [
+        ((1, "refresh", 100), "Access token"),
+        (("access", 1, 100), "Refresh token"),
+        (("access", "refresh", True), "expiration"),
+    ],
+)
+def test_token_set_rejects_invalid_types(
+    values: tuple[object, object, object],
+    message: str,
+) -> None:
+    with pytest.raises(TypeError, match=message):
+        TokenSet(*values)  # type: ignore[arg-type]

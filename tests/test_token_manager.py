@@ -4,8 +4,11 @@ import pytest
 import requests
 
 from src.domain.token import TokenSet
-from src.infrastructure.auth.strava_token_gateway import GrantType, StravaTokenGateway
-from src.utils.constants import URL_GET_ACCESS_TOKEN
+from src.infrastructure.auth.strava_token_gateway import (
+    TOKEN_URL,
+    GrantType,
+    StravaTokenGateway,
+)
 from src.utils.exceptions import TokenError
 
 TEST_CLIENT_ID = "test-client-id"
@@ -43,7 +46,7 @@ def test_exchange_authorization_code(
 
     assert result == TokenSet("access", "refresh", 2_000_000_000)
     post.assert_called_once_with(
-        URL_GET_ACCESS_TOKEN,
+        TOKEN_URL,
         data={
             "client_id": TEST_CLIENT_ID,
             "client_secret": TEST_SECRET,
