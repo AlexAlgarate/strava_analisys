@@ -21,3 +21,20 @@ source_modules =
     src.presentation
 forbidden_modules =
     src.infrastructure
+
+[importlinter:contract:adapter_independence]
+name = presentation and infrastructure adapters are independent
+type = independence
+modules =
+    src.presentation
+    src.infrastructure
+
+[importlinter:contract:domain_independence]
+name = domain does not depend on outer layers
+type = forbidden
+source_modules =
+    src.domain
+forbidden_modules =
+    src.core
+    src.infrastructure
+    src.presentation
