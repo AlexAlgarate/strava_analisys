@@ -66,6 +66,14 @@ El workflow de GitHub Actions los ejecuta en paralelo y construye la imagen
 Docker cuando todos terminan correctamente. La imagen sólo se publica en GHCR
 desde un `push` a `main`.
 
+## Documentación
+
+- [Arquitectura y flujos](docs/architecture.md)
+- [Desarrollo, testing y extensibilidad](docs/development.md)
+- [Credenciales y almacenamiento local de tokens](docs/security.md)
+
+Consulta el [índice de documentación](docs/README.md) para una vista general.
+
 ## Arquitectura
 
 ```text
