@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from pathlib import Path
 
@@ -22,7 +23,7 @@ from src.presentation.console_output.weekly_summary_presenter import (
 from src.utils.logger_config import setup_logging
 
 
-def main() -> None:
+async def run_cli() -> None:
     setup_logging()
 
     logger = logging.getLogger(__name__)
@@ -31,37 +32,38 @@ def main() -> None:
     token = GetAccessToken()
     access_token = token.get_access_token()
 
-    strava_api = AsyncStravaAPI(
-        access_token=access_token,
-    )
+    async with AsyncStravaAPI(access_token=access_token) as strava_api:
+        result_console_printer = ResultConsolePrinter()
+        error_console_printer = ConsoleErrorHandler()
 
-    result_console_printer = ResultConsolePrinter()
-    error_console_printer = ConsoleErrorHandler()
+        service = StravaService(
+            api=strava_api,
+            exporters={"csv": CsvStreamExporter()},
+            zones_writer=JsonActivityZonesWriter(Path("json_zones_files")),
+        )
+        summary_service = ActivitySummaryService(activity_provider=service)
 
-    service = StravaService(
-        api=strava_api,
-        exporters={"csv": CsvStreamExporter()},
-        zones_writer=JsonActivityZonesWriter(Path("json_zones_files")),
-    )
-    summary_service = ActivitySummaryService(activity_provider=service)
+        menu = MenuHandler(
+            service=service,
+            result_console_printer=result_console_printer,
+            error_console_printer=error_console_printer,
+            summary_service=summary_service,
+            summary_presenter=ConsoleSummaryPresenter(),
+        )
 
-    menu = MenuHandler(
-        service=service,
-        result_console_printer=result_console_printer,
-        error_console_printer=error_console_printer,
-        summary_service=summary_service,
-        summary_presenter=ConsoleSummaryPresenter(),
-    )
+        while True:
+            menu.print_menu()
+            option = input("\nChoose an option (number or 'q' to exit): ")
 
-    while True:
-        menu.print_menu()
-        option = input("\nChoose an option (number or 'q' to exit): ")
+            if option.lower() == "q":
+                print("\n👋 Goodbye")
+                break
 
-        if option.lower() == "q":
-            print("\n👋 Goodbye")
-            break
+            await menu.execute_option(option)
 
-        menu.execute_option(option)
+
+def main() -> None:
+    asyncio.run(run_cli())
 
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
-import asyncio
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any
+from functools import partial
 
 from src.core.activities.summary.service import ActivitySummaryService
 from src.core.service import StravaService
@@ -17,8 +16,10 @@ from src.presentation.console_output.weekly_summary_presenter import (
 from src.presentation.menu.options import MenuOption
 from src.utils import constants as constant
 
+type MenuAction = Callable[[], Awaitable[object]]
 
-@dataclass
+
+@dataclass(frozen=True, slots=True)
 class MenuDependencies:
     service: StravaService
     result_printer: ResultConsolePrinter
@@ -46,65 +47,59 @@ class MenuHandler:
         self._init_menu_options()
 
     def _init_menu_options(self) -> None:
-        self.menu_options: dict[MenuOption, Callable[[], object]] = {
-            MenuOption.ACTIVITY_DETAILS: lambda: self._handle_async(
-                self.dependencies.service.get_activity_details, False
+        self._menu_options: dict[MenuOption, MenuAction] = {
+            MenuOption.ACTIVITY_DETAILS: partial(
+                self.dependencies.service.get_activity_details,
+                previous_week=False,
             ),
-            MenuOption.ACTIVITY_DETAILS_PREV_WEEK: lambda: self._handle_async(
-                self.dependencies.service.get_activity_details, True
+            MenuOption.ACTIVITY_DETAILS_PREV_WEEK: partial(
+                self.dependencies.service.get_activity_details,
+                previous_week=True,
             ),
-            MenuOption.ACTIVITY_RANGE: lambda: self._handle_async(
-                self.dependencies.service.get_activity_range, False
+            MenuOption.ACTIVITY_RANGE: partial(
+                self.dependencies.service.get_activity_range,
+                previous_week=False,
             ),
-            MenuOption.ACTIVITY_RANGE_PREV_WEEK: lambda: self._handle_async(
-                self.dependencies.service.get_activity_range, True
+            MenuOption.ACTIVITY_RANGE_PREV_WEEK: partial(
+                self.dependencies.service.get_activity_range,
+                previous_week=True,
             ),
             MenuOption.SINGLE_STREAM: self._handle_single_stream,
             MenuOption.MULTIPLE_STREAMS: self._handle_multiple_streams,
-            MenuOption.STREAMS_CURRENT_WEEK: lambda: self._handle_async(
+            MenuOption.STREAMS_CURRENT_WEEK: partial(
                 self.dependencies.service.export_streams_for_selected_week,
-                False,
+                previous_week=False,
             ),
-            MenuOption.STREAMS_PREV_WEEK: lambda: self._handle_async(
-                self.dependencies.service.export_streams_for_selected_week, True
+            MenuOption.STREAMS_PREV_WEEK: partial(
+                self.dependencies.service.export_streams_for_selected_week,
+                previous_week=True,
             ),
             MenuOption.WEEKLY_REPORT: self._generate_weekly_report,
         }
 
-    def _handle_async[T](
-        self,
-        func: Callable[..., Coroutine[Any, Any, T]],
-        previous_week: bool,
-    ) -> T:
-        return asyncio.run(func(previous_week=previous_week))
-
-    def _handle_single_stream(self) -> object:
-        return asyncio.run(
-            self.dependencies.service.get_streams_for_activity(
-                activity_id=constant.EXAMPLE_ID_ONE_ACTIVITY
-            )
+    async def _handle_single_stream(self) -> object:
+        return await self.dependencies.service.get_streams_for_activity(
+            activity_id=constant.EXAMPLE_ID_ONE_ACTIVITY
         )
 
-    def _handle_multiple_streams(self) -> object:
-        return asyncio.run(
-            self.dependencies.service.get_streams_for_multiple_activities(
-                activity_ids=constant.EXAMPLE_ID_ACTIVITIES
-            )
+    async def _handle_multiple_streams(self) -> object:
+        return await self.dependencies.service.get_streams_for_multiple_activities(
+            activity_ids=constant.EXAMPLE_ID_ACTIVITIES
         )
 
-    def _generate_weekly_report(self) -> None:
+    async def _generate_weekly_report(self) -> None:
         if self.dependencies.summary_service is None:
             raise RuntimeError("No weekly summary service has been configured.")
-        summary = asyncio.run(self.dependencies.summary_service.generate_summary())
+        summary = await self.dependencies.summary_service.generate_summary()
         self.dependencies.summary_presenter.present_weekly_report(summary)
 
     def get_menu_options(self) -> dict[str, str]:
         return {str(option.id): option.description for option in MenuOption}
 
-    def execute_option(self, option: str) -> object:
+    async def execute_option(self, option: str) -> object:
         try:
             menu_option = self._validate_option(option=option)
-            result = self.menu_options[menu_option]()
+            result = await self._menu_options[menu_option]()
             if result is not None:
                 self.dependencies.result_printer.print_result(
                     option=option,
