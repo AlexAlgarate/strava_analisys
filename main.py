@@ -3,16 +3,13 @@ import os
 from pathlib import Path
 
 from src.access_token import GetAccessToken
-from src.core.activities.summary.handlers import ActivitySummaryBuilder
 from src.core.activities.summary.service import ActivitySummaryService
 from src.core.service import StravaService
 from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
 from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
-from src.infrastructure.export.json_activity_writer import (
-    JsonActivityDetailsWriter,
+from src.infrastructure.export.json_activity_zones_writer import (
     JsonActivityZonesWriter,
 )
-from src.infrastructure.persistence.json_activity_loader import JsonActivityLoader
 from src.presentation.cli_entrypoint import MenuHandler
 from src.presentation.console_output.console_error_handler import (
     ConsoleErrorHandler,
@@ -42,24 +39,19 @@ def main() -> None:
     result_console_printer = ResultConsolePrinter()
     error_console_printer = ConsoleErrorHandler()
 
-    activities_path = Path("activities.json")
     service = StravaService(
         api=strava_api,
         exporters={"csv": CsvStreamExporter()},
-        details_writer=JsonActivityDetailsWriter(activities_path),
         zones_writer=JsonActivityZonesWriter(Path("json_zones_files")),
     )
-    summary_service = ActivitySummaryService(
-        data_loader=JsonActivityLoader(activities_path),
-        summary_builder=ActivitySummaryBuilder(),
-        presenter=ConsoleSummaryPresenter(),
-    )
+    summary_service = ActivitySummaryService(activity_provider=service)
 
     menu = MenuHandler(
         service=service,
         result_console_printer=result_console_printer,
         error_console_printer=error_console_printer,
         summary_service=summary_service,
+        summary_presenter=ConsoleSummaryPresenter(),
     )
 
     while True:

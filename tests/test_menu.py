@@ -3,6 +3,9 @@ from unittest.mock import AsyncMock, Mock
 import pandas as pd
 import pytest
 
+from src.core.activities.summary.service import ActivitySummaryService
+from src.domain.activity_summary import WeeklyActivitySummary
+from src.domain.detailed_activity import DetailedActivity
 from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
 from src.presentation.console_output.console_error_handler import (
     ConsoleErrorHandler,
@@ -10,7 +13,11 @@ from src.presentation.console_output.console_error_handler import (
 from src.presentation.console_output.result_console_printer import (
     ResultConsolePrinter,
 )
+from src.presentation.console_output.weekly_summary_presenter import (
+    ConsoleSummaryPresenter,
+)
 from src.presentation.menu.options import MenuOption
+from tests.factories import activity_payload
 
 
 @pytest.fixture
@@ -72,6 +79,31 @@ class TestMenuHandler:
         assert result is None
         mock_error_printer.print_error.assert_called_once_with(option="999")
 
+    def test_weekly_report_uses_live_summary_service(
+        self,
+        mock_service: Mock,
+        mock_result_printer: Mock,
+        mock_error_printer: Mock,
+    ) -> None:
+        summary = WeeklyActivitySummary.from_activities([])
+        summary_service = Mock(spec=ActivitySummaryService)
+        summary_service.generate_summary = AsyncMock(return_value=summary)
+        presenter = Mock(spec=ConsoleSummaryPresenter)
+        handler = MenuHandler(
+            service=mock_service,
+            result_console_printer=mock_result_printer,
+            error_console_printer=mock_error_printer,
+            summary_service=summary_service,
+            summary_presenter=presenter,
+        )
+
+        result = handler.execute_option(str(MenuOption.WEEKLY_REPORT.value))
+
+        assert result is None
+        summary_service.generate_summary.assert_awaited_once_with()
+        presenter.present_weekly_report.assert_called_once_with(summary)
+        mock_result_printer.print_result.assert_not_called()
+
     def test_validate_option_success(self, menu_handler: MenuHandler) -> None:
         valid_option = "1"
         result = menu_handler._validate_option(valid_option)
@@ -106,6 +138,17 @@ class TestResultConsolePrinter:
         captured = capsys.readouterr()
         assert "Activity 1" in captured.out
         assert "Activity 2" in captured.out
+
+    def test_print_domain_activity(
+        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        activity = DetailedActivity.from_mapping(activity_payload())
+
+        printer.print_result("1", [activity])
+
+        captured = capsys.readouterr()
+        assert "Morning Run" in captured.out
+        assert "10.00 km" in captured.out
 
     def test_print_dict(
         self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]

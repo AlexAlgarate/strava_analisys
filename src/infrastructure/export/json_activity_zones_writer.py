@@ -1,18 +1,6 @@
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from pathlib import Path
-
-
-class JsonActivityDetailsWriter:
-    """Write detailed activity responses to one JSON file."""
-
-    def __init__(self, path: Path) -> None:
-        self._path = path
-
-    def write(self, activities: Sequence[Mapping[str, object]]) -> None:
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        with self._path.open("w", encoding="utf-8") as output:
-            json.dump(activities, output, ensure_ascii=False, indent=4)
 
 
 class JsonActivityZonesWriter:

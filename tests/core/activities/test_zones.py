@@ -5,7 +5,9 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from src.core.activities.zones import ActivityZones
-from src.infrastructure.export.json_activity_writer import JsonActivityZonesWriter
+from src.infrastructure.export.json_activity_zones_writer import (
+    JsonActivityZonesWriter,
+)
 
 
 @pytest.fixture

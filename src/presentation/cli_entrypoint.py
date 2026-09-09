@@ -11,6 +11,9 @@ from src.presentation.console_output.console_error_handler import (
 from src.presentation.console_output.result_console_printer import (
     ResultConsolePrinter,
 )
+from src.presentation.console_output.weekly_summary_presenter import (
+    ConsoleSummaryPresenter,
+)
 from src.presentation.menu.options import MenuOption
 from src.utils import constants as constant
 
@@ -21,6 +24,7 @@ class MenuDependencies:
     result_printer: ResultConsolePrinter
     error_printer: ConsoleErrorHandler
     summary_service: ActivitySummaryService | None
+    summary_presenter: ConsoleSummaryPresenter
 
 
 class MenuHandler:
@@ -30,12 +34,14 @@ class MenuHandler:
         result_console_printer: ResultConsolePrinter | None = None,
         error_console_printer: ConsoleErrorHandler | None = None,
         summary_service: ActivitySummaryService | None = None,
+        summary_presenter: ConsoleSummaryPresenter | None = None,
     ) -> None:
         self.dependencies = MenuDependencies(
             service=service,
             result_printer=result_console_printer or ResultConsolePrinter(),
             error_printer=error_console_printer or ConsoleErrorHandler(),
             summary_service=summary_service,
+            summary_presenter=summary_presenter or ConsoleSummaryPresenter(),
         )
         self._init_menu_options()
 
@@ -89,7 +95,8 @@ class MenuHandler:
     def _generate_weekly_report(self) -> None:
         if self.dependencies.summary_service is None:
             raise RuntimeError("No weekly summary service has been configured.")
-        self.dependencies.summary_service.generate_summary()
+        summary = asyncio.run(self.dependencies.summary_service.generate_summary())
+        self.dependencies.summary_presenter.present_weekly_report(summary)
 
     def get_menu_options(self) -> dict[str, str]:
         return {str(option.id): option.description for option in MenuOption}
@@ -98,7 +105,11 @@ class MenuHandler:
         try:
             menu_option = self._validate_option(option=option)
             result = self.menu_options[menu_option]()
-            self.dependencies.result_printer.print_result(option=option, result=result)
+            if result is not None:
+                self.dependencies.result_printer.print_result(
+                    option=option,
+                    result=result,
+                )
             return result
         except (ValueError, KeyError):
             self.dependencies.error_printer.print_error(option=option)

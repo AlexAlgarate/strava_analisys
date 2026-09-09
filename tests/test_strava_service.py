@@ -5,7 +5,9 @@ import pandas as pd
 import pytest
 
 from src.core.service import StravaService
+from src.domain.detailed_activity import DetailedActivity
 from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
+from tests.factories import activity_payload
 
 
 def _create_base_api_mock() -> Mock:
@@ -110,14 +112,14 @@ class TestStravaService:
         # Mock responses for both weekly activities and detailed activities
         mock_async_api.make_request.side_effect = [
             [{"id": 1}, {"id": 2}],  # Weekly activities
-            {"id": 1, "name": "Activity 1"},  # Detailed activity 1
-            {"id": 2, "name": "Activity 2"},  # Detailed activity 2
+            activity_payload(1, "Activity 1"),
+            activity_payload(2, "Activity 2"),
         ]
 
         result = await service.get_activity_details(previous_week=False)
 
         assert len(result) == 2
-        assert all(isinstance(activity, dict) for activity in result)
+        assert all(isinstance(activity, DetailedActivity) for activity in result)
         assert mock_async_api.make_request.call_count == 3
 
     @pytest.mark.asyncio

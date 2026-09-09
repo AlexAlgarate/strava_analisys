@@ -1,15 +1,11 @@
 import asyncio
-import logging
-from collections.abc import Sequence
 from typing import cast
 
-from src.core.ports.export import ActivityDetailsWriter
 from src.core.ports.strava import StravaAPI
+from src.domain.detailed_activity import DetailedActivity
 from src.utils.helpers import get_week_epoch_range
 
 ActivityData = dict[str, object]
-
-logger = logging.getLogger(__name__)
 
 
 class WeeklyActivitiesFetcher:
@@ -35,21 +31,15 @@ class WeeklyActivitiesFetcher:
 
 
 class DetailedActivitiesFetcher:
-    """Fetch selected fields from every activity in a week."""
+    """Fetch and validate every detailed activity in a week."""
 
-    def __init__(
-        self,
-        api: StravaAPI,
-        writer: ActivityDetailsWriter | None = None,
-    ) -> None:
+    def __init__(self, api: StravaAPI) -> None:
         self._api = api
-        self._writer = writer
 
     async def fetch_activity_data(
         self,
-        keys: Sequence[str],
         previous_week: bool = False,
-    ) -> list[ActivityData]:
+    ) -> list[DetailedActivity]:
         activities = await WeeklyActivitiesFetcher(self._api).fetch_activity_data(
             previous_week=previous_week
         )
@@ -57,47 +47,20 @@ class DetailedActivitiesFetcher:
             raise ValueError("No activities found.")
 
         activity_ids = [self._get_activity_id(activity) for activity in activities]
-        detailed_activities = await self._fetch_all_activity_details(activity_ids)
-        if self._writer is not None:
-            self._writer.write(detailed_activities)
-
-        return [
-            self._filter_activity_keys(activity, keys)
-            for activity in detailed_activities
-        ]
+        return await self._fetch_all_activity_details(activity_ids)
 
     async def _fetch_all_activity_details(
-        self, activity_ids: Sequence[int]
-    ) -> list[ActivityData]:
+        self, activity_ids: list[int]
+    ) -> list[DetailedActivity]:
         results = await asyncio.gather(
             *(
                 self._api.make_request(f"/activities/{activity_id}")
                 for activity_id in activity_ids
-            ),
-            return_exceptions=True,
+            )
         )
-
-        activities: list[ActivityData] = []
-        for activity_id, result in zip(activity_ids, results, strict=True):
-            if isinstance(result, asyncio.CancelledError):
-                raise result
-            if isinstance(result, BaseException):
-                logger.warning(
-                    "Could not fetch Strava activity %s: %s",
-                    activity_id,
-                    result,
-                )
-                activities.append({})
-                continue
-            try:
-                activities.append(_parse_activity(result))
-            except TypeError:
-                logger.warning(
-                    "Strava returned invalid detail data for activity %s",
-                    activity_id,
-                )
-                activities.append({})
-        return activities
+        return [
+            DetailedActivity.from_mapping(_parse_activity(result)) for result in results
+        ]
 
     @staticmethod
     def _get_activity_id(activity: ActivityData) -> int:
@@ -105,12 +68,6 @@ class DetailedActivitiesFetcher:
         if isinstance(activity_id, bool) or not isinstance(activity_id, int):
             raise TypeError("An activity must contain an integer id.")
         return activity_id
-
-    @staticmethod
-    def _filter_activity_keys(
-        activity: ActivityData, keys: Sequence[str]
-    ) -> ActivityData:
-        return {key: activity[key] for key in keys if key in activity}
 
 
 def _parse_activity_list(value: object) -> list[ActivityData]:

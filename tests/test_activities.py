@@ -8,8 +8,10 @@ from src.core.activities.fetchers import (
     WeeklyActivitiesFetcher,
 )
 from src.core.streams.fetcher import ActivityStreamsFetcher
+from src.domain.detailed_activity import DetailedActivity
 from src.utils import constants as constant
 from src.utils import exceptions
+from tests.factories import activity_payload
 
 
 def _create_base_api_mock() -> Mock:
@@ -71,17 +73,15 @@ class TestDetailedActivitiesFetcher:
     ) -> None:
         mock_async_api.make_request.side_effect = [
             [{"id": 1}, {"id": 2}],
-            {"id": 1, "name": "Activity 1"},
-            {"id": 2, "name": "Activity 2"},
+            activity_payload(1, "Activity 1"),
+            activity_payload(2, "Activity 2"),
         ]
 
-        result = await activity_fetcher.fetch_activity_data(
-            keys=["id", "name"], previous_week=False
-        )
+        result = await activity_fetcher.fetch_activity_data(previous_week=False)
 
         assert len(result) == 2
-        assert all(isinstance(activity, dict) for activity in result)
-        assert all(set(activity.keys()) == {"id", "name"} for activity in result)
+        assert all(isinstance(activity, DetailedActivity) for activity in result)
+        assert [activity.name for activity in result] == ["Activity 1", "Activity 2"]
 
     @pytest.mark.asyncio
     async def test_fetch_activity_data_no_activities(
@@ -90,9 +90,7 @@ class TestDetailedActivitiesFetcher:
         mock_async_api.make_request.return_value = []
 
         with pytest.raises(ValueError, match="No activities found."):
-            await activity_fetcher.fetch_activity_data(
-                keys=["id", "name"], previous_week=False
-            )
+            await activity_fetcher.fetch_activity_data(previous_week=False)
 
     @pytest.mark.asyncio
     async def test_fetch_activity_details_error_handling(
@@ -103,12 +101,8 @@ class TestDetailedActivitiesFetcher:
             Exception("API Error"),  # Error fetching details
         ]
 
-        result = await activity_fetcher.fetch_activity_data(
-            keys=["id", "name"], previous_week=False
-        )
-
-        assert len(result) == 1
-        assert result[0] == {}  # Empty dict returned for failed fetch
+        with pytest.raises(Exception, match="API Error"):
+            await activity_fetcher.fetch_activity_data(previous_week=False)
 
 
 stream_response_type = list[dict[str, dict[str, list[float]]]]

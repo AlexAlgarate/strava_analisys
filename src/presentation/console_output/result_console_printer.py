@@ -2,6 +2,8 @@ from typing import Any
 
 import pandas as pd
 
+from src.domain.detailed_activity import DetailedActivity
+
 from .formatter import ActivityFormatter
 
 
@@ -38,6 +40,8 @@ class ResultConsolePrinter:
 
     def _print_activities_list(self, data: list[Any], indent: int = 0) -> None:
         for item in data:
+            if isinstance(item, DetailedActivity):
+                item = item.as_dict()
             if isinstance(item, dict):
                 print(f"\n{'  ' * indent}━━━ Activity ━━━")
                 self._print_activity_dict(item, indent)

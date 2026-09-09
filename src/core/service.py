@@ -7,13 +7,13 @@ from src.core.activities.fetchers import ActivityData
 from src.core.activities.service import ActivityService
 from src.core.activities.zones import ActivityZones
 from src.core.ports.export import (
-    ActivityDetailsWriter,
     ActivityZonesWriter,
     StreamExporter,
 )
 from src.core.ports.strava import StravaAPI
 from src.core.streams.exporter import DataExporter
 from src.core.streams.manager import StreamManager
+from src.domain.detailed_activity import DetailedActivity
 
 
 class StravaService:
@@ -23,11 +23,10 @@ class StravaService:
         self,
         api: StravaAPI,
         exporters: Mapping[str, StreamExporter] | None = None,
-        details_writer: ActivityDetailsWriter | None = None,
         zones_writer: ActivityZonesWriter | None = None,
     ) -> None:
         self._api = api
-        self._activity_service = ActivityService(api, details_writer)
+        self._activity_service = ActivityService(api)
         self._stream_manager = StreamManager(api)
         self._data_exporter = DataExporter(exporters or {})
         self._zones_writer = zones_writer
@@ -39,7 +38,7 @@ class StravaService:
 
     async def get_activity_details(
         self, previous_week: bool = False
-    ) -> list[ActivityData]:
+    ) -> list[DetailedActivity]:
         return await self._activity_service.get_activity_details(previous_week)
 
     async def get_streams_for_activity(self, activity_id: int) -> pd.DataFrame:
