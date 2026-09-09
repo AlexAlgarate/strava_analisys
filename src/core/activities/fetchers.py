@@ -1,9 +1,7 @@
-from collections.abc import Mapping
-from typing import cast
-
 from src.core.concurrency import DEFAULT_MAX_CONCURRENCY, map_concurrently
 from src.core.ports.strava import StravaAPI
 from src.domain.detailed_activity import DetailedActivity
+from src.infrastructure.strava.activity_mapper import map_activity, map_activity_list
 from src.utils.helpers import get_week_epoch_range
 
 ACTIVITIES_PAGE_SIZE = 200
@@ -32,10 +30,8 @@ class WeeklyActivitiesFetcher:
                     "before": str(sunday),
                 },
             )
-            page_items = _parse_activity_list(response)
-            activities.extend(
-                DetailedActivity.from_mapping(item) for item in page_items
-            )
+            page_items = map_activity_list(response)
+            activities.extend(page_items)
             if len(page_items) < ACTIVITIES_PAGE_SIZE:
                 return activities
             page += 1
@@ -74,21 +70,7 @@ class DetailedActivitiesFetcher:
             self._fetch_activity_details,
             max_concurrency=self._max_concurrency,
         )
-        return [
-            DetailedActivity.from_mapping(_parse_activity(result)) for result in results
-        ]
+        return [map_activity(result) for result in results]
 
     async def _fetch_activity_details(self, activity_id: int) -> object:
         return await self._api.make_request(f"/activities/{activity_id}")
-
-
-def _parse_activity_list(value: object) -> list[Mapping[str, object]]:
-    if not isinstance(value, list):
-        raise TypeError("Strava activities response must be a list.")
-    return [_parse_activity(item) for item in value]
-
-
-def _parse_activity(value: object) -> Mapping[str, object]:
-    if not isinstance(value, dict) or not all(isinstance(key, str) for key in value):
-        raise TypeError("A Strava activity must be an object with string keys.")
-    return cast(dict[str, object], value)

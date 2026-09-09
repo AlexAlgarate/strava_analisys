@@ -1,69 +1,47 @@
-from collections.abc import MutableMapping
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 from datetime import datetime
 from typing import cast
 
 import pytest
 
-from src.domain.detailed_activity import DetailedActivity
-from tests.factories import activity_payload
+from tests.factories import activity_model
 
 
-def test_builds_activity_from_api_mapping() -> None:
-    activity = DetailedActivity.from_mapping(
-        activity_payload(gear={"id": "g1", "primary": True})
-    )
+def test_keeps_valid_activity_values() -> None:
+    activity = activity_model(gear_id="g1")
 
     assert activity.id == 1
     assert activity.start_date_local == datetime.fromisoformat("2026-09-07T07:30:00")
     assert activity.distance == 10_000
-    assert activity.gear == {"id": "g1", "primary": True}
-
-
-def test_optional_metrics_are_represented_as_missing() -> None:
-    payload = activity_payload()
-    for key in (
-        "average_heartrate",
-        "max_heartrate",
-        "calories",
-        "perceived_exertion",
-        "average_speed",
-    ):
-        payload.pop(key)
-
-    activity = DetailedActivity.from_mapping(payload)
-
-    assert activity.average_heartrate is None
-    assert activity.total_elevation_gain == 120
-    assert "average_heartrate" not in activity.as_dict()
+    assert activity.gear_id == "g1"
 
 
 @pytest.mark.parametrize(
-    ("field", "value", "error_type"),
+    ("changes", "error_type"),
     [
-        ("id", True, TypeError),
-        ("name", 42, TypeError),
-        ("distance", "far", TypeError),
-        ("moving_time", 1.5, TypeError),
-        ("start_date_local", "not-a-date", ValueError),
-        ("gear", [], TypeError),
+        ({"id": True}, TypeError),
+        ({"name": cast(str, 42)}, TypeError),
+        ({"sport_type": cast(str, 42)}, TypeError),
+        ({"distance": cast(float, "far")}, TypeError),
+        ({"moving_time": cast(int, 1.5)}, TypeError),
+        ({"start_date_local": cast(datetime, "not-a-date")}, TypeError),
+        ({"gear_id": cast(str, 42)}, TypeError),
+        ({"perceived_exertion": cast(int, 1.5)}, TypeError),
     ],
 )
-def test_rejects_invalid_api_fields(
-    field: str,
-    value: object,
+def test_rejects_invalid_field_types(
+    changes: dict[str, object],
     error_type: type[Exception],
 ) -> None:
-    payload = activity_payload()
-    payload[field] = value
-
     with pytest.raises(error_type):
-        DetailedActivity.from_mapping(payload)
+        replace(activity_model(), **changes)
 
 
 @pytest.mark.parametrize(
     ("changes", "message"),
     [
+        ({"name": ""}, "name cannot be empty"),
+        ({"sport_type": ""}, "sport type cannot be empty"),
         ({"distance": -1}, "distance"),
         ({"moving_time": -1}, "moving_time"),
         ({"elapsed_time": 3_000}, "shorter"),
@@ -75,20 +53,12 @@ def test_rejects_invalid_api_fields(
     ],
 )
 def test_enforces_domain_invariants(changes: dict[str, object], message: str) -> None:
-    payload = activity_payload()
-    payload.update(changes)
-
     with pytest.raises(ValueError, match=message):
-        DetailedActivity.from_mapping(payload)
+        replace(activity_model(), **changes)
 
 
-def test_activity_and_nested_gear_are_immutable() -> None:
-    activity = DetailedActivity.from_mapping(activity_payload(gear={"id": "g1"}))
+def test_activity_is_immutable() -> None:
+    activity = activity_model()
 
-    attribute_name = "name"
     with pytest.raises(FrozenInstanceError):
-        setattr(activity, attribute_name, "Changed")
-    assert activity.gear is not None
-    mutable_gear = cast(MutableMapping[str, object], activity.gear)
-    with pytest.raises(TypeError):
-        mutable_gear["id"] = "g2"
+        activity.name = "Changed"  # type: ignore[misc]
