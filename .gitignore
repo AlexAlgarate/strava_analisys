@@ -8,6 +8,10 @@ streams_previous_week.csv
 data/
 .importlinter
 logs.txt
+activities.json
+.strava-analysis/
+tokens.enc
+fernet.key
 
 
 # Byte-compiled / optimized / DLL files
@@ -157,11 +161,6 @@ venv.bak/
 
 # mkdocs documentation
 /site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
 
 # Pyre type checker
 .pyre/

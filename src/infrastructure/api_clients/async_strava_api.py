@@ -1,40 +1,47 @@
-from typing import Any, Dict, cast
+from collections.abc import Mapping
+from dataclasses import dataclass
 
-from src.interfaces.api_clients.async_http_client import BaseASyncHTTPClient
-from src.interfaces.api_clients.strava_api import BaseStravaAPI, StravaAPIConfig
-from src.interfaces.database.database_deleter import IDatabaseDeleter
-from src.interfaces.encryption.encryptor import IEncryptation
+from src.infrastructure.api_clients.protocols import AsyncHttpClient
 
 from .async_http_client import AsyncHTTPClient
 
 
-class AsyncStravaAPI(BaseStravaAPI):
+@dataclass(frozen=True, slots=True)
+class StravaAPIConfig:
+    base_url: str = "https://www.strava.com/api/v3"
+    content_type: str = "application/json"
+
+
+class AsyncStravaAPI:
     def __init__(
         self,
         access_token: str,
-        table: str,
-        encryptor: IEncryptation,
         config: StravaAPIConfig | None = None,
-        deleter: IDatabaseDeleter | None = None,
-    ):
-        super().__init__(
-            access_token=access_token,
-            http_client=AsyncHTTPClient(
-                database_deleter=deleter,
-                table=table,
-                encryptor=encryptor,
-            ),
-            config=config,
-        )
+        http_client: AsyncHttpClient | None = None,
+    ) -> None:
+        if not access_token:
+            raise ValueError("Access token must be provided.")
+        self._access_token = access_token
+        self._http_client = http_client or AsyncHTTPClient()
+        self._config = config or StravaAPIConfig()
+
+    def get_headers(self) -> dict[str, str]:
+        return {
+            "Authorization": f"Bearer {self._access_token}",
+            "Content-Type": self._config.content_type,
+        }
+
+    def get_url(self, endpoint: str) -> str:
+        return f"{self._config.base_url}{endpoint}"
 
     async def make_request(
-        self, endpoint: str, params: dict | None = None
-    ) -> Dict[str, Any]:
+        self,
+        endpoint: str,
+        params: Mapping[str, str | int] | None = None,
+    ) -> object:
         url = self.get_url(endpoint)
         headers = self.get_headers()
-        client = cast(BaseASyncHTTPClient, self.http_client)
-
-        return await client.make_async_request(
+        return await self._http_client.make_async_request(
             url=url,
             headers=headers,
             params=params,

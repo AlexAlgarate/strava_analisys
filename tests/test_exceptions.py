@@ -1,9 +1,9 @@
 import pytest
 
 from src.utils.exceptions import (
-    DatabaseOperationError,
     NotActivitiesError,
     TokenError,
+    TokenStorageError,
     TooManyRequestError,
     UnauthorizedError,
 )
@@ -18,9 +18,9 @@ class TestExceptions:
         with pytest.raises(TooManyRequestError):
             raise TooManyRequestError("Rate limit exceeded")
 
-    def test_database_operation_error(self) -> None:
-        with pytest.raises(DatabaseOperationError):
-            raise DatabaseOperationError("Database connection failed")
+    def test_token_storage_error_is_a_token_error(self) -> None:
+        with pytest.raises(TokenError):
+            raise TokenStorageError("Token file could not be read")
 
     def test_token_error(self) -> None:
         with pytest.raises(TokenError):

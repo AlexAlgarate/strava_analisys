@@ -1,7 +1,6 @@
 from enum import Enum, auto
-from typing import Dict
 
-MENU_DESCRIPTIONS: Dict[str, str] = {
+MENU_DESCRIPTIONS: dict[str, str] = {
     "ACTIVITY_DETAILS": "Show detailed information for activities from current week",
     "ACTIVITY_DETAILS_PREV_WEEK": "Show detailed information for activities from previous week",
     "ACTIVITY_RANGE": "Show all the information for activities from current week",
@@ -10,6 +9,7 @@ MENU_DESCRIPTIONS: Dict[str, str] = {
     "MULTIPLE_STREAMS": "Show the streams for MULTIPLE activities",
     "STREAMS_CURRENT_WEEK": "Show the streams for the current week",
     "STREAMS_PREV_WEEK": "Show the streams for the previous week",
+    "WEEKLY_REPORT": "Show the weekley report",
 }
 
 
@@ -22,6 +22,7 @@ class MenuOption(Enum):
     MULTIPLE_STREAMS = auto()
     STREAMS_CURRENT_WEEK = auto()
     STREAMS_PREV_WEEK = auto()
+    WEEKLY_REPORT = auto()
 
     @property
     def id(self) -> int:

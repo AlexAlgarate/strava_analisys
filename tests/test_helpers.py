@@ -1,9 +1,6 @@
-import asyncio
-
-import pytest
 from freezegun import freeze_time
 
-from src.utils.helpers import func_time_execution, get_week_epoch_range
+from src.utils.helpers import get_week_epoch_range
 
 
 class TestEpochTimeCalculation:
@@ -41,14 +38,3 @@ class TestEpochTimeCalculation:
             assert (
                 current_monday - previous_monday
             ) == 7 * 24 * 60 * 60  # One week difference
-
-
-@pytest.mark.asyncio
-async def test_func_time_execution_decorator() -> None:
-    @func_time_execution
-    async def sample_async_function() -> str:
-        await asyncio.sleep(0.1)
-        return "test"
-
-    result = await sample_async_function()
-    assert result == "test"

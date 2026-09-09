@@ -1,7 +1,7 @@
-from typing import Dict, List
+from collections.abc import Mapping, Sequence
 
 
-async def get_activity_ids(activities: List[Dict]) -> List[int]:
+def get_activity_ids(activities: Sequence[Mapping[str, object]]) -> list[int]:
     """Extract activity IDs from a list of activity dictionaries.
 
     Args:
@@ -10,4 +10,10 @@ async def get_activity_ids(activities: List[Dict]) -> List[int]:
     Returns:
         List of activity IDs
     """
-    return [activity["id"] for activity in activities]
+    activity_ids: list[int] = []
+    for activity in activities:
+        activity_id = activity.get("id")
+        if isinstance(activity_id, bool) or not isinstance(activity_id, int):
+            raise TypeError("An activity must contain an integer id.")
+        activity_ids.append(activity_id)
+    return activity_ids

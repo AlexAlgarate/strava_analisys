@@ -1,17 +1,21 @@
 import asyncio
-from typing import List
+from collections.abc import Mapping
+from typing import cast
 
 import pandas as pd
 
+from src.core.ports.strava import StravaAPI
 from src.core.streams.processor import process_streams
-from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
-from src.interfaces.activities import IActivityFetcher
 
 
-class ActivityStreamsFetcher(IActivityFetcher):
+class ActivityStreamsFetcher:
     """Fetches activity stream data from Strava API."""
 
-    async def fetch_activity_data(self, stream_keys: List[str]) -> pd.DataFrame:
+    def __init__(self, api: StravaAPI, activity_id: int | None = None) -> None:
+        self._api = api
+        self._activity_id = activity_id
+
+    async def fetch_activity_data(self, stream_keys: list[str]) -> pd.DataFrame:
         """Fetch stream data for a single activity.
 
         Args:
@@ -23,20 +27,25 @@ class ActivityStreamsFetcher(IActivityFetcher):
         Raises:
             ValueError: If no activity ID is provided
         """
-        if not self.id_activity:
+        if not self._activity_id:
             raise ValueError("Activity ID is required for this operation.")
         params = {"keys": ",".join(stream_keys), "key_by_type": "true"}
-        response_json = await self.api.make_request(
-            f"/activities/{self.id_activity}/streams", params
+        response = await self._api.make_request(
+            f"/activities/{self._activity_id}/streams", params
         )
-        return process_streams(response=response_json, id_activity=self.id_activity)
+        if not isinstance(response, Mapping):
+            raise TypeError("Strava streams response must be an object.")
+        return process_streams(
+            response=cast(dict[str, object], response),
+            id_activity=self._activity_id,
+        )
 
     @classmethod
     async def fetch_multiple_activities_streams(
         cls,
-        api: AsyncStravaAPI,
-        list_id_activities: List[int],
-        stream_keys: List[str],
+        api: StravaAPI,
+        list_id_activities: list[int],
+        stream_keys: list[str],
     ) -> pd.DataFrame:
         """Fetch stream data for multiple activities in parallel.
 
@@ -49,7 +58,7 @@ class ActivityStreamsFetcher(IActivityFetcher):
             DataFrame containing concatenated stream data from all activities
         """
         tasks = [
-            cls(api=api, id_activity=activity_id).fetch_activity_data(
+            cls(api=api, activity_id=activity_id).fetch_activity_data(
                 stream_keys=stream_keys
             )
             for activity_id in list_id_activities

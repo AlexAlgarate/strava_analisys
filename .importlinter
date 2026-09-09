@@ -1,18 +1,23 @@
 [importlinter]
 root_package = src
-include_external_packages = True
+include_external_packages = False
 
-[importlinter:contract:hexagonal_layers]
-name = hexagonal-architecture-layers: domain → application → infrastructure
+[importlinter:contract:architectural_layers]
+name = presentation -> infrastructure -> core -> domain
 type = layers
 layers =
-    di
+    presentation
     infrastructure
-    application
+    core
     domain
 containers =
     src
-exhaustive = true
-exhaustive_ignores =
-    __main__
-    config
+exhaustive = false
+
+[importlinter:contract:presentation_independence]
+name = presentation does not construct infrastructure adapters
+type = forbidden
+source_modules =
+    src.presentation
+forbidden_modules =
+    src.infrastructure

@@ -1,40 +1,51 @@
-import json
-import os
-from typing import Dict
+from collections.abc import Mapping, Sequence
+from typing import ClassVar, cast
 
-from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
-from src.utils.helpers import check_path
+from src.core.ports.export import ActivityZonesWriter
+from src.core.ports.strava import StravaAPI
 
 
 class ActivityZones:
-    ZONES_KEY = ["Zone_1", "Zone_2", "Zone_3", "Zone_4", "Zone_5"]
+    ZONE_KEYS: ClassVar[tuple[str, ...]] = (
+        "Zone_1",
+        "Zone_2",
+        "Zone_3",
+        "Zone_4",
+        "Zone_5",
+    )
 
-    def __init__(self, api: AsyncStravaAPI, id_activity: int | None):
-        self.api = api
-        self.id_activity = id_activity
+    def __init__(
+        self,
+        api: StravaAPI,
+        activity_id: int | None,
+        writer: ActivityZonesWriter | None = None,
+    ) -> None:
+        self._api = api
+        self._activity_id = activity_id
+        self._writer = writer
 
-    async def get_zones(self, save_zones: bool = False) -> Dict[str, int]:
-        if not self.id_activity:
+    async def get_zones(self, save_zones: bool = False) -> dict[str, object]:
+        if not self._activity_id:
             raise ValueError("Activity ID is required for this operation.")
 
-        response_zones = await self.api.make_request(
-            f"/activities/{self.id_activity}/zones"
+        response = await self._api.make_request(
+            f"/activities/{self._activity_id}/zones"
         )
-        zones = response_zones.get("distribution_buckets")
-
+        if not isinstance(response, Mapping):
+            raise TypeError("Strava zones response must be an object.")
+        zones = response.get("distribution_buckets")
         if zones is None:
             raise ValueError("The activity does not have heartrate information.")
+        if not isinstance(zones, Sequence) or isinstance(zones, (str, bytes)):
+            raise TypeError("Strava zone buckets must be a sequence.")
+        if len(zones) != len(self.ZONE_KEYS):
+            raise ValueError("Strava must return exactly five heartrate zones.")
 
-        zones_dict = dict(zip(self.ZONES_KEY, zones))
+        zone_values = cast(Sequence[object], zones)
+        zones_dict = dict(zip(self.ZONE_KEYS, zone_values, strict=True))
         if save_zones:
-            await self._save_zones_to_file(zones_dict)
+            if self._writer is None:
+                raise RuntimeError("No activity zones writer has been configured.")
+            self._writer.write(self._activity_id, zones_dict)
 
         return zones_dict
-
-    async def _save_zones_to_file(self, zones_dict: Dict[str, int]) -> None:
-        if not check_path("json_zones_files/"):
-            os.makedirs("json_zones_files/")
-
-        file_path = f"json_zones_files/zones_{self.id_activity}.json"
-        with open(file_path, "w") as f:
-            json.dump(zones_dict, f, indent=4)
