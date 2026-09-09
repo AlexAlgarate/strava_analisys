@@ -3,6 +3,11 @@
 CLI en Python 3.13 para consultar actividades de Strava, analizar sus streams
 y generar resúmenes semanales.
 
+Las respuestas externas se validan al entrar en la aplicación y se convierten
+en modelos de dominio inmutables. Las consultas por lotes limitan su
+concurrencia y conservan los errores parciales para que ninguna actividad falle
+silenciosamente.
+
 ## Requisitos
 
 - Python 3.13
@@ -30,6 +35,10 @@ cifrados fuera del repositorio, por defecto en
 `~/.local/share/strava-analysis/tokens.enc`. La clave generada localmente se
 guarda con permisos exclusivos del usuario en
 `~/.config/strava-analysis/fernet.key`.
+
+Los logs se escriben fuera del repositorio, en
+`$XDG_STATE_HOME/strava-analysis/application.log` o, si esa variable no está
+definida, en `~/.local/state/strava-analysis/application.log`.
 
 ## Uso
 
@@ -70,6 +79,8 @@ src/
 ```
 
 Las dependencias entre capas están verificadas mediante import-linter.
+Los streams se exportan con la biblioteca estándar de Python; no se necesita
+`pandas` para procesarlos ni para generar CSV.
 
 ## Docker
 

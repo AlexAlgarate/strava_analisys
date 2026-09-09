@@ -20,3 +20,30 @@ def activity_payload(
     }
     payload.update(overrides)
     return payload
+
+
+def stream_payload(
+    *,
+    times: list[int] | None = None,
+    distances: list[int | float] | None = None,
+    heart_rates: list[int] | None = None,
+) -> dict[str, object]:
+    return {
+        "time": {"data": times if times is not None else [0, 1, 2]},
+        "distance": {"data": distances if distances is not None else [0, 10.5, 20.5]},
+        "heartrate": {
+            "data": heart_rates if heart_rates is not None else [120, 125, 130]
+        },
+    }
+
+
+def zones_payload() -> dict[str, object]:
+    return {
+        "distribution_buckets": [
+            {"min": 0, "max": 120, "time": 300},
+            {"min": 120, "max": 140, "time": 600},
+            {"min": 140, "max": 160, "time": 900},
+            {"min": 160, "max": 180, "time": 400},
+            {"min": 180, "max": -1, "time": 120},
+        ]
+    }

@@ -1,5 +1,7 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
+from types import TracebackType
+from typing import Self
 
 from src.infrastructure.api_clients.protocols import AsyncHttpClient
 
@@ -22,8 +24,24 @@ class AsyncStravaAPI:
         if not access_token:
             raise ValueError("Access token must be provided.")
         self._access_token = access_token
+        self._owns_http_client = http_client is None
         self._http_client = http_client or AsyncHTTPClient()
         self._config = config or StravaAPIConfig()
+
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        await self.close()
+
+    async def close(self) -> None:
+        if self._owns_http_client:
+            await self._http_client.close()
 
     def get_headers(self) -> dict[str, str]:
         return {
