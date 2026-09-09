@@ -19,7 +19,7 @@ class TestStreamProcessor:
         assert all(result["id"] == 123)
 
     def test_process_streams_empty_data(self) -> None:
-        test_data: dict[str, dict[str, list]] = {
+        test_data: dict[str, dict[str, list[object]]] = {
             "time": {"data": []},
             "distance": {"data": []},
             "heartrate": {"data": []},
@@ -59,3 +59,17 @@ class TestStreamProcessor:
         assert result["distance"].isna().sum() == 2  # Last value should be NaN
         assert result["time"].isna().sum() == 1
         assert result["heartrate"].isna().sum() == 0
+
+    def test_process_streams_ignores_invalid_stream_shapes(self) -> None:
+        test_data: dict[str, object] = {
+            "time": "invalid",
+            "distance": {"data": "invalid"},
+            "heartrate": {"data": [60]},
+        }
+
+        result = process_streams(test_data, id_activity=123)
+
+        assert len(result) == 1
+        assert result["time"].isna().all()
+        assert result["distance"].isna().all()
+        assert result["heartrate"].tolist() == [60]

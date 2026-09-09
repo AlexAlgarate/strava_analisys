@@ -1,71 +1,82 @@
 from datetime import datetime
-from typing import Any
+from typing import Protocol
 
-from src.interfaces.formatter import IValueFormatter
+type NumericInput = str | int | float
 
 
-class ActivityDateFormatter(IValueFormatter):
-    def format(self, value: Any) -> str:
+def _require_numeric_input(value: object) -> NumericInput:
+    if isinstance(value, (str, int, float)):
+        return value
+    raise TypeError("Value must be numeric or a numeric string.")
+
+
+class ValueFormatter(Protocol):
+    def format(self, value: object) -> str: ...
+
+
+class ActivityDateFormatter:
+    def format(self, value: object) -> str:
         try:
-            dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            dt = datetime.fromisoformat(str(value))
             return dt.strftime("%Y-%m-%d %H:%M:%S")
         except ValueError:
             return str(value)
 
 
-class ActivityDistanceFormatter(IValueFormatter):
-    def format(self, value: Any) -> str:
+class ActivityDistanceFormatter:
+    def format(self, value: object) -> str:
         try:
-            return f"{float(value) / 1000:.2f} km"
+            return f"{float(_require_numeric_input(value)) / 1000:.2f} km"
         except (ValueError, TypeError):
             return str(value)
 
 
-class ActivityPaceFormatter(IValueFormatter):
-    def format(self, value: Any) -> str:
+class ActivityPaceFormatter:
+    def format(self, value: object) -> str:
         try:
-            return f"{float(value) * 3.6:.2f} km/h"
+            return f"{float(_require_numeric_input(value)) * 3.6:.2f} km/h"
         except (ValueError, TypeError):
             return str(value)
 
 
-class ActivityDurationFormatter(IValueFormatter):
-    def format(self, value: Any) -> str:
+class ActivityDurationFormatter:
+    def format(self, value: object) -> str:
         try:
-            minutes = int(value) // 60
-            seconds = int(value) % 60
+            numeric_value = _require_numeric_input(value)
+            minutes = int(numeric_value) // 60
+            seconds = int(numeric_value) % 60
             return f"{minutes}m {seconds}s"
         except (ValueError, TypeError):
             return str(value)
 
 
-class ActivityHeartRateFormatter(IValueFormatter):
-    def format(self, value: Any) -> str:
+class ActivityHeartRateFormatter:
+    def format(self, value: object) -> str:
         try:
-            return f"{int(value)} ppm"
+            return f"{int(_require_numeric_input(value))} ppm"
         except (ValueError, TypeError):
             return str(value)
 
 
-class ActivityCaloriesFormatter(IValueFormatter):
-    def format(self, value: Any) -> str:
+class ActivityCaloriesFormatter:
+    def format(self, value: object) -> str:
         try:
-            return f"{int(value)} kcal"
+            return f"{int(_require_numeric_input(value))} kcal"
         except (ValueError, TypeError):
             return str(value)
 
 
-class ActivityExertionFormatter(IValueFormatter):
-    def format(self, value: Any) -> str:
+class ActivityExertionFormatter:
+    def format(self, value: object) -> str:
         try:
-            return f"{int(value)} RPE"
+            return f"{int(_require_numeric_input(value))} RPE"
         except (ValueError, TypeError):
             return str(value)
 
 
 class ActivityFormatter:
     def __init__(self) -> None:
-        self.formatters = {
+        self.formatters: dict[str, ValueFormatter] = {
             "start_date": ActivityDateFormatter(),
             "start_date_local": ActivityDateFormatter(),
             "distance": ActivityDistanceFormatter(),
@@ -81,7 +92,7 @@ class ActivityFormatter:
     def format_key(self, key: str) -> str:
         return key.replace("_", " ").title()
 
-    def format_value(self, key: str, value: Any) -> str:
+    def format_value(self, key: str, value: object) -> str:
         formatter = self.formatters.get(key)
         if formatter:
             return formatter.format(value)

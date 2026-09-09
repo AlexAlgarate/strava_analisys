@@ -1,47 +1,33 @@
-from typing import Any, cast
+from collections.abc import Mapping
+from typing import cast
 
 import aiohttp
 
-from src.interfaces.api_clients.async_http_client import BaseASyncHTTPClient
-from src.interfaces.database.database_deleter import IDatabaseDeleter
-from src.interfaces.encryption.encryptor import IEncryptation
 from src.utils import exceptions
 
 UNAUTHORIZED_USER = 401
 REACH_REQUEST_LIMIT = 429
 
 
-class AsyncHTTPClient(BaseASyncHTTPClient):
-    def __init__(
-        self,
-        database_deleter: IDatabaseDeleter | None = None,
-        table: str | None = None,
-        encryptor: IEncryptation | None = None,
-    ) -> None:
-        self.database_deleter = database_deleter
-        self.table = table
-        self.encryptor = encryptor
-
+class AsyncHTTPClient:
     async def make_async_request(
         self,
         url: str,
-        headers: dict[str, str],
-        params: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, params=params) as response:
-                if response.status == REACH_REQUEST_LIMIT:
-                    raise exceptions.TooManyRequestError(
-                        "\n\n You have reached the request limit. Please, try again in 15 minutes."
-                    )
+        headers: Mapping[str, str],
+        params: Mapping[str, str | int] | None = None,
+    ) -> object:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(url, headers=headers, params=params) as response,
+        ):
+            if response.status == REACH_REQUEST_LIMIT:
+                raise exceptions.TooManyRequestError(
+                    "\n\n You have reached the request limit. Please, try again in 15 minutes."
+                )
 
-                if response.status == UNAUTHORIZED_USER:
-                    self._remove_expired_tokens()
-                    return {}
-                return cast(dict[str, Any], await response.json())
-
-    def _remove_expired_tokens(self) -> None:
-        if self.database_deleter and self.table and self.encryptor:
-            self.database_deleter.cleanup_expired_tokens(
-                table=self.table, encryptor=self.encryptor
-            )
+            if response.status == UNAUTHORIZED_USER:
+                raise exceptions.UnauthorizedError(
+                    "Strava rejected the access token. Reauthorize the application."
+                )
+            response.raise_for_status()
+            return cast(object, await response.json())

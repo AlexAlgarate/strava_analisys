@@ -17,7 +17,7 @@ def mock_async_api() -> Mock:
 
 @pytest.fixture
 def stream_fetcher(mock_async_api: Mock) -> ActivityStreamsFetcher:
-    return ActivityStreamsFetcher(api=mock_async_api, id_activity=123)
+    return ActivityStreamsFetcher(api=mock_async_api, activity_id=123)
 
 
 stream_response_type = list[dict[str, dict[str, list[float]]]]
@@ -65,6 +65,17 @@ class TestActivityStreamsFetcher:
         fetcher = ActivityStreamsFetcher(api=mock_async_api)
         with pytest.raises(ValueError, match="Activity ID is required"):
             await fetcher.fetch_activity_data(
+                stream_keys=constant.ACTIVITY_STREAMS_KEYS
+            )
+
+    @pytest.mark.asyncio
+    async def test_rejects_non_object_stream_response(
+        self, stream_fetcher: ActivityStreamsFetcher, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = []
+
+        with pytest.raises(TypeError, match="response must be an object"):
+            await stream_fetcher.fetch_activity_data(
                 stream_keys=constant.ACTIVITY_STREAMS_KEYS
             )
 

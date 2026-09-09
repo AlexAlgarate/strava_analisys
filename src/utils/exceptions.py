@@ -6,17 +6,13 @@ class TooManyRequestError(Exception):
     pass
 
 
-class DatabaseOperationError(Exception):
-    pass
-
-
 class TokenError(Exception):
     pass
 
 
-class UnauthorizedError(Exception):
+class TokenStorageError(TokenError):
     pass
 
 
-class TokenException(Exception):
+class UnauthorizedError(Exception):
     pass

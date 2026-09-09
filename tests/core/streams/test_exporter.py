@@ -1,15 +1,16 @@
 import os
 import tempfile
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from src.core.streams.exporter import CsvExporter, DataExporter
-from src.interfaces.stream_exporter import IStreamExporter
+from src.core.streams.exporter import DataExporter
+from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
 
 
-class MockExporter(IStreamExporter):
-    def export(self, df: pd.DataFrame, path: str) -> None:
+class MockExporter:
+    def export(self, df: pd.DataFrame, path: Path) -> None:
         pass
 
 
@@ -26,21 +27,21 @@ def sample_df() -> pd.DataFrame:
 
 
 @pytest.fixture
-def csv_exporter() -> CsvExporter:
-    return CsvExporter()
+def csv_exporter() -> CsvStreamExporter:
+    return CsvStreamExporter()
 
 
 @pytest.fixture
 def data_exporter() -> DataExporter:
-    return DataExporter()
+    return DataExporter({"csv": CsvStreamExporter()})
 
 
 class TestStreamExporters:
     def test_csv_exporter(
-        self, sample_df: pd.DataFrame, csv_exporter: CsvExporter
+        self, sample_df: pd.DataFrame, csv_exporter: CsvStreamExporter
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
-            path = f"{tmp_dir}/test.csv"
+            path = Path(tmp_dir) / "test.csv"
 
             csv_exporter.export(sample_df, path)
 
@@ -51,21 +52,21 @@ class TestStreamExporters:
 
 class TestDataExporter:
     def test_default_initialization(self, data_exporter: DataExporter) -> None:
-        assert "csv" in data_exporter.exporter
-        assert isinstance(data_exporter.exporter["csv"], CsvExporter)
+        assert "csv" in data_exporter.exporters
+        assert isinstance(data_exporter.exporters["csv"], CsvStreamExporter)
 
     def test_custom_exporter_initialization(self) -> None:
         mock_exporter = MockExporter()
         exporter = DataExporter({"mock": mock_exporter})
-        assert "mock" in exporter.exporter
-        assert exporter.exporter["mock"] == mock_exporter
+        assert "mock" in exporter.exporters
+        assert exporter.exporters["mock"] == mock_exporter
 
     def test_create_path(self, data_exporter: DataExporter) -> None:
         path = data_exporter._create_path("test_dir", True, "csv")
-        assert path == "test_dir/streams_previous_week.csv"
+        assert path == Path("test_dir/streams_previous_week.csv")
 
         path = data_exporter._create_path("test_dir", False, "csv")
-        assert path == "test_dir/streams_current_week.csv"
+        assert path == Path("test_dir/streams_current_week.csv")
 
     def test_export_streams_invalid_format(
         self, data_exporter: DataExporter, sample_df: pd.DataFrame
@@ -90,11 +91,11 @@ class TestDataExporter:
             pd.testing.assert_frame_equal(result_df, sample_df)
 
     def test_export_streams_custom_exporter(self, sample_df: pd.DataFrame) -> None:
-        class CountingExporter(IStreamExporter):
+        class CountingExporter:
             def __init__(self) -> None:
                 self.export_count = 0
 
-            def export(self, df: pd.DataFrame, path: str) -> None:
+            def export(self, df: pd.DataFrame, path: Path) -> None:
                 self.export_count += 1
 
         counting_exporter = CountingExporter()

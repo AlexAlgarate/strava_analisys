@@ -8,11 +8,12 @@ from src.presentation.console_output.formatter import (
     ActivityExertionFormatter,
     ActivityHeartRateFormatter,
     ActivityPaceFormatter,
+    ValueFormatter,
 )
 
 
 class TestValidFormatter:
-    invalid_inputs: list[str | None | dict | list] = [
+    invalid_inputs: list[object] = [
         "abc",
         None,
         {},
@@ -50,7 +51,7 @@ class TestValidFormatter:
     )
     def test_valid_formatter(
         self,
-        formatter_cls: type,
+        formatter_cls: type[ValueFormatter],
         input_value: int | float | str,
         expected_output: str,
     ) -> None:
@@ -71,7 +72,7 @@ class TestValidFormatter:
     )
     @pytest.mark.parametrize("invalid_input", invalid_inputs)
     def test_invalid_inputs_return_str(
-        self, formatter_cls: type, invalid_input: list[str | None | dict | list]
+        self, formatter_cls: type[ValueFormatter], invalid_input: object
     ) -> None:
         formatter = formatter_cls()
         assert formatter.format(invalid_input) == str(invalid_input)

@@ -1,15 +1,23 @@
 import logging
-import os
+from pathlib import Path
 
-from src import strava_service
 from src.access_token import GetAccessToken
+from src.core.activities.summary.service import ActivitySummaryService
+from src.core.service import StravaService
 from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
+from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
+from src.infrastructure.export.json_activity_zones_writer import (
+    JsonActivityZonesWriter,
+)
 from src.presentation.cli_entrypoint import MenuHandler
 from src.presentation.console_output.console_error_handler import (
     ConsoleErrorHandler,
 )
 from src.presentation.console_output.result_console_printer import (
     ResultConsolePrinter,
+)
+from src.presentation.console_output.weekly_summary_presenter import (
+    ConsoleSummaryPresenter,
 )
 from src.utils.logger_config import setup_logging
 
@@ -23,22 +31,26 @@ def main() -> None:
     token = GetAccessToken()
     access_token = token.get_access_token()
 
-    strava_API_async = AsyncStravaAPI(
+    strava_api = AsyncStravaAPI(
         access_token=access_token,
-        deleter=token.supabase_deleter,
-        table=token.credentials["supabase_secrets"].supabase_table,
-        encryptor=token.encryptor,
     )
 
     result_console_printer = ResultConsolePrinter()
     error_console_printer = ConsoleErrorHandler()
 
-    service = strava_service.StravaService(api_async=strava_API_async)
+    service = StravaService(
+        api=strava_api,
+        exporters={"csv": CsvStreamExporter()},
+        zones_writer=JsonActivityZonesWriter(Path("json_zones_files")),
+    )
+    summary_service = ActivitySummaryService(activity_provider=service)
 
     menu = MenuHandler(
         service=service,
         result_console_printer=result_console_printer,
         error_console_printer=error_console_printer,
+        summary_service=summary_service,
+        summary_presenter=ConsoleSummaryPresenter(),
     )
 
     while True:
@@ -49,19 +61,7 @@ def main() -> None:
             print("\n👋 Goodbye")
             break
 
-        _remove_testing_files(option, "e")
-
         menu.execute_option(option)
-
-
-def _remove_testing_files(option: str, default_letter: str) -> None:
-    if option.lower() == default_letter:
-        current_week = "streams_current_week.csv"
-        previous_week = "streams_previous_week.csv"
-        for file in (current_week, previous_week):
-            if os.path.exists(file):
-                os.remove(file)
-                print(f"Deleted file: {file}")
 
 
 if __name__ == "__main__":

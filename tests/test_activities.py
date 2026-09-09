@@ -3,13 +3,15 @@ from unittest.mock import AsyncMock, Mock
 import pandas as pd
 import pytest
 
-from src.activities.detailed_activities import (
+from src.core.activities.fetchers import (
     DetailedActivitiesFetcher,
     WeeklyActivitiesFetcher,
 )
 from src.core.streams.fetcher import ActivityStreamsFetcher
+from src.domain.detailed_activity import DetailedActivity
 from src.utils import constants as constant
 from src.utils import exceptions
+from tests.factories import activity_payload
 
 
 def _create_base_api_mock() -> Mock:
@@ -59,6 +61,24 @@ class TestWeeklyActivitiesFetcher:
         assert result == expected_response
         assert mock_async_api.make_request.call_count == 1
 
+    @pytest.mark.asyncio
+    async def test_rejects_non_list_response(
+        self, activity_fetcher: WeeklyActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = {"id": 1}
+
+        with pytest.raises(TypeError, match="response must be a list"):
+            await activity_fetcher.fetch_activity_data()
+
+    @pytest.mark.asyncio
+    async def test_rejects_non_object_activity(
+        self, activity_fetcher: WeeklyActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = ["invalid"]
+
+        with pytest.raises(TypeError, match="activity must be an object"):
+            await activity_fetcher.fetch_activity_data()
+
 
 class TestDetailedActivitiesFetcher:
     @pytest.fixture
@@ -71,17 +91,15 @@ class TestDetailedActivitiesFetcher:
     ) -> None:
         mock_async_api.make_request.side_effect = [
             [{"id": 1}, {"id": 2}],
-            {"id": 1, "name": "Activity 1"},
-            {"id": 2, "name": "Activity 2"},
+            activity_payload(1, "Activity 1"),
+            activity_payload(2, "Activity 2"),
         ]
 
-        result = await activity_fetcher.fetch_activity_data(
-            keys=["id", "name"], previuos_week=False
-        )
+        result = await activity_fetcher.fetch_activity_data(previous_week=False)
 
         assert len(result) == 2
-        assert all(isinstance(activity, dict) for activity in result)
-        assert all(set(activity.keys()) == {"id", "name"} for activity in result)
+        assert all(isinstance(activity, DetailedActivity) for activity in result)
+        assert [activity.name for activity in result] == ["Activity 1", "Activity 2"]
 
     @pytest.mark.asyncio
     async def test_fetch_activity_data_no_activities(
@@ -90,9 +108,7 @@ class TestDetailedActivitiesFetcher:
         mock_async_api.make_request.return_value = []
 
         with pytest.raises(ValueError, match="No activities found."):
-            await activity_fetcher.fetch_activity_data(
-                keys=["id", "name"], previuos_week=False
-            )
+            await activity_fetcher.fetch_activity_data(previous_week=False)
 
     @pytest.mark.asyncio
     async def test_fetch_activity_details_error_handling(
@@ -103,12 +119,17 @@ class TestDetailedActivitiesFetcher:
             Exception("API Error"),  # Error fetching details
         ]
 
-        result = await activity_fetcher.fetch_activity_data(
-            keys=["id", "name"], previuos_week=False
-        )
+        with pytest.raises(Exception, match="API Error"):
+            await activity_fetcher.fetch_activity_data(previous_week=False)
 
-        assert len(result) == 1
-        assert result[0] == {}  # Empty dict returned for failed fetch
+    @pytest.mark.asyncio
+    async def test_rejects_activity_without_integer_id(
+        self, activity_fetcher: DetailedActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = [{"id": True}]
+
+        with pytest.raises(TypeError, match="integer id"):
+            await activity_fetcher.fetch_activity_data()
 
 
 stream_response_type = list[dict[str, dict[str, list[float]]]]
@@ -134,7 +155,7 @@ STREAM_RESPONSES: stream_response_type = [
 class TestActivityStreamsFetcher:
     @pytest.fixture
     def stream_fetcher(self, mock_async_api: Mock) -> ActivityStreamsFetcher:
-        return ActivityStreamsFetcher(api=mock_async_api, id_activity=123)
+        return ActivityStreamsFetcher(api=mock_async_api, activity_id=123)
 
     @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio

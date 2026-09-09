@@ -3,6 +3,8 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from src.core.activities.service import ActivityService
+from src.domain.detailed_activity import DetailedActivity
+from tests.factories import activity_payload
 
 
 @pytest.fixture
@@ -41,8 +43,8 @@ class TestActivityService:
     ) -> None:
         mock_activities = [{"id": 1}, {"id": 2}]
         mock_details = [
-            {"id": 1, "name": "Activity 1"},
-            {"id": 2, "name": "Activity 2"},
+            activity_payload(1, "Activity 1"),
+            activity_payload(2, "Activity 2"),
         ]
         mock_async_api.make_request.side_effect = [
             mock_activities,  # Weekly activities
@@ -53,5 +55,5 @@ class TestActivityService:
         result = await activity_service.get_activity_details(previous_week=False)
 
         assert len(result) == 2
-        assert all(isinstance(activity, dict) for activity in result)
+        assert all(isinstance(activity, DetailedActivity) for activity in result)
         assert mock_async_api.make_request.call_count == 3
