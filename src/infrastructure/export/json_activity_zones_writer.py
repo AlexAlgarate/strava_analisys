@@ -14,4 +14,16 @@ class JsonActivityZonesWriter:
         self._output_directory.mkdir(parents=True, exist_ok=True)
         path = self._output_directory / f"zones_{zones.activity_id}.json"
         with path.open("w", encoding="utf-8") as output:
-            json.dump(zones.as_dict(), output, ensure_ascii=False, indent=4)
+            json.dump(
+                {
+                    f"Zone_{zone.number}": {
+                        "min": zone.minimum_bpm,
+                        "max": zone.maximum_bpm,
+                        "time": zone.time_seconds,
+                    }
+                    for zone in zones.zones
+                },
+                output,
+                ensure_ascii=False,
+                indent=4,
+            )

@@ -1,6 +1,7 @@
 from src.core.ports.export import ActivityZonesWriter
 from src.core.ports.strava import StravaAPI
 from src.domain.heart_rate_zones import HeartRateZones
+from src.infrastructure.strava.heart_rate_zone_mapper import map_heart_rate_zones
 
 
 class ActivityZones:
@@ -26,7 +27,7 @@ class ActivityZones:
         response = await self._api.make_request(
             f"/activities/{self._activity_id}/zones"
         )
-        zones = HeartRateZones.from_api_response(self._activity_id, response)
+        zones = map_heart_rate_zones(self._activity_id, response)
         if save_zones:
             if self._writer is None:
                 raise RuntimeError("No activity zones writer has been configured.")

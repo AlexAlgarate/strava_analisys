@@ -127,7 +127,13 @@ async def test_get_zones_with_save(
         writer=JsonActivityZonesWriter(tmp_path),
     )
 
-    result = await zones_manager.get_zones(save_zones=True)
+    await zones_manager.get_zones(save_zones=True)
 
     with (tmp_path / "zones_123.json").open(encoding="utf-8") as source:
-        assert json.load(source) == result.as_dict()
+        assert json.load(source) == {
+            "Zone_1": {"min": 0, "max": 120, "time": 300},
+            "Zone_2": {"min": 120, "max": 140, "time": 600},
+            "Zone_3": {"min": 140, "max": 160, "time": 900},
+            "Zone_4": {"min": 160, "max": 180, "time": 400},
+            "Zone_5": {"min": 180, "max": -1, "time": 120},
+        }
