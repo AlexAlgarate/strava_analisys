@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import pytest
 
 from src.presentation.console_output.formatter import (
@@ -13,7 +15,7 @@ from src.presentation.console_output.formatter import (
 
 
 class TestValidFormatter:
-    invalid_inputs: list[object] = [
+    invalid_inputs: ClassVar[list[object]] = [
         "abc",
         None,
         {},
@@ -52,7 +54,7 @@ class TestValidFormatter:
     def test_valid_formatter(
         self,
         formatter_cls: type[ValueFormatter],
-        input_value: int | float | str,
+        input_value: float | str,
         expected_output: str,
     ) -> None:
         formatter = formatter_cls()

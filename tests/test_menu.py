@@ -68,7 +68,7 @@ class TestMenuHandler:
         options = menu_handler.get_menu_options()
         assert isinstance(options, dict)
         assert len(options) == len(MenuOption)
-        assert all(isinstance(key, str) for key in options.keys())
+        assert all(isinstance(key, str) for key in options)
         assert all(isinstance(value, str) for value in options.values())
 
     def test_execute_invalid_option(
