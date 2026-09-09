@@ -3,7 +3,7 @@ name = "strava-analisys"
 version = "0.1.0"
 description = "Tool to analyze your running workouts using Strava's API"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 license = { text = "MIT" }
 authors = [{ name = "Alex Algarate", email = "alex.algarate@gmail.com" }]
 dependencies = [
