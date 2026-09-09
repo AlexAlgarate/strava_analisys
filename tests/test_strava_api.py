@@ -1,4 +1,4 @@
-from typing import Any, Optional, Type
+from typing import Any
 from unittest.mock import Mock, patch
 
 import aiohttp
@@ -32,9 +32,9 @@ class MockResponse:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[Any],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any | None,
     ) -> None:
         pass
 

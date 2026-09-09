@@ -1,9 +1,7 @@
-from typing import Dict
-
 import pandas as pd
 
 
-def process_streams(response: Dict, id_activity: int) -> pd.DataFrame:
+def process_streams(response: dict, id_activity: int) -> pd.DataFrame:
     """Process stream data into a DataFrame."""
     max_length = (
         max(

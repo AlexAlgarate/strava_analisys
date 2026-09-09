@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Dict
 
 
 class IDatabaseWriter(ABC):
     @abstractmethod
-    def insert_record(self, table: str, data: Dict[str, str]) -> bool:
+    def insert_record(self, table: str, data: dict[str, str]) -> bool:
         pass

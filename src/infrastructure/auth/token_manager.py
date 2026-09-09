@@ -1,7 +1,7 @@
 import logging
 import time
 from enum import Enum
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import requests
 
@@ -17,7 +17,7 @@ class GranType(Enum):
 
 
 class TokenManager:
-    def __init__(self, client_id: str, secret_key: str):
+    def __init__(self, client_id: str, secret_key: str) -> None:
         self.client_id = client_id
         self.secret_key = secret_key
 
@@ -27,7 +27,7 @@ class TokenManager:
 
     def _prepare_request_data(
         self, gran_type: GranType, **kwargs: str
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         data = {
             "client_id": self.client_id,
             "client_secret": self.secret_key,
@@ -36,18 +36,18 @@ class TokenManager:
         data.update(kwargs)
         return data
 
-    def _send_token_request(self, data: Dict[str, str]) -> Dict[str, Any] | None:
+    def _send_token_request(self, data: dict[str, str]) -> dict[str, Any] | None:
         try:
             response = requests.post(constant.URL_GET_ACCESS_TOKEN, data=data)
             response.raise_for_status()
             response_json = response.json()
-            return cast(Dict[str, Any], response_json)
+            return cast(dict[str, Any], response_json)
 
         except exceptions.TokenException as e:
             logger.error(f"Error fetching initial tokens: {e}", exc_info=True)
             return None
 
-    def refresh_access_token(self, refresh_token: str) -> Dict[str, Any] | None:
+    def refresh_access_token(self, refresh_token: str) -> dict[str, Any] | None:
         data = self._prepare_request_data(
             gran_type=GranType.REFRESH_TOKEN,
             refresh_token=refresh_token,
@@ -55,7 +55,7 @@ class TokenManager:
 
         return self._send_token_request(data)
 
-    def get_initial_tokens(self, code: str) -> Dict[str, Any] | None:
+    def get_initial_tokens(self, code: str) -> dict[str, Any] | None:
         data = self._prepare_request_data(
             gran_type=GranType.AUTHORIZATION_CODE,
             code=code,

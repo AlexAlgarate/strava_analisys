@@ -9,7 +9,7 @@ class IActivityFetcher(ABC):
         self,
         api: BaseStravaAPI,
         id_activity: int | None = None,
-    ):
+    ) -> None:
         self.api = api
         self.id_activity = id_activity
 

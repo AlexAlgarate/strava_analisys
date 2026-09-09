@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, cast
 
 from src.core.activities.summary.interfaces import (
     IActivityDataLoader,
@@ -8,11 +8,11 @@ from src.core.activities.summary.interfaces import (
 
 
 class ActivitySummaryBuilder(IActivitySummaryBuilder):
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
 
     def reset(self) -> None:
-        self._summary = {}
+        self._summary: dict[str, Any] = {}
 
     def add_distance(self, value: float) -> None:
         self._summary["total_distance"] = value
@@ -33,23 +33,23 @@ class ActivitySummaryBuilder(IActivitySummaryBuilder):
     def add_perceived_exertion(self, value: float) -> None:
         self._summary["avg_perceived_exertion"] = value
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         return self._summary.copy()
 
 
 class JsonActivityLoader(IActivityDataLoader):
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str) -> None:
         self.file_path = file_path
 
-    def load_activities(self) -> List[Dict[str, Any]]:
+    def load_activities(self) -> list[dict[str, Any]]:
         import json
 
-        with open(self.file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        with open(self.file_path, encoding="utf-8") as f:
+            return cast(list[dict[str, Any]], json.load(f))
 
 
 class ConsolePresenter(IActivitySummaryPresenter):
-    def present_weekly_report(self, summary: Dict[str, Any]) -> None:
+    def present_weekly_report(self, summary: dict[str, Any]) -> None:
         print("\n---- Weekly Summary ----")
         print(f"Total Distance: {summary['total_distance']} km")
         print(f"Total Moving Time: {summary['total_moving_time']}")
@@ -59,7 +59,7 @@ class ConsolePresenter(IActivitySummaryPresenter):
         print(f"Total Calories: {summary['total_calories']} kcal")
         print(f"Average Perceived Exertion: {summary['avg_perceived_exertion']}")
 
-    def present_weekly_report_by_sport(self, summary: Dict[str, Any]) -> None:
+    def present_weekly_report_by_sport(self, summary: dict[str, Any]) -> None:
         print("\n---- Weekly Summary By Sport----")
         print(f"Total Distance: {summary['total_distance']} km")
         print(f"Total Moving Time: {summary['total_moving_time']}")

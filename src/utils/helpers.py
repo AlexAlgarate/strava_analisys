@@ -1,8 +1,9 @@
 import functools
 import os
 import time
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Tuple
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 
 def func_time_execution(func: Callable) -> Callable:
@@ -25,9 +26,9 @@ def check_path(path: str) -> bool:
     return os.path.exists(path)
 
 
-def get_week_epoch_range(previous_week: bool = False) -> Tuple[int, int]:
+def get_week_epoch_range(previous_week: bool = False) -> tuple[int, int]:
     """Get epoch timestamp range for current or previous week."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     current_weekday = now.weekday()
     monday = now - timedelta(days=current_weekday)
 

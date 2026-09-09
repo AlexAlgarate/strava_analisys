@@ -1,17 +1,17 @@
 from datetime import timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 from src.core.activities.summary.interfaces import IMetricCalculator
 
 
 class DistanceCalculator(IMetricCalculator):
-    def calculate(self, activities: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
         total_distance = sum(activity.get("distance", 0) for activity in activities)
         return {"total_distance": round(total_distance / 1000, 2)}  # Convert to km
 
 
 class MovingTimeCalculator(IMetricCalculator):
-    def calculate(self, activities: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
         total_moving_time = sum(
             activity.get("moving_time", 0) for activity in activities
         )
@@ -20,7 +20,7 @@ class MovingTimeCalculator(IMetricCalculator):
 
 
 class ElevationGainCalculator(IMetricCalculator):
-    def calculate(self, activities: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
         total_elevation = sum(
             activity.get("total_elevation_gain", 0) for activity in activities
         )
@@ -28,7 +28,7 @@ class ElevationGainCalculator(IMetricCalculator):
 
 
 class HeartRateCalculator(IMetricCalculator):
-    def calculate(self, activities: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
         total_hr = 0
         total_max_hr = 0
         activities_with_hr = 0
@@ -55,13 +55,13 @@ class HeartRateCalculator(IMetricCalculator):
 
 
 class CaloriesCalculator(IMetricCalculator):
-    def calculate(self, activities: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
         total_calories = sum(activity.get("calories", 0) for activity in activities)
         return {"total_calories": round(total_calories, 1)}
 
 
 class PerceivedExertionCalculator(IMetricCalculator):
-    def calculate(self, activities: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
         total_pe = 0
         activities_with_pe = 0
 

@@ -10,7 +10,7 @@ from src.utils import constants as constant
 class StreamManager:
     """Manages stream data operations and fetching."""
 
-    def __init__(self, api_async: AsyncStravaAPI):
+    def __init__(self, api_async: AsyncStravaAPI) -> None:
         self.api_async = api_async
 
     async def get_streams_for_activity(self, activity_id: int) -> pd.DataFrame:

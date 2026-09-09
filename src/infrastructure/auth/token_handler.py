@@ -1,8 +1,9 @@
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Dict
+from typing import Any
 
 from src.infrastructure.auth.oauth_code import GetOauthCode
 from src.infrastructure.auth.token_manager import TokenManager
@@ -42,7 +43,7 @@ class TokenHandler:
         token_manager: TokenManager,
         encryptor: IEncryptation,
         client_id: str,
-    ):
+    ) -> None:
         self.supabase_reader = supabase_reader
         self.supabase_writer = supabase_writer
         self.supabase_deleter = supabase_deleter
@@ -68,7 +69,7 @@ class TokenHandler:
             logger.warning(f"Failed to cleanup expired tokens: {e}")
 
     @handle_token_errors
-    def _handle_exisiting_token(self, record: Dict[str, str], table: str) -> Any:
+    def _handle_exisiting_token(self, record: dict[str, str], table: str) -> Any:
         decrypted_record = self.encryptor.decrypt_data(record)
 
         if self.token_manager.token_has_expired(int(decrypted_record["expires_at"])):
@@ -110,8 +111,8 @@ class TokenHandler:
 
     @handle_token_errors
     def _store_and_return_tokens(
-        self, tokens: Dict[str, str | int], table: str
-    ) -> Dict[str, int | str]:
+        self, tokens: dict[str, str | int], table: str
+    ) -> dict[str, int | str]:
         data_to_insert = self._prepare_token_data(tokens)
         encrypted_data = self.encryptor.encrypt_data(data=data_to_insert)
 
@@ -122,8 +123,8 @@ class TokenHandler:
 
     @staticmethod
     def _prepare_token_data(
-        tokens: Dict[str, str | int],
-    ) -> Dict[str, str | int]:
+        tokens: dict[str, str | int],
+    ) -> dict[str, str | int]:
         return {
             "access_token": tokens["access_token"],
             "refresh_token": tokens["refresh_token"],

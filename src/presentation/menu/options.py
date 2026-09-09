@@ -1,7 +1,6 @@
 from enum import Enum, auto
-from typing import Dict
 
-MENU_DESCRIPTIONS: Dict[str, str] = {
+MENU_DESCRIPTIONS: dict[str, str] = {
     "ACTIVITY_DETAILS": "Show detailed information for activities from current week",
     "ACTIVITY_DETAILS_PREV_WEEK": "Show detailed information for activities from previous week",
     "ACTIVITY_RANGE": "Show all the information for activities from current week",

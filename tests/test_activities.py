@@ -1,4 +1,3 @@
-from typing import Dict, List
 from unittest.mock import AsyncMock, Mock
 
 import pandas as pd
@@ -112,7 +111,7 @@ class TestDetailedActivitiesFetcher:
         assert result[0] == {}  # Empty dict returned for failed fetch
 
 
-stream_response_type = List[Dict[str, Dict[str, List[float]]]]
+stream_response_type = list[dict[str, dict[str, list[float]]]]
 STREAM_RESPONSES: stream_response_type = [
     {
         "time": {"data": [0, 1, 2]},

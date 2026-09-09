@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 
 class BaseASyncHTTPClient(ABC):
@@ -7,6 +7,6 @@ class BaseASyncHTTPClient(ABC):
     async def make_async_request(
         self,
         url: str,
-        headers: Dict[str, str],
-        params: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]: ...
+        headers: dict[str, str],
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]: ...

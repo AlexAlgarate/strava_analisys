@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any
 
 
 class IMetricCalculator(ABC):
     @abstractmethod
-    def calculate(self, activities: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
         pass
 
 
@@ -38,17 +38,17 @@ class IActivitySummaryBuilder(ABC):
         pass
 
     @abstractmethod
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         pass
 
 
 class IActivityDataLoader(ABC):
     @abstractmethod
-    def load_activities(self) -> List[Dict[str, Any]]:
+    def load_activities(self) -> list[dict[str, Any]]:
         pass
 
 
 class IActivitySummaryPresenter(ABC):
     @abstractmethod
-    def present_weekly_report(self, summary: Dict[str, Any]) -> None:
+    def present_weekly_report(self, summary: dict[str, Any]) -> None:
         pass

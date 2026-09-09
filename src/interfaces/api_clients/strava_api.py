@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 from .async_http_client import BaseASyncHTTPClient
 
@@ -17,14 +17,14 @@ class BaseStravaAPI(ABC):
         access_token: str,
         http_client: BaseASyncHTTPClient,
         config: StravaAPIConfig | None = None,
-    ):
+    ) -> None:
         if not access_token:
             raise ValueError("\n\nAccess token must be provided.")
         self.access_token = access_token
         self.http_client = http_client
         self.config = config or StravaAPIConfig()
 
-    def get_headers(self) -> Dict[str, str]:
+    def get_headers(self) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": self.config.content_type,

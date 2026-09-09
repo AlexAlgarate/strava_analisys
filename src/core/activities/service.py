@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from src.activities.detailed_activities import (
     DetailedActivitiesFetcher,
@@ -9,7 +9,7 @@ from src.utils import constants as constant
 
 
 class ActivityService:
-    def __init__(self, api_async: AsyncStravaAPI):
+    def __init__(self, api_async: AsyncStravaAPI) -> None:
         self.api_async = api_async
 
     async def get_activity_range(self, previous_week: bool = False) -> Any:
@@ -20,7 +20,7 @@ class ActivityService:
 
     async def get_activity_details(
         self, previous_week: bool = False
-    ) -> List[Dict[Any, Any]]:
+    ) -> list[dict[Any, Any]]:
         """Get detailed information for activities."""
         keys = [key.value for key in constant.ActivityDetailKey]
         return await DetailedActivitiesFetcher(self.api_async).fetch_activity_data(
