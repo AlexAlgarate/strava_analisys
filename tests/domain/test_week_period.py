@@ -40,7 +40,7 @@ def test_exposes_epoch_boundaries() -> None:
     ("start", "end", "error_type", "message"),
     [
         (
-            datetime(2026, 9, 7),
+            datetime(2026, 9, 7),  # noqa: DTZ001 - deliberately invalid input
             datetime(2026, 9, 14, tzinfo=UTC),
             ValueError,
             "timezone-aware",
@@ -65,7 +65,9 @@ def test_rejects_invalid_periods(
 
 def test_rejects_invalid_reference_instant() -> None:
     with pytest.raises(ValueError, match="timezone-aware"):
-        WeekPeriod.containing(datetime(2026, 9, 9))
+        WeekPeriod.containing(
+            datetime(2026, 9, 9)  # noqa: DTZ001 - deliberately invalid input
+        )
 
     with pytest.raises(TypeError, match="must be a datetime"):
         WeekPeriod.containing(cast(datetime, "2026-09-09"))
