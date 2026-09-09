@@ -63,6 +63,7 @@ def test_enforces_domain_invariants(changes: dict[str, object], message: str) ->
 
 def test_activity_is_immutable() -> None:
     activity = activity_model()
+    attribute_name = "name"
 
     with pytest.raises(FrozenInstanceError):
-        setattr(activity, "name", "Changed")
+        setattr(activity, attribute_name, "Changed")
