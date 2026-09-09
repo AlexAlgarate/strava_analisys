@@ -1,17 +1,14 @@
 from contextlib import nullcontext
 from io import StringIO
-from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 from rich.console import Console
 
 from src.core.activities.summary.service import ActivitySummaryService
-from src.core.service import StreamExportResult
-from src.domain.activity_stream import ActivityStream, StreamBatch, StreamFetchFailure
+from src.domain.activity_stream import StreamBatch
 from src.domain.activity_summary import WeeklyActivitySummary
 from src.domain.detailed_activity import DetailedActivity
-from src.domain.heart_rate_zones import HeartRateZones
 from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
 from src.presentation.console_output.console import STRAVA_THEME
 from src.presentation.console_output.console_error_handler import (
@@ -26,7 +23,7 @@ from src.presentation.console_output.weekly_summary_presenter import (
 )
 from src.presentation.menu.options import MenuOption
 from src.presentation.menu.renderer import MenuRenderer
-from tests.factories import activity_payload, stream_payload, zones_payload
+from tests.factories import activity_payload
 
 
 @pytest.fixture
