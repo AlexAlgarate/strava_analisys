@@ -1,34 +1,45 @@
-.PHONY: help run lint format test import-linter clean setup
+.PHONY: help setup run lint format test architecture check clean
+
+UV_RUN := uv run --no-sync
 
 
 help:
-	@echo "Comandos disponibles:"
-	@echo "  make run             - Run main.py"
-	@echo "  make lint            - Lint with Ruff and type-check with ty"
-	@echo "  make format          - Format with ruff"
-	@echo "  make test            - Run tests with pytest"
-	@echo "  make import-linter   - Check clean architecture with import-linter"
-	@echo "  make clean           - Drop temporary files"
+	@echo "Available commands:"
+	@echo "  make setup        - Install the locked development environment"
+	@echo "  make run          - Run the CLI"
+	@echo "  make lint         - Check lint, formatting, and types"
+	@echo "  make format       - Fix lint issues and format the project"
+	@echo "  make test         - Run tests with branch coverage"
+	@echo "  make architecture - Check dependency boundaries"
+	@echo "  make check        - Run every local CI quality gate"
+	@echo "  make clean        - Remove Python cache files"
+
+
+setup:
+	uv sync --locked --all-groups
 
 
 run:
-	uv run python main.py
+	$(UV_RUN) python main.py
 
 
 lint:
-	uv run ruff check src
-	uv run ty check
+	$(UV_RUN) ruff check .
+	$(UV_RUN) ruff format --check .
+	$(UV_RUN) ty check
 
 format:
-	uv run ruff format src
-
-
+	uv run ruff check . --fix
+	uv run ruff format .
 
 test:
-	uv run pytest
+	$(UV_RUN) pytest tests/ --cov=src --cov-report=term-missing
 
-import-linter:
-	uv run lint-imports --no-cache
+architecture:
+	$(UV_RUN) lint-imports --no-cache
+
+
+check: lint test architecture
 
 
 clean:

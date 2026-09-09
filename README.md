@@ -1,108 +1,86 @@
 # Strava Analysis
 
-Strava Analysis is a Python-based tool designed to analyze your running workouts using Strava's API. It provides detailed insights into your activities, including streams, weekly reports, and more.
+CLI en Python 3.13 para consultar actividades de Strava, analizar sus streams
+y generar resúmenes semanales.
 
-## Features
+## Requisitos
 
-- **Activity Streams**: Fetch and process detailed activity streams such as time, distance, and heart rate.
-- **Weekly Reports**: Generate reports for the current and previous weeks.
-- **Activity Details**: Retrieve detailed information about specific activities.
-- **Secure local tokens**: Persist OAuth tokens encrypted on the local machine.
-- **Token Management**: Securely handle access tokens with encryption.
+- Python 3.13
+- [uv](https://docs.astral.sh/uv/)
 
-## Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/AlexAlgarate/strava_analisys.git
-   cd strava_analisys
-   ```
-
-2. Set up the environment using `uv`:
-
-   ```bash
-   uv init
-   ```
-
-3. Install the dependencies specified in the `pyproject.toml` file:
-
-   ```bash
-   uv add [PACKAGES] (e.g., `ruff>=0.11.7`)
-   ```
-
-4. Set up environment variables:
-   Create a `.env` file in the root directory with the following variables:
-
-   ```env
-   STRAVA_CLIENT_ID=<your_client_id>
-   STRAVA_SECRET_KEY=<your_secret_key>
-   # Optional: when omitted, a private local key is generated automatically.
-   FERNET_KEY=<your_fernet_key>
-   ```
-
-   Tokens are encrypted and stored outside the repository, following the XDG
-   user directories (`~/.local/share/strava-analysis/tokens.enc` by default).
-   The generated encryption key is stored with user-only permissions under
-   `~/.config/strava-analysis/fernet.key`.
-
-## Usage
-
-1. Run the main script:
-
-   ```bash
-   uv run main.py
-   ```
-
-2. Follow the on-screen instructions to interact with the menu and analyze your Strava activities.
-
-## Testing
-
-Run the test suite using pytest:
+## Instalación
 
 ```bash
-uv run pytest tests/ -vv
+git clone https://github.com/AlexAlgarate/strava_analisys.git
+cd strava_analisys
+uv sync --locked --all-groups
 ```
 
-Run the Python 3.13 type checker:
+Crea un archivo `.env` en la raíz:
+
+```dotenv
+STRAVA_CLIENT_ID=<client-id>
+STRAVA_SECRET_KEY=<client-secret>
+# Opcional: si se omite, se genera una clave local privada.
+FERNET_KEY=<fernet-key>
+```
+
+Los tokens OAuth no requieren Supabase ni otra base de datos. Se guardan
+cifrados fuera del repositorio, por defecto en
+`~/.local/share/strava-analysis/tokens.enc`. La clave generada localmente se
+guarda con permisos exclusivos del usuario en
+`~/.config/strava-analysis/fernet.key`.
+
+## Uso
 
 ```bash
-uv run ty check
+make run
 ```
 
-## Project Structure
+También puede ejecutarse directamente:
+
+```bash
+uv run --no-sync python main.py
+```
+
+## Calidad y tests
+
+```bash
+make check
+```
+
+Este comando ejecuta Ruff, el formateador, `ty`, pytest con cobertura de ramas
+y los contratos de arquitectura. La cobertura mínima exigida es del 95%.
+
+Los comandos individuales son `make lint`, `make test` y `make architecture`.
+El workflow de GitHub Actions los ejecuta en paralelo y construye la imagen
+Docker cuando todos terminan correctamente. La imagen sólo se publica en GHCR
+desde un `push` a `main`.
+
+## Arquitectura
 
 ```text
-strava_analisys/
-├── src/
-│   ├── activities/          # Activity fetchers
-│   ├── database/            # Database integration
-│   ├── interfaces/          # Abstract interfaces
-│   ├── menu/                # Menu and user interaction
-│   ├── strava_api/          # Strava API integration
-│   ├── utils/               # Utility functions
-│   ├── access_token.py      # Token management
-│   ├── credentials.py       # Environment variable handling
-│   ├── encryptor.py         # Data encryption
-│   ├── oauth_code.py        # OAuth code retrieval
-│   ├── strava_service.py    # Service layer
-│   ├── token_handler.py     # Token handling logic
-│   ├── token_manager.py     # Token management
-├── tests/                   # Test suite
-├── main.py                  # Entry point
-├── requirements.txt         # Python dependencies
-├── README.md                # Project documentation
+src/
+├── domain/          # Entidades y reglas de negocio puras
+├── core/            # Casos de uso y puertos (Protocol)
+├── infrastructure/  # HTTP, OAuth, persistencia local y exportadores
+├── presentation/    # Menú y salida de consola
+├── access_token.py  # Composición del flujo OAuth
+└── utils/           # Constantes, errores y utilidades compartidas
 ```
 
-## Contributing
+Las dependencias entre capas están verificadas mediante import-linter.
 
-Contributions are welcome! Please fork the repository and submit a pull request.
+## Docker
 
-## License
+```bash
+docker build -t strava-analysis .
+docker run --rm --env-file .env -it strava-analysis
+```
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Si se quiere conservar el token entre ejecuciones del contenedor, monta un
+volumen para los directorios XDG de datos y configuración.
 
-## Acknowledgments
+## Licencia
 
-- [Strava API](https://developers.strava.com/) for providing the data.
-- [Fernet Encryption](https://cryptography.io/en/latest/fernet/) for secure data handling.
+MIT. Consulta [LICENSE](LICENSE).
