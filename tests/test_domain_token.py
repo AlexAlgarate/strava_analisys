@@ -37,3 +37,21 @@ def test_token_set_is_expired_at_or_after_expiry(tokens: TokenSet) -> None:
 
 def test_token_set_is_not_expired_before_expiry() -> None:
     assert not TokenSet("access", "refresh", 101).is_expired(now=100)
+
+
+@pytest.mark.parametrize(
+    ("access_token", "refresh_token", "expires_at", "message"),
+    [
+        ("", "refresh", 100, "Access token"),
+        ("access", "", 100, "Refresh token"),
+        ("access", "refresh", 0, "expiration"),
+    ],
+)
+def test_token_set_rejects_invalid_values(
+    access_token: str,
+    refresh_token: str,
+    expires_at: int,
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        TokenSet(access_token, refresh_token, expires_at)

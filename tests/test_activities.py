@@ -61,6 +61,24 @@ class TestWeeklyActivitiesFetcher:
         assert result == expected_response
         assert mock_async_api.make_request.call_count == 1
 
+    @pytest.mark.asyncio
+    async def test_rejects_non_list_response(
+        self, activity_fetcher: WeeklyActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = {"id": 1}
+
+        with pytest.raises(TypeError, match="response must be a list"):
+            await activity_fetcher.fetch_activity_data()
+
+    @pytest.mark.asyncio
+    async def test_rejects_non_object_activity(
+        self, activity_fetcher: WeeklyActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = ["invalid"]
+
+        with pytest.raises(TypeError, match="activity must be an object"):
+            await activity_fetcher.fetch_activity_data()
+
 
 class TestDetailedActivitiesFetcher:
     @pytest.fixture
@@ -103,6 +121,15 @@ class TestDetailedActivitiesFetcher:
 
         with pytest.raises(Exception, match="API Error"):
             await activity_fetcher.fetch_activity_data(previous_week=False)
+
+    @pytest.mark.asyncio
+    async def test_rejects_activity_without_integer_id(
+        self, activity_fetcher: DetailedActivitiesFetcher, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = [{"id": True}]
+
+        with pytest.raises(TypeError, match="integer id"):
+            await activity_fetcher.fetch_activity_data()
 
 
 stream_response_type = list[dict[str, dict[str, list[float]]]]

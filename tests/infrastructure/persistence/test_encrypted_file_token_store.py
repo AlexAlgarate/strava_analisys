@@ -1,5 +1,7 @@
 import stat
+from json import dumps
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from cryptography.fernet import Fernet
@@ -17,8 +19,13 @@ def token_path(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def store(token_path: Path) -> EncryptedFileTokenStore:
-    return EncryptedFileTokenStore(token_path, Fernet(Fernet.generate_key()))
+def cipher() -> Fernet:
+    return Fernet(Fernet.generate_key())
+
+
+@pytest.fixture
+def store(token_path: Path, cipher: Fernet) -> EncryptedFileTokenStore:
+    return EncryptedFileTokenStore(token_path, cipher)
 
 
 def test_missing_token_file_returns_none(store: EncryptedFileTokenStore) -> None:
@@ -68,3 +75,38 @@ def test_corrupt_ciphertext_raises_domain_specific_error(
 
     with pytest.raises(TokenStorageError, match="Could not read"):
         store.load()
+
+
+def test_non_object_payload_raises_domain_specific_error(
+    store: EncryptedFileTokenStore, token_path: Path, cipher: Fernet
+) -> None:
+    token_path.parent.mkdir()
+    token_path.write_bytes(cipher.encrypt(dumps([]).encode()))
+
+    with pytest.raises(TokenStorageError, match="Could not read"):
+        store.load()
+
+
+def test_clear_translates_filesystem_error(
+    store: EncryptedFileTokenStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(Path, "unlink", Mock(side_effect=OSError("permission denied")))
+
+    with pytest.raises(TokenStorageError, match="Could not remove"):
+        store.clear()
+
+
+def test_save_cleans_up_temporary_file_after_failure(
+    store: EncryptedFileTokenStore,
+    token_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "src.infrastructure.persistence.encrypted_file_token_store.os.replace",
+        Mock(side_effect=OSError("permission denied")),
+    )
+
+    with pytest.raises(TokenStorageError, match="Could not write"):
+        store.save(TokenSet("access", "refresh", 100))
+
+    assert list(token_path.parent.iterdir()) == []

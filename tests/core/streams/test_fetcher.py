@@ -68,6 +68,17 @@ class TestActivityStreamsFetcher:
                 stream_keys=constant.ACTIVITY_STREAMS_KEYS
             )
 
+    @pytest.mark.asyncio
+    async def test_rejects_non_object_stream_response(
+        self, stream_fetcher: ActivityStreamsFetcher, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = []
+
+        with pytest.raises(TypeError, match="response must be an object"):
+            await stream_fetcher.fetch_activity_data(
+                stream_keys=constant.ACTIVITY_STREAMS_KEYS
+            )
+
     @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio
     async def test_fetch_multiple_activities_streams(

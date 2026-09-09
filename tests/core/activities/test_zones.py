@@ -54,6 +54,44 @@ class TestActivityZones:
             await zones_manager.get_zones()
 
     @pytest.mark.asyncio
+    async def test_rejects_non_object_response(
+        self, zones_manager: ActivityZones, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = []
+
+        with pytest.raises(TypeError, match="response must be an object"):
+            await zones_manager.get_zones()
+
+    @pytest.mark.asyncio
+    async def test_rejects_non_sequence_buckets(
+        self, zones_manager: ActivityZones, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = {"distribution_buckets": "invalid"}
+
+        with pytest.raises(TypeError, match="buckets must be a sequence"):
+            await zones_manager.get_zones()
+
+    @pytest.mark.asyncio
+    async def test_rejects_wrong_number_of_buckets(
+        self, zones_manager: ActivityZones, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = {"distribution_buckets": [1, 2]}
+
+        with pytest.raises(ValueError, match="exactly five"):
+            await zones_manager.get_zones()
+
+    @pytest.mark.asyncio
+    async def test_save_requires_writer(
+        self, zones_manager: ActivityZones, mock_async_api: Mock
+    ) -> None:
+        mock_async_api.make_request.return_value = {
+            "distribution_buckets": [1, 2, 3, 4, 5]
+        }
+
+        with pytest.raises(RuntimeError, match="writer has been configured"):
+            await zones_manager.get_zones(save_zones=True)
+
+    @pytest.mark.asyncio
     async def test_get_zones_with_save(
         self, tmp_path: Path, mock_async_api: Mock
     ) -> None:

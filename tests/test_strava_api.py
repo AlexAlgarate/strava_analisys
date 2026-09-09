@@ -71,6 +71,10 @@ class TestStravaAPI:
     def test_get_url(self, async_api: AsyncStravaAPI) -> None:
         assert async_api.get_url("/athlete") == "https://test.api.com/v3/athlete"
 
+    def test_rejects_empty_access_token(self) -> None:
+        with pytest.raises(ValueError, match="Access token"):
+            AsyncStravaAPI(access_token="")
+
     @pytest.mark.asyncio
     async def test_make_request_delegates_to_http_client(
         self, async_api: AsyncStravaAPI, http_client: Mock

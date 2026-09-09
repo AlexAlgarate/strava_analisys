@@ -60,3 +60,12 @@ docstring-code-line-length = "dynamic"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+[tool.coverage.report]
+fail_under = 95
+precision = 2
+show_missing = true

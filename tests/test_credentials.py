@@ -1,5 +1,6 @@
 import stat
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from cryptography.fernet import Fernet
@@ -89,3 +90,43 @@ def test_fernet_secrets_rejects_invalid_environment_key(
 
     with pytest.raises(ValueError, match="not a valid Fernet key"):
         FernetSecrets(tmp_path / "unused.key")
+
+
+def test_fernet_secrets_reports_key_read_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("FERNET_KEY", raising=False)
+
+    with pytest.raises(ValueError, match="Could not read the Fernet key"):
+        FernetSecrets(tmp_path)
+
+
+def test_fernet_secrets_handles_concurrent_key_creation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("FERNET_KEY", raising=False)
+    key_path = tmp_path / "fernet.key"
+    competing_key = Fernet.generate_key()
+
+    def create_competing_key(*_args: object, **_kwargs: object) -> int:
+        key_path.write_bytes(competing_key)
+        raise FileExistsError
+
+    monkeypatch.setattr(
+        "src.infrastructure.auth.credentials.os.open", create_competing_key
+    )
+
+    assert FernetSecrets(key_path).fernet_key == competing_key.decode()
+
+
+def test_fernet_secrets_reports_key_write_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("FERNET_KEY", raising=False)
+    monkeypatch.setattr(
+        "src.infrastructure.auth.credentials.os.open",
+        Mock(side_effect=OSError("read-only filesystem")),
+    )
+
+    with pytest.raises(ValueError, match="Could not store the Fernet key"):
+        FernetSecrets(tmp_path / "fernet.key")
