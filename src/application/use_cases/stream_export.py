@@ -36,9 +36,7 @@ class StreamExportService:
         except KeyError as error:
             raise ValueError(f"Unsupported format: {fmt}") from error
 
-        batch = await self._streams.get_weekly_streams(
-            previous_week=previous_week
-        )
+        batch = await self._streams.get_weekly_streams(previous_week=previous_week)
         path = _stream_export_path(output_dir, previous_week, fmt)
         exporter.export(batch.streams, path)
         return StreamExportResult(batch=batch, path=path)

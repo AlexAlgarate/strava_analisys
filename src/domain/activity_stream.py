@@ -17,6 +17,7 @@ class StreamSample:
         _validate_optional_float("distance", self.distance_metres)
         _validate_optional_integer("heartrate", self.heart_rate_bpm)
 
+
 @dataclass(frozen=True, slots=True)
 class ActivityStream:
     """Validated stream samples belonging to one Strava activity."""

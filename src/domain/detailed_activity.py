@@ -70,6 +70,7 @@ class DetailedActivity:
             and self.average_heartrate > self.max_heartrate
         ):
             raise ValueError("Average heartrate cannot exceed maximum heartrate.")
+
     @staticmethod
     def _require_non_negative(name: str, value: object) -> None:
         if isinstance(value, bool) or not isinstance(value, (int, float)):

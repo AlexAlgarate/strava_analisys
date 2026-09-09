@@ -19,6 +19,4 @@ async def test_generates_summary_from_detailed_activities() -> None:
 
     assert isinstance(summary, WeeklyActivitySummary)
     assert summary.activity_count == 1
-    activity_queries.get_activity_details.assert_awaited_once_with(
-        previous_week=True
-    )
+    activity_queries.get_activity_details.assert_awaited_once_with(previous_week=True)

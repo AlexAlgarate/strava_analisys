@@ -267,6 +267,7 @@ class ResultConsolePrinter:
     def _format_optional_metric(self, key: str, value: object) -> str:
         return "—" if value is None else self._formatter.format_value(key, value)
 
+
 def _resolve_option(option: MenuOption | str) -> MenuOption | None:
     if isinstance(option, MenuOption):
         return option

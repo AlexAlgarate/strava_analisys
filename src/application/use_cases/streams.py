@@ -26,9 +26,7 @@ class ActivityStreamService:
         self._max_concurrency = max_concurrency
 
     async def get_streams_for_activity(self, activity_id: int) -> ActivityStream:
-        return await self._gateway.get_activity_stream(
-            require_activity_id(activity_id)
-        )
+        return await self._gateway.get_activity_stream(require_activity_id(activity_id))
 
     async def get_streams_for_multiple_activities(
         self,

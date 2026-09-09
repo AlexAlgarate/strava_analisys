@@ -63,9 +63,7 @@ async def test_exports_selected_week(
 
     assert result.batch is batch
     assert result.path == tmp_path / filename
-    streams.get_weekly_streams.assert_awaited_once_with(
-        previous_week=previous_week
-    )
+    streams.get_weekly_streams.assert_awaited_once_with(previous_week=previous_week)
     exporter.export.assert_called_once_with(batch.streams, result.path)
 
 

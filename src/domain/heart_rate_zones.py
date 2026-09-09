@@ -32,6 +32,7 @@ class HeartRateZone:
         if self.time_seconds < 0:
             raise ValueError("Heart-rate zone time cannot be negative.")
 
+
 @dataclass(frozen=True, slots=True)
 class HeartRateZones:
     """The five heart-rate zones returned for an activity."""

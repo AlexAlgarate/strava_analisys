@@ -20,9 +20,7 @@ class ActivityZonesService:
         activity_id: int,
         save_zones: bool = False,
     ) -> HeartRateZones:
-        zones = await self._gateway.get_activity_zones(
-            require_activity_id(activity_id)
-        )
+        zones = await self._gateway.get_activity_zones(require_activity_id(activity_id))
         if save_zones:
             if self._writer is None:
                 raise RuntimeError("No activity zones writer has been configured.")
