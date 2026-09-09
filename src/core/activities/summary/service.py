@@ -1,5 +1,3 @@
-from typing import List
-
 from src.core.activities.summary.calculators import (
     CaloriesCalculator,
     DistanceCalculator,
@@ -22,11 +20,11 @@ class ActivitySummaryService:
         data_loader: IActivityDataLoader,
         summary_builder: IActivitySummaryBuilder,
         presenter: IActivitySummaryPresenter,
-    ):
+    ) -> None:
         self.data_loader = data_loader
         self.summary_builder = summary_builder
         self.presenter = presenter
-        self.calculators: List[IMetricCalculator] = [
+        self.calculators: list[IMetricCalculator] = [
             DistanceCalculator(),
             MovingTimeCalculator(),
             ElevationGainCalculator(),

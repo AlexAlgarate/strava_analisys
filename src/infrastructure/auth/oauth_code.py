@@ -1,12 +1,11 @@
 import re
 import webbrowser
-from typing import Dict
 from urllib import parse
 
 
 class GetOauthCode:
     @staticmethod
-    def _create_full_url(base_url: str, params: Dict[str, str]) -> str:
+    def _create_full_url(base_url: str, params: dict[str, str]) -> str:
         url_parts = list(parse.urlparse(base_url))
         query_string = parse.urlencode(params)
         url_parts[4] = query_string
@@ -19,7 +18,7 @@ class GetOauthCode:
             raise ValueError("No authorization code found in the URL")
         return full_code.group(1)
 
-    def get_authorization_code(self, base_url: str, params: Dict[str, str]) -> str:
+    def get_authorization_code(self, base_url: str, params: dict[str, str]) -> str:
         auth_url = self._create_full_url(base_url, params)
         webbrowser.open(auth_url)
         print("Paste here the URL from the browser: ", end="")

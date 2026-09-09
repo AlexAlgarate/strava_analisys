@@ -1,5 +1,4 @@
 import logging
-from typing import Dict
 
 from cryptography.fernet import Fernet
 
@@ -9,12 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 class FernetEncryptor(IEncryptation):
-    def __init__(self, cipher: Fernet):
+    def __init__(self, cipher: Fernet) -> None:
         if not isinstance(cipher, Fernet):
             raise ValueError("Cipher must be an instance of Fernet.")
         self.cipher = cipher
 
-    def encrypt_data(self, data: Dict[str, str | int]) -> Dict[str, str]:
+    def encrypt_data(self, data: dict[str, str | int]) -> dict[str, str]:
         try:
             encrypted_data = {
                 key: self.cipher.encrypt(str(value).encode()).decode()
@@ -27,7 +26,7 @@ class FernetEncryptor(IEncryptation):
             logger.error(f"Error encrypting data: {e}", exc_info=True)
             raise ValueError("Encryptation failed due to an error") from e
 
-    def decrypt_data(self, data: Dict[str, str]) -> Dict[str, str]:
+    def decrypt_data(self, data: dict[str, str]) -> dict[str, str]:
         try:
             decrypted_data = {
                 key: (
@@ -44,7 +43,7 @@ class FernetEncryptor(IEncryptation):
             logger.error(f"Error decrypting data: {e}", exc_info=True)
             raise ValueError("Decryption failed due to an error.") from e
 
-    def decrypt_value(self, data_to_decrypt: Dict[str, str], value: str) -> str | int:
+    def decrypt_value(self, data_to_decrypt: dict[str, str], value: str) -> str | int:
         try:
             decrypted_data = self.decrypt_data(data_to_decrypt)
             return decrypted_data[value]

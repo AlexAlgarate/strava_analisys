@@ -32,7 +32,7 @@ class GetAccessToken:
         self.encryptor = self._create_encryptor()
         self.token_handler = self._create_token_handler()
 
-    def get_access_token(self) -> str | int:
+    def get_access_token(self) -> str:
         self.token_handler.process_token(
             self.credentials["supabase_secrets"].supabase_table,
         )
@@ -45,9 +45,12 @@ class GetAccessToken:
             logger.error("No access token found in the database.")
             raise ValueError("No access token found in the database.")
 
-        return self.encryptor.decrypt_value(
+        decrypted_token = self.encryptor.decrypt_value(
             data_to_decrypt=access_token, value="access_token"
         )
+        if not isinstance(decrypted_token, str):
+            raise ValueError("The stored access token must be a string.")
+        return decrypted_token
 
     def _load_credentials(self) -> dict[str, Any]:
         return {

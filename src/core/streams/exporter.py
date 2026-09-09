@@ -1,5 +1,3 @@
-from typing import Dict
-
 import pandas as pd
 
 from src.core.streams.csv_exporter import CsvExporter
@@ -9,7 +7,7 @@ from src.interfaces.stream_exporter import IStreamExporter
 class DataExporter:
     """Handles exporting stream data to different formats."""
 
-    def __init__(self, exporter_map: Dict[str, IStreamExporter] | None = None):
+    def __init__(self, exporter_map: dict[str, IStreamExporter] | None = None) -> None:
         self.exporter = exporter_map or {"csv": CsvExporter()}
 
     def _create_path(self, output_dir: str, previous_week: bool, fmt: str) -> str:

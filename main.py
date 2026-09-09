@@ -24,7 +24,7 @@ def main() -> None:
     access_token = token.get_access_token()
 
     strava_API_async = AsyncStravaAPI(
-        access_token=access_token,  # type: ignore
+        access_token=access_token,
         deleter=token.supabase_deleter,
         table=token.credentials["supabase_secrets"].supabase_table,
         encryptor=token.encryptor,

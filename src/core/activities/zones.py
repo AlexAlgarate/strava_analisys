@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Dict
 
 from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
 from src.utils.helpers import check_path
@@ -9,11 +8,11 @@ from src.utils.helpers import check_path
 class ActivityZones:
     ZONES_KEY = ["Zone_1", "Zone_2", "Zone_3", "Zone_4", "Zone_5"]
 
-    def __init__(self, api: AsyncStravaAPI, id_activity: int | None):
+    def __init__(self, api: AsyncStravaAPI, id_activity: int | None) -> None:
         self.api = api
         self.id_activity = id_activity
 
-    async def get_zones(self, save_zones: bool = False) -> Dict[str, int]:
+    async def get_zones(self, save_zones: bool = False) -> dict[str, int]:
         if not self.id_activity:
             raise ValueError("Activity ID is required for this operation.")
 
@@ -31,7 +30,7 @@ class ActivityZones:
 
         return zones_dict
 
-    async def _save_zones_to_file(self, zones_dict: Dict[str, int]) -> None:
+    async def _save_zones_to_file(self, zones_dict: dict[str, int]) -> None:
         if not check_path("json_zones_files/"):
             os.makedirs("json_zones_files/")
 

@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 from src.core.activities.summary.handlers import (
     ActivitySummaryBuilder,
@@ -31,8 +31,8 @@ class MenuHandler:
     def __init__(
         self,
         service: StravaService,
-        result_console_printer: Optional[ResultConsolePrinter] = None,
-        error_console_printer: Optional[ConsoleErrorHandler] = None,
+        result_console_printer: ResultConsolePrinter | None = None,
+        error_console_printer: ConsoleErrorHandler | None = None,
     ) -> None:
         self.dependencies = MenuDependencies(
             service=service,
@@ -42,7 +42,7 @@ class MenuHandler:
         self._init_menu_options()
 
     def _init_menu_options(self) -> None:
-        self.menu_options: Dict[MenuOption, Callable[[], Any]] = {
+        self.menu_options: dict[MenuOption, Callable[[], Any]] = {
             MenuOption.ACTIVITY_DETAILS: lambda: self._handle_async(
                 self.dependencies.service.get_activity_details, False
             ),
@@ -94,7 +94,7 @@ class MenuHandler:
             )
         )
 
-    def _load_json_weekly_report(self):
+    def _load_json_weekly_report(self) -> None:
         data_loader = JsonActivityLoader("activities.json")
 
         summary_builder = ActivitySummaryBuilder()
@@ -102,12 +102,12 @@ class MenuHandler:
 
         # Create and run service
         service = ActivitySummaryService(data_loader, summary_builder, presenter)
-        print(type(service.generate_summary()))
+        service.generate_summary()
 
-    def get_menu_options(self) -> Dict[str, str]:
+    def get_menu_options(self) -> dict[str, str]:
         return {str(option.id): option.description for option in MenuOption}
 
-    def execute_option(self, option: str) -> Optional[Any]:
+    def execute_option(self, option: str) -> Any | None:
         try:
             menu_option = self._validate_option(option=option)
             result = self.menu_options[menu_option]()

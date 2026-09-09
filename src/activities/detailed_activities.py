@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 from src.interfaces.activities import IActivityFetcher
 from src.utils import helpers as helper
@@ -20,8 +20,8 @@ class WeeklyActivitiesFetcher(IActivityFetcher):
 
 class DetailedActivitiesFetcher(IActivityFetcher):
     async def fetch_activity_data(
-        self, keys: List[str], previuos_week: bool = False
-    ) -> List[Dict[str, Any]]:
+        self, keys: list[str], previuos_week: bool = False
+    ) -> list[dict[str, Any]]:
         activities = await WeeklyActivitiesFetcher(self.api).fetch_activity_data(
             previous_week=previuos_week
         )
@@ -38,11 +38,11 @@ class DetailedActivitiesFetcher(IActivityFetcher):
             self._filter_activity_keys(activity, keys) for activity in detailed_activity
         ]
 
-    async def _fetch_all_activity_details(self, activity_ids: List[int]) -> List[dict]:
+    async def _fetch_all_activity_details(self, activity_ids: list[int]) -> list[dict]:
         tasks = [
             self._get_activity_details(activity_id) for activity_id in activity_ids
         ]
-        return cast(List[dict], await asyncio.gather(*tasks))
+        return cast(list[dict], await asyncio.gather(*tasks))
 
     async def _get_activity_details(self, activity_id: int) -> Any:
         try:
@@ -52,5 +52,5 @@ class DetailedActivitiesFetcher(IActivityFetcher):
             return {}
 
     @staticmethod
-    def _filter_activity_keys(activity: dict, keys: List[str]) -> dict:
+    def _filter_activity_keys(activity: dict, keys: list[str]) -> dict:
         return {k: activity[k] for k in keys if k in activity}

@@ -1,5 +1,4 @@
 import asyncio
-from typing import List
 
 import pandas as pd
 
@@ -11,7 +10,7 @@ from src.interfaces.activities import IActivityFetcher
 class ActivityStreamsFetcher(IActivityFetcher):
     """Fetches activity stream data from Strava API."""
 
-    async def fetch_activity_data(self, stream_keys: List[str]) -> pd.DataFrame:
+    async def fetch_activity_data(self, stream_keys: list[str]) -> pd.DataFrame:
         """Fetch stream data for a single activity.
 
         Args:
@@ -35,8 +34,8 @@ class ActivityStreamsFetcher(IActivityFetcher):
     async def fetch_multiple_activities_streams(
         cls,
         api: AsyncStravaAPI,
-        list_id_activities: List[int],
-        stream_keys: List[str],
+        list_id_activities: list[int],
+        stream_keys: list[str],
     ) -> pd.DataFrame:
         """Fetch stream data for multiple activities in parallel.
 

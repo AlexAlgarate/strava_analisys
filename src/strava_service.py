@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -14,8 +14,8 @@ class StravaService:
     def __init__(
         self,
         api_async: AsyncStravaAPI,
-        exporter_map: Dict[str, IStreamExporter] | None = None,
-    ):
+        exporter_map: dict[str, IStreamExporter] | None = None,
+    ) -> None:
         self.api_async = api_async
         self.activity_manager = ActivityService(api_async)
         self.stream_manager = StreamManager(api_async)
@@ -27,7 +27,7 @@ class StravaService:
 
     async def get_activity_details(
         self, previous_week: bool = False
-    ) -> List[Dict[Any, Any]]:
+    ) -> list[dict[Any, Any]]:
         """Get detailed activity information."""
         return await self.activity_manager.get_activity_details(previous_week)
 
@@ -61,7 +61,7 @@ class StravaService:
 
     async def get_activity_zones(
         self, activity_id: int, save_zones: bool = False
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Get heart rate zones for a specific activity."""
         zones_manager = ActivityZones(api=self.api_async, id_activity=activity_id)
         return await zones_manager.get_zones(save_zones=save_zones)

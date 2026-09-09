@@ -1,4 +1,4 @@
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import aiohttp
 
@@ -17,7 +17,7 @@ class AsyncHTTPClient(BaseASyncHTTPClient):
         database_deleter: IDatabaseDeleter | None = None,
         table: str | None = None,
         encryptor: IEncryptation | None = None,
-    ):
+    ) -> None:
         self.database_deleter = database_deleter
         self.table = table
         self.encryptor = encryptor
@@ -25,9 +25,9 @@ class AsyncHTTPClient(BaseASyncHTTPClient):
     async def make_async_request(
         self,
         url: str,
-        headers: Dict[str, str],
-        params: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+        headers: dict[str, str],
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, params=params) as response:
                 if response.status == REACH_REQUEST_LIMIT:
@@ -38,7 +38,7 @@ class AsyncHTTPClient(BaseASyncHTTPClient):
                 if response.status == UNAUTHORIZED_USER:
                     self._remove_expired_tokens()
                     return {}
-                return cast(Dict[str, Any], await response.json())
+                return cast(dict[str, Any], await response.json())
 
     def _remove_expired_tokens(self) -> None:
         if self.database_deleter and self.table and self.encryptor:

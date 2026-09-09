@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -12,7 +12,7 @@ class ResultConsolePrinter(IPrinterResult):
         self.formatter = ActivityFormatter()
 
     def print_result(
-        self, option: str, result: Dict | List | pd.DataFrame | None
+        self, option: str, result: dict | list | pd.DataFrame | None
     ) -> None:
         print(f"\n✅ Result for option {option}:\n")
 
@@ -25,7 +25,7 @@ class ResultConsolePrinter(IPrinterResult):
         else:
             print("No data available")
 
-    def _print_activity_dict(self, data: Dict[str, Any], indent: int = 0) -> None:
+    def _print_activity_dict(self, data: dict[str, Any], indent: int = 0) -> None:
         for key, value in data.items():
             prefix = "  " * indent
             if isinstance(value, (dict, list)):
@@ -38,7 +38,7 @@ class ResultConsolePrinter(IPrinterResult):
                     f"{prefix}• {self.formatter.format_key(key)}: {self.formatter.format_value(key, value)}"
                 )
 
-    def _print_activities_list(self, data: List[Any], indent: int = 0) -> None:
+    def _print_activities_list(self, data: list[Any], indent: int = 0) -> None:
         for item in data:
             if isinstance(item, dict):
                 print(f"\n{'  ' * indent}━━━ Activity ━━━")

@@ -1,4 +1,4 @@
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 from src.interfaces.api_clients.async_http_client import BaseASyncHTTPClient
 from src.interfaces.api_clients.strava_api import BaseStravaAPI, StravaAPIConfig
@@ -16,7 +16,7 @@ class AsyncStravaAPI(BaseStravaAPI):
         encryptor: IEncryptation,
         config: StravaAPIConfig | None = None,
         deleter: IDatabaseDeleter | None = None,
-    ):
+    ) -> None:
         super().__init__(
             access_token=access_token,
             http_client=AsyncHTTPClient(
@@ -29,7 +29,7 @@ class AsyncStravaAPI(BaseStravaAPI):
 
     async def make_request(
         self, endpoint: str, params: dict | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         url = self.get_url(endpoint)
         headers = self.get_headers()
         client = cast(BaseASyncHTTPClient, self.http_client)

@@ -1,16 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from src.interfaces.encryption.encryptor import IEncryptation
 
 
 class IDatabaseDeleter(ABC):
     @abstractmethod
-    def delete_records(self, table: str, ids_to_delete: List[int]) -> bool:
+    def delete_records(self, table: str, ids_to_delete: list[int]) -> bool:
         pass
 
     @abstractmethod
-    def get_expired_token_ids(self, table: str, encryptor: IEncryptation) -> List[int]:
+    def get_expired_token_ids(self, table: str, encryptor: IEncryptation) -> list[int]:
         pass
 
     @abstractmethod
