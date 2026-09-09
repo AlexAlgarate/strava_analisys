@@ -33,7 +33,7 @@ format:
 	uv run ruff format .
 
 test:
-	$(UV_RUN) pytest tests/ --cov=src --cov-report=term-missing
+	$(UV_RUN) pytest tests/ --cov=src --cov=main --cov-report=term-missing
 
 architecture:
 	$(UV_RUN) lint-imports --no-cache

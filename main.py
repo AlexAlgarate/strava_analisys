@@ -1,5 +1,4 @@
 import logging
-import os
 from pathlib import Path
 
 from src.access_token import GetAccessToken
@@ -62,19 +61,7 @@ def main() -> None:
             print("\n👋 Goodbye")
             break
 
-        _remove_testing_files(option, "e")
-
         menu.execute_option(option)
-
-
-def _remove_testing_files(option: str, default_letter: str) -> None:
-    if option.lower() == default_letter:
-        current_week = "streams_current_week.csv"
-        previous_week = "streams_previous_week.csv"
-        for file in (current_week, previous_week):
-            if os.path.exists(file):
-                os.remove(file)
-                print(f"Deleted file: {file}")
 
 
 if __name__ == "__main__":

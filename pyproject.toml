@@ -62,7 +62,7 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 branch = true
-source = ["src"]
+source = ["main", "src"]
 
 [tool.coverage.report]
 fail_under = 95
