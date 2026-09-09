@@ -70,6 +70,7 @@ desde un `push` a `main`.
 
 - [Arquitectura y flujos](docs/architecture.md)
 - [Desarrollo, testing y extensibilidad](docs/development.md)
+- [Cómo añadir una opción a la terminal](docs/adding-cli-option.md)
 - [Credenciales y almacenamiento local de tokens](docs/security.md)
 
 Consulta el [índice de documentación](docs/README.md) para una vista general.
