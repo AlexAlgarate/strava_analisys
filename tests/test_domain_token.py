@@ -1,3 +1,5 @@
+from typing import cast
+
 import pytest
 
 from src.domain.token import TokenSet
@@ -46,4 +48,8 @@ def test_token_set_rejects_invalid_types(
     message: str,
 ) -> None:
     with pytest.raises(TypeError, match=message):
-        TokenSet(*values)  # type: ignore[arg-type]
+        TokenSet(
+            cast(str, values[0]),
+            cast(str, values[1]),
+            cast(int, values[2]),
+        )

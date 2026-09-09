@@ -7,6 +7,10 @@ import pytest
 from tests.factories import activity_model
 
 
+def _unknown(value: object) -> object:
+    return value
+
+
 def test_keeps_valid_activity_values() -> None:
     activity = activity_model(gear_id="g1")
 
@@ -20,13 +24,13 @@ def test_keeps_valid_activity_values() -> None:
     ("changes", "error_type"),
     [
         ({"id": True}, TypeError),
-        ({"name": cast(str, 42)}, TypeError),
-        ({"sport_type": cast(str, 42)}, TypeError),
-        ({"distance": cast(float, "far")}, TypeError),
-        ({"moving_time": cast(int, 1.5)}, TypeError),
-        ({"start_date_local": cast(datetime, "not-a-date")}, TypeError),
-        ({"gear_id": cast(str, 42)}, TypeError),
-        ({"perceived_exertion": cast(int, 1.5)}, TypeError),
+        ({"name": cast(str, _unknown(42))}, TypeError),
+        ({"sport_type": cast(str, _unknown(42))}, TypeError),
+        ({"distance": cast(float, _unknown("far"))}, TypeError),
+        ({"moving_time": cast(int, _unknown(1.5))}, TypeError),
+        ({"start_date_local": cast(datetime, _unknown("not-a-date"))}, TypeError),
+        ({"gear_id": cast(str, _unknown(42))}, TypeError),
+        ({"perceived_exertion": cast(int, _unknown(1.5))}, TypeError),
     ],
 )
 def test_rejects_invalid_field_types(
@@ -61,4 +65,4 @@ def test_activity_is_immutable() -> None:
     activity = activity_model()
 
     with pytest.raises(FrozenInstanceError):
-        activity.name = "Changed"  # type: ignore[misc]
+        setattr(activity, "name", "Changed")

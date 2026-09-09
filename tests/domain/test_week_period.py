@@ -70,4 +70,8 @@ def test_rejects_invalid_reference_instant() -> None:
         )
 
     with pytest.raises(TypeError, match="must be a datetime"):
-        WeekPeriod.containing(cast(datetime, "2026-09-09"))
+        WeekPeriod.containing(cast(datetime, _unknown("2026-09-09")))
+
+
+def _unknown(value: object) -> object:
+    return value
