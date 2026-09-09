@@ -2,8 +2,6 @@ from typing import Any, cast
 
 from src.interfaces.api_clients.async_http_client import BaseASyncHTTPClient
 from src.interfaces.api_clients.strava_api import BaseStravaAPI, StravaAPIConfig
-from src.interfaces.database.database_deleter import IDatabaseDeleter
-from src.interfaces.encryption.encryptor import IEncryptation
 
 from .async_http_client import AsyncHTTPClient
 
@@ -12,18 +10,12 @@ class AsyncStravaAPI(BaseStravaAPI):
     def __init__(
         self,
         access_token: str,
-        table: str,
-        encryptor: IEncryptation,
         config: StravaAPIConfig | None = None,
-        deleter: IDatabaseDeleter | None = None,
+        http_client: BaseASyncHTTPClient | None = None,
     ) -> None:
         super().__init__(
             access_token=access_token,
-            http_client=AsyncHTTPClient(
-                database_deleter=deleter,
-                table=table,
-                encryptor=encryptor,
-            ),
+            http_client=http_client or AsyncHTTPClient(),
             config=config,
         )
 

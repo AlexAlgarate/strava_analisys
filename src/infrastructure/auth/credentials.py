@@ -1,6 +1,9 @@
 import os
+from pathlib import Path
 
 from cryptography.fernet import Fernet
+
+APP_DIRECTORY = "strava-analysis"
 
 
 def get_env_variable(var_name: str, default_value: str | None = None) -> str:
@@ -16,33 +19,54 @@ class StravaSecrets:
         self.strava_secret_key = get_env_variable("STRAVA_SECRET_KEY")
 
 
-class SupabaseSecrets:
-    MALFORMED_PREFIX = "https\\x3a"
-    CORRECT_PREFIX = "https:"
+def get_default_key_path() -> Path:
+    config_home = os.environ.get("XDG_CONFIG_HOME")
+    root = Path(config_home) if config_home else Path.home() / ".config"
+    return root / APP_DIRECTORY / "fernet.key"
 
-    def __init__(self) -> None:
-        raw_url = get_env_variable("SUPABASE_URL")
-        self.supabase_url = self._fix_malformed_url(raw_url)
-        self.supabase_api_key = get_env_variable("SUPABASE_API_KEY")
-        self.supabase_table = get_env_variable("SUPABASE_TABLE")
-        self._validate_credentials()
 
-    def _fix_malformed_url(self, url: str) -> str:
-        if url.startswith(self.MALFORMED_PREFIX):
-            return url.replace(self.MALFORMED_PREFIX, self.CORRECT_PREFIX)
-        return url
-
-    def _validate_credentials(self) -> None:
-        if not self.supabase_url.startswith(("http://", "https://")):
-            raise ValueError(f"Invalid Supabase URL format: {self.supabase_url}")
-
-        if not self.supabase_api_key:
-            raise ValueError("Supabase API key cannot be empty")
+def get_default_token_path() -> Path:
+    data_home = os.environ.get("XDG_DATA_HOME")
+    root = Path(data_home) if data_home else Path.home() / ".local" / "share"
+    return root / APP_DIRECTORY / "tokens.enc"
 
 
 class FernetSecrets:
-    def __init__(self) -> None:
-        generate_fernet_key = Fernet.generate_key().decode()
-        self.fernet_key = get_env_variable("FERNET_KEY", generate_fernet_key)
-        encode_fernet_key = self.fernet_key.encode()
-        self.cipher = Fernet(encode_fernet_key)
+    def __init__(self, key_path: Path | None = None) -> None:
+        configured_key = os.environ.get("FERNET_KEY")
+        key = (
+            configured_key.encode()
+            if configured_key is not None
+            else self._load_or_create_key(key_path or get_default_key_path())
+        )
+        try:
+            self.cipher = Fernet(key)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("FERNET_KEY is not a valid Fernet key.") from exc
+        self.fernet_key = key.decode()
+
+    @staticmethod
+    def _load_or_create_key(path: Path) -> bytes:
+        if path.exists():
+            try:
+                key = path.read_bytes().strip()
+                path.chmod(0o600)
+                return key
+            except OSError as exc:
+                raise ValueError(f"Could not read the Fernet key at {path}.") from exc
+
+        key = Fernet.generate_key()
+        try:
+            path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            file_descriptor = os.open(
+                path,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                0o600,
+            )
+            with os.fdopen(file_descriptor, "wb") as key_file:
+                key_file.write(key)
+        except FileExistsError:
+            return path.read_bytes().strip()
+        except OSError as exc:
+            raise ValueError(f"Could not store the Fernet key at {path}.") from exc
+        return key

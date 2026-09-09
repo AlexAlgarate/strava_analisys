@@ -7,7 +7,7 @@ Strava Analysis is a Python-based tool designed to analyze your running workouts
 - **Activity Streams**: Fetch and process detailed activity streams such as time, distance, and heart rate.
 - **Weekly Reports**: Generate reports for the current and previous weeks.
 - **Activity Details**: Retrieve detailed information about specific activities.
-- **Database Integration**: Store and manage data using Supabase.
+- **Secure local tokens**: Persist OAuth tokens encrypted on the local machine.
 - **Token Management**: Securely handle access tokens with encryption.
 
 ## Installation
@@ -37,10 +37,14 @@ Strava Analysis is a Python-based tool designed to analyze your running workouts
    ```env
    STRAVA_CLIENT_ID=<your_client_id>
    STRAVA_SECRET_KEY=<your_secret_key>
-   SUPABASE_URL=<your_supabase_url>
-   SUPABASE_API_KEY=<your_supabase_api_key>
+   # Optional: when omitted, a private local key is generated automatically.
    FERNET_KEY=<your_fernet_key>
    ```
+
+   Tokens are encrypted and stored outside the repository, following the XDG
+   user directories (`~/.local/share/strava-analysis/tokens.enc` by default).
+   The generated encryption key is stored with user-only permissions under
+   `~/.config/strava-analysis/fernet.key`.
 
 ## Usage
 
@@ -95,5 +99,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Acknowledgments
 
 - [Strava API](https://developers.strava.com/) for providing the data.
-- [Supabase](https://supabase.com/) for database integration.
 - [Fernet Encryption](https://cryptography.io/en/latest/fernet/) for secure data handling.

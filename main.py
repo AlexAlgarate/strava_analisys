@@ -25,9 +25,6 @@ def main() -> None:
 
     strava_API_async = AsyncStravaAPI(
         access_token=access_token,
-        deleter=token.supabase_deleter,
-        table=token.credentials["supabase_secrets"].supabase_table,
-        encryptor=token.encryptor,
     )
 
     result_console_printer = ResultConsolePrinter()
