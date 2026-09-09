@@ -1,11 +1,9 @@
 from collections.abc import Mapping
 from pathlib import Path
 
-import pandas as pd
-
-from src.core.activities.fetchers import ActivityData
 from src.core.activities.service import ActivityService
 from src.core.activities.zones import ActivityZones
+from src.core.concurrency import DEFAULT_MAX_CONCURRENCY
 from src.core.ports.export import (
     ActivityZonesWriter,
     StreamExporter,
@@ -13,7 +11,9 @@ from src.core.ports.export import (
 from src.core.ports.strava import StravaAPI
 from src.core.streams.exporter import DataExporter
 from src.core.streams.manager import StreamManager
+from src.domain.activity_stream import ActivityStream, StreamBatch
 from src.domain.detailed_activity import DetailedActivity
+from src.domain.heart_rate_zones import HeartRateZones
 
 
 class StravaService:
@@ -24,16 +24,23 @@ class StravaService:
         api: StravaAPI,
         exporters: Mapping[str, StreamExporter] | None = None,
         zones_writer: ActivityZonesWriter | None = None,
+        max_concurrency: int = DEFAULT_MAX_CONCURRENCY,
     ) -> None:
         self._api = api
-        self._activity_service = ActivityService(api)
-        self._stream_manager = StreamManager(api)
+        self._activity_service = ActivityService(
+            api,
+            max_concurrency=max_concurrency,
+        )
+        self._stream_manager = StreamManager(
+            api,
+            max_concurrency=max_concurrency,
+        )
         self._data_exporter = DataExporter(exporters or {})
         self._zones_writer = zones_writer
 
     async def get_activity_range(
         self, previous_week: bool = False
-    ) -> list[ActivityData]:
+    ) -> list[DetailedActivity]:
         return await self._activity_service.get_activity_range(previous_week)
 
     async def get_activity_details(
@@ -41,12 +48,12 @@ class StravaService:
     ) -> list[DetailedActivity]:
         return await self._activity_service.get_activity_details(previous_week)
 
-    async def get_streams_for_activity(self, activity_id: int) -> pd.DataFrame:
+    async def get_streams_for_activity(self, activity_id: int) -> ActivityStream:
         return await self._stream_manager.get_streams_for_activity(activity_id)
 
     async def get_streams_for_multiple_activities(
         self, activity_ids: list[int]
-    ) -> pd.DataFrame:
+    ) -> StreamBatch:
         return await self._stream_manager.get_streams_for_multiple_activities(
             activity_ids
         )
@@ -56,21 +63,21 @@ class StravaService:
         selected_format: str = "csv",
         output_dir: str | Path = ".",
         previous_week: bool = False,
-    ) -> pd.DataFrame:
-        data = await self._stream_manager.get_weekly_streams(
+    ) -> StreamBatch:
+        batch = await self._stream_manager.get_weekly_streams(
             previous_week=previous_week
         )
         self._data_exporter.export_streams(
-            data,
+            batch.streams,
             selected_format=selected_format,
             output_dir=output_dir,
             previous_week=previous_week,
         )
-        return data
+        return batch
 
     async def get_activity_zones(
         self, activity_id: int, save_zones: bool = False
-    ) -> dict[str, object]:
+    ) -> HeartRateZones:
         zones = ActivityZones(
             api=self._api,
             activity_id=activity_id,

@@ -1,43 +1,37 @@
-import asyncio
 from collections.abc import Mapping
 from typing import cast
 
-import pandas as pd
-
+from src.core.concurrency import DEFAULT_MAX_CONCURRENCY, map_concurrently
 from src.core.ports.strava import StravaAPI
-from src.core.streams.processor import process_streams
+from src.domain.activity_stream import (
+    ActivityStream,
+    StreamBatch,
+    StreamFetchFailure,
+)
 
 
 class ActivityStreamsFetcher:
     """Fetches activity stream data from Strava API."""
 
-    def __init__(self, api: StravaAPI, activity_id: int | None = None) -> None:
+    def __init__(self, api: StravaAPI, activity_id: int) -> None:
+        if isinstance(activity_id, bool) or not isinstance(activity_id, int):
+            raise TypeError("Activity ID must be an integer.")
+        if activity_id <= 0:
+            raise ValueError("Activity ID must be a positive integer.")
         self._api = api
         self._activity_id = activity_id
 
-    async def fetch_activity_data(self, stream_keys: list[str]) -> pd.DataFrame:
-        """Fetch stream data for a single activity.
-
-        Args:
-            stream_keys: List of stream types to fetch (e.g., time, distance, heartrate)
-
-        Returns:
-            DataFrame containing the stream data
-
-        Raises:
-            ValueError: If no activity ID is provided
-        """
-        if not self._activity_id:
-            raise ValueError("Activity ID is required for this operation.")
+    async def fetch_activity_data(self, stream_keys: list[str]) -> ActivityStream:
+        """Fetch and validate stream data for a single activity."""
         params = {"keys": ",".join(stream_keys), "key_by_type": "true"}
         response = await self._api.make_request(
             f"/activities/{self._activity_id}/streams", params
         )
         if not isinstance(response, Mapping):
             raise TypeError("Strava streams response must be an object.")
-        return process_streams(
-            response=cast(dict[str, object], response),
-            id_activity=self._activity_id,
+        return ActivityStream.from_mapping(
+            activity_id=self._activity_id,
+            payload=cast(Mapping[str, object], response),
         )
 
     @classmethod
@@ -46,30 +40,36 @@ class ActivityStreamsFetcher:
         api: StravaAPI,
         list_id_activities: list[int],
         stream_keys: list[str],
-    ) -> pd.DataFrame:
-        """Fetch stream data for multiple activities in parallel.
+        *,
+        max_concurrency: int = DEFAULT_MAX_CONCURRENCY,
+    ) -> StreamBatch:
+        """Fetch streams concurrently while retaining every partial failure."""
 
-        Args:
-            api: Strava API client
-            list_id_activities: List of activity IDs to fetch streams for
-            stream_keys: List of stream types to fetch
+        async def fetch_one(
+            activity_id: int,
+        ) -> ActivityStream | StreamFetchFailure:
+            try:
+                return await cls(
+                    api=api,
+                    activity_id=activity_id,
+                ).fetch_activity_data(stream_keys=stream_keys)
+            except Exception as error:  # noqa: BLE001 - batch boundary records failures
+                return StreamFetchFailure(
+                    activity_id=activity_id,
+                    error_type=type(error).__name__,
+                    message=str(error) or "Unknown stream fetch error",
+                )
 
-        Returns:
-            DataFrame containing concatenated stream data from all activities
-        """
-        tasks = [
-            cls(api=api, activity_id=activity_id).fetch_activity_data(
-                stream_keys=stream_keys
-            )
-            for activity_id in list_id_activities
-        ]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        processed_results = [
-            result for result in results if isinstance(result, pd.DataFrame)
-        ]
-        return (
-            pd.concat(processed_results, ignore_index=True)
-            if processed_results
-            else pd.DataFrame()
+        results = await map_concurrently(
+            list_id_activities,
+            fetch_one,
+            max_concurrency=max_concurrency,
+        )
+        return StreamBatch(
+            streams=tuple(
+                result for result in results if isinstance(result, ActivityStream)
+            ),
+            failures=tuple(
+                result for result in results if isinstance(result, StreamFetchFailure)
+            ),
         )

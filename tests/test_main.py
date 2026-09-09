@@ -1,24 +1,30 @@
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
 import main as cli
 
 
-def test_main_wires_the_application_without_real_credentials(
-    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+@pytest.mark.asyncio
+async def test_run_cli_wires_application_without_real_credentials(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     setup_logging = Mock()
     token_provider = Mock()
     token_provider.get_access_token.return_value = "access-token"
     token_provider_factory = Mock(return_value=token_provider)
     api = Mock()
-    api_factory = Mock(return_value=api)
+    api_context = MagicMock()
+    api_context.__aenter__ = AsyncMock(return_value=api)
+    api_context.__aexit__ = AsyncMock(return_value=None)
+    api_factory = Mock(return_value=api_context)
     service = Mock()
     service_factory = Mock(return_value=service)
     summary_service = Mock()
     summary_service_factory = Mock(return_value=summary_service)
     menu = Mock()
+    menu.execute_option = AsyncMock()
     menu_factory = Mock(return_value=menu)
     answers = iter(("1", "q"))
 
@@ -30,7 +36,7 @@ def test_main_wires_the_application_without_real_credentials(
     monkeypatch.setattr(cli, "MenuHandler", menu_factory)
     monkeypatch.setattr("builtins.input", lambda _prompt: next(answers))
 
-    cli.main()
+    await cli.run_cli()
 
     setup_logging.assert_called_once_with()
     token_provider.get_access_token.assert_called_once_with()
@@ -39,5 +45,19 @@ def test_main_wires_the_application_without_real_credentials(
     assert menu_factory.call_args.kwargs["service"] is service
     assert menu_factory.call_args.kwargs["summary_service"] is summary_service
     assert menu.print_menu.call_count == 2
-    menu.execute_option.assert_called_once_with("1")
+    menu.execute_option.assert_awaited_once_with("1")
+    api_context.__aexit__.assert_awaited_once()
     assert "Goodbye" in capsys.readouterr().out
+
+
+def test_main_runs_async_cli(monkeypatch: pytest.MonkeyPatch) -> None:
+    run_cli = AsyncMock()
+    asyncio_run = Mock()
+    monkeypatch.setattr(cli, "run_cli", run_cli)
+    monkeypatch.setattr(cli.asyncio, "run", asyncio_run)
+
+    cli.main()
+
+    asyncio_run.assert_called_once()
+    run_cli.assert_called_once_with()
+    asyncio_run.call_args.args[0].close()

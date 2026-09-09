@@ -1,6 +1,7 @@
 import json
-from collections.abc import Mapping
 from pathlib import Path
+
+from src.domain.heart_rate_zones import HeartRateZones
 
 
 class JsonActivityZonesWriter:
@@ -9,8 +10,8 @@ class JsonActivityZonesWriter:
     def __init__(self, output_directory: Path) -> None:
         self._output_directory = output_directory
 
-    def write(self, activity_id: int, zones: Mapping[str, object]) -> None:
+    def write(self, zones: HeartRateZones) -> None:
         self._output_directory.mkdir(parents=True, exist_ok=True)
-        path = self._output_directory / f"zones_{activity_id}.json"
+        path = self._output_directory / f"zones_{zones.activity_id}.json"
         with path.open("w", encoding="utf-8") as output:
-            json.dump(zones, output, ensure_ascii=False, indent=4)
+            json.dump(zones.as_dict(), output, ensure_ascii=False, indent=4)

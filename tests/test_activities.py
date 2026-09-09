@@ -1,16 +1,13 @@
 from unittest.mock import AsyncMock, Mock
 
-import pandas as pd
 import pytest
 
+import src.core.activities.fetchers as fetchers_module
 from src.core.activities.fetchers import (
     DetailedActivitiesFetcher,
     WeeklyActivitiesFetcher,
 )
-from src.core.streams.fetcher import ActivityStreamsFetcher
 from src.domain.detailed_activity import DetailedActivity
-from src.utils import constants as constant
-from src.utils import exceptions
 from tests.factories import activity_payload
 
 
@@ -37,12 +34,12 @@ class TestWeeklyActivitiesFetcher:
     async def test_fetch_activity_data_success(
         self, activity_fetcher: WeeklyActivitiesFetcher, mock_async_api: Mock
     ) -> None:
-        expected_response = [{"id": 1}, {"id": 2}]
+        expected_response = [activity_payload(1), activity_payload(2)]
         mock_async_api.make_request.return_value = expected_response
 
         result = await activity_fetcher.fetch_activity_data()
 
-        assert result == expected_response
+        assert [activity.id for activity in result] == [1, 2]
         assert mock_async_api.make_request.call_count == 1
         call_args = mock_async_api.make_request.call_args[1]
         assert call_args["endpoint"] == "/activities"
@@ -53,13 +50,33 @@ class TestWeeklyActivitiesFetcher:
     async def test_fetch_activity_data_previous_week(
         self, activity_fetcher: WeeklyActivitiesFetcher, mock_async_api: Mock
     ) -> None:
-        expected_response = [{"id": 3}, {"id": 4}]
+        expected_response = [activity_payload(3), activity_payload(4)]
         mock_async_api.make_request.return_value = expected_response
 
         result = await activity_fetcher.fetch_activity_data(previous_week=True)
 
-        assert result == expected_response
+        assert [activity.id for activity in result] == [3, 4]
         assert mock_async_api.make_request.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_fetches_all_activity_pages(
+        self,
+        activity_fetcher: WeeklyActivitiesFetcher,
+        mock_async_api: Mock,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setattr(fetchers_module, "ACTIVITIES_PAGE_SIZE", 2)
+        mock_async_api.make_request.side_effect = [
+            [activity_payload(1), activity_payload(2)],
+            [activity_payload(3)],
+        ]
+
+        result = await activity_fetcher.fetch_activity_data()
+
+        assert [activity.id for activity in result] == [1, 2, 3]
+        assert (
+            mock_async_api.make_request.await_args_list[1].kwargs["params"]["page"] == 2
+        )
 
     @pytest.mark.asyncio
     async def test_rejects_non_list_response(
@@ -90,7 +107,7 @@ class TestDetailedActivitiesFetcher:
         self, activity_fetcher: DetailedActivitiesFetcher, mock_async_api: Mock
     ) -> None:
         mock_async_api.make_request.side_effect = [
-            [{"id": 1}, {"id": 2}],
+            [activity_payload(1), activity_payload(2)],
             activity_payload(1, "Activity 1"),
             activity_payload(2, "Activity 2"),
         ]
@@ -115,7 +132,7 @@ class TestDetailedActivitiesFetcher:
         self, activity_fetcher: DetailedActivitiesFetcher, mock_async_api: Mock
     ) -> None:
         mock_async_api.make_request.side_effect = [
-            [{"id": 1}],  # Weekly activities
+            [activity_payload(1)],  # Weekly activities
             Exception("API Error"),  # Error fetching details
         ]
 
@@ -126,101 +143,7 @@ class TestDetailedActivitiesFetcher:
     async def test_rejects_activity_without_integer_id(
         self, activity_fetcher: DetailedActivitiesFetcher, mock_async_api: Mock
     ) -> None:
-        mock_async_api.make_request.return_value = [{"id": True}]
+        mock_async_api.make_request.return_value = [activity_payload(id=True)]
 
-        with pytest.raises(TypeError, match="integer id"):
+        with pytest.raises(TypeError, match="id must be an integer"):
             await activity_fetcher.fetch_activity_data()
-
-
-stream_response_type = list[dict[str, dict[str, list[float]]]]
-STREAM_RESPONSES: stream_response_type = [
-    {
-        "time": {"data": [0, 1, 2]},
-        "distance": {"data": [0, 1, 2]},
-        "heartrate": {"data": [60, 62, 64]},
-    },
-    {
-        "time": {"data": [3, 4, 5]},
-        "distance": {"data": [0, 10, 20]},
-        "heartrate": {"data": [100, 101, 102]},
-    },
-    {
-        "time": {"data": [6, 7, 8]},
-        "distance": {"data": [0.5, 20.5, 40.5]},
-        "heartrate": {"data": [110, 111, 112]},
-    },
-]
-
-
-class TestActivityStreamsFetcher:
-    @pytest.fixture
-    def stream_fetcher(self, mock_async_api: Mock) -> ActivityStreamsFetcher:
-        return ActivityStreamsFetcher(api=mock_async_api, activity_id=123)
-
-    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
-    @pytest.mark.asyncio
-    async def test_fetch_activity_data_success(
-        self,
-        stream_fetcher: ActivityStreamsFetcher,
-        mock_async_api: Mock,
-        stream_response: stream_response_type,
-    ) -> None:
-        mock_async_api.make_request.return_value = stream_response
-
-        result = await stream_fetcher.fetch_activity_data(
-            stream_keys=constant.ACTIVITY_STREAMS_KEYS
-        )
-
-        assert isinstance(result, pd.DataFrame)
-        assert list(result.columns) == ["time", "distance", "heartrate", "id"]
-        assert len(result) == 3
-        assert all(result["id"] == 123)
-
-    @pytest.mark.asyncio
-    async def test_fetch_activity_data_no_id(self, mock_async_api: Mock) -> None:
-        fetcher = ActivityStreamsFetcher(api=mock_async_api)
-        with pytest.raises(
-            ValueError, match="Activity ID is required for this operation"
-        ):
-            await fetcher.fetch_activity_data(
-                stream_keys=constant.ACTIVITY_STREAMS_KEYS
-            )
-
-    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
-    @pytest.mark.asyncio
-    async def test_fetch_multiple_activities_streams(
-        self, mock_async_api: Mock, stream_response: stream_response_type
-    ) -> None:
-        activity_ids = [1, 2]
-
-        mock_async_api.make_request.return_value = stream_response
-
-        result = await ActivityStreamsFetcher.fetch_multiple_activities_streams(
-            api=mock_async_api,
-            list_id_activities=activity_ids,
-            stream_keys=constant.ACTIVITY_STREAMS_KEYS,
-        )
-
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) == 6  # 2 data points for each activity
-        assert set(result["id"].unique()) == {1, 2}
-
-    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
-    @pytest.mark.asyncio
-    async def test_fetch_multiple_activities_streams_error_handling(
-        self, mock_async_api: Mock, stream_response: stream_response_type
-    ) -> None:
-        activity_ids = [1, 2]
-        mock_async_api.make_request.side_effect = [
-            stream_response,
-            exceptions.TooManyRequestError("Rate limit exceeded"),
-        ]
-
-        result = await ActivityStreamsFetcher.fetch_multiple_activities_streams(
-            api=mock_async_api,
-            list_id_activities=activity_ids,
-            stream_keys=constant.ACTIVITY_STREAMS_KEYS,
-        )
-
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) == 3  # Only data from successful request

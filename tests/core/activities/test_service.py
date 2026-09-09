@@ -24,12 +24,12 @@ class TestActivityService:
     async def test_get_activity_range(
         self, activity_service: ActivityService, mock_async_api: Mock
     ) -> None:
-        mock_response = [{"id": 1}, {"id": 2}]
+        mock_response = [activity_payload(1), activity_payload(2)]
         mock_async_api.make_request.return_value = mock_response
 
         result = await activity_service.get_activity_range(previous_week=False)
 
-        assert result == mock_response
+        assert [activity.id for activity in result] == [1, 2]
         assert mock_async_api.make_request.called
         # Verify parameters of the call
         call_args = mock_async_api.make_request.call_args
@@ -41,7 +41,7 @@ class TestActivityService:
     async def test_get_activity_details(
         self, activity_service: ActivityService, mock_async_api: Mock
     ) -> None:
-        mock_activities = [{"id": 1}, {"id": 2}]
+        mock_activities = [activity_payload(1), activity_payload(2)]
         mock_details = [
             activity_payload(1, "Activity 1"),
             activity_payload(2, "Activity 2"),

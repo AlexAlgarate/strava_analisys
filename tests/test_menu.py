@@ -1,9 +1,9 @@
 from unittest.mock import AsyncMock, Mock
 
-import pandas as pd
 import pytest
 
 from src.core.activities.summary.service import ActivitySummaryService
+from src.domain.activity_stream import ActivityStream, StreamBatch, StreamFetchFailure
 from src.domain.activity_summary import WeeklyActivitySummary
 from src.domain.detailed_activity import DetailedActivity
 from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
@@ -17,7 +17,7 @@ from src.presentation.console_output.weekly_summary_presenter import (
     ConsoleSummaryPresenter,
 )
 from src.presentation.menu.options import MenuOption
-from tests.factories import activity_payload
+from tests.factories import activity_payload, stream_payload
 
 
 @pytest.fixture
@@ -71,15 +71,17 @@ class TestMenuHandler:
         assert all(isinstance(key, str) for key in options)
         assert all(isinstance(value, str) for value in options.values())
 
-    def test_execute_invalid_option(
+    @pytest.mark.asyncio
+    async def test_execute_invalid_option(
         self, menu_handler: Mock, mock_error_printer: Mock
     ) -> None:
-        result = menu_handler.execute_option("999")
+        result = await menu_handler.execute_option("999")
 
         assert result is None
         mock_error_printer.print_error.assert_called_once_with(option="999")
 
-    def test_execute_async_option_prints_its_result(
+    @pytest.mark.asyncio
+    async def test_execute_async_option_prints_its_result(
         self,
         menu_handler: MenuHandler,
         mock_service: Mock,
@@ -88,7 +90,9 @@ class TestMenuHandler:
         activities = [{"id": 1}]
         mock_service.get_activity_details.return_value = activities
 
-        result = menu_handler.execute_option(str(MenuOption.ACTIVITY_DETAILS.value))
+        result = await menu_handler.execute_option(
+            str(MenuOption.ACTIVITY_DETAILS.value)
+        )
 
         assert result == activities
         mock_service.get_activity_details.assert_awaited_once_with(previous_week=False)
@@ -112,7 +116,8 @@ class TestMenuHandler:
             ),
         ],
     )
-    def test_execute_stream_option(
+    @pytest.mark.asyncio
+    async def test_execute_stream_option(
         self,
         menu_handler: MenuHandler,
         mock_service: Mock,
@@ -121,17 +126,18 @@ class TestMenuHandler:
         expected_keyword: str,
     ) -> None:
         method = getattr(mock_service, service_method)
-        method.return_value = pd.DataFrame()
+        method.return_value = StreamBatch()
 
-        menu_handler.execute_option(str(option.value))
+        await menu_handler.execute_option(str(option.value))
 
         assert expected_keyword in method.await_args.kwargs
 
-    def test_weekly_report_requires_summary_service(
+    @pytest.mark.asyncio
+    async def test_weekly_report_requires_summary_service(
         self, menu_handler: MenuHandler
     ) -> None:
         with pytest.raises(RuntimeError, match="summary service"):
-            menu_handler.execute_option(str(MenuOption.WEEKLY_REPORT.value))
+            await menu_handler.execute_option(str(MenuOption.WEEKLY_REPORT.value))
 
     def test_print_menu_lists_available_options(
         self,
@@ -144,7 +150,8 @@ class TestMenuHandler:
         assert "Choose an option" in output
         assert MenuOption.WEEKLY_REPORT.description in output
 
-    def test_weekly_report_uses_live_summary_service(
+    @pytest.mark.asyncio
+    async def test_weekly_report_uses_live_summary_service(
         self,
         mock_service: Mock,
         mock_result_printer: Mock,
@@ -162,7 +169,7 @@ class TestMenuHandler:
             summary_presenter=presenter,
         )
 
-        result = handler.execute_option(str(MenuOption.WEEKLY_REPORT.value))
+        result = await handler.execute_option(str(MenuOption.WEEKLY_REPORT.value))
 
         assert result is None
         summary_service.generate_summary.assert_awaited_once_with()
@@ -186,14 +193,29 @@ class TestResultConsolePrinter:
     def printer(self) -> ResultConsolePrinter:
         return ResultConsolePrinter()
 
-    def test_print_dataframe(
+    def test_print_activity_stream(
         self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
-        printer.print_result("1", df)
+        stream = ActivityStream.from_mapping(7, stream_payload())
+
+        printer.print_result("1", stream)
+
         captured = capsys.readouterr()
-        assert "col1" in captured.out
-        assert "col2" in captured.out
+        assert "Heartrate" in captured.out
+        assert "120" in captured.out
+
+    def test_print_stream_batch_failures(
+        self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        batch = StreamBatch(
+            failures=(StreamFetchFailure(7, "TimeoutError", "timed out"),)
+        )
+
+        printer.print_result("1", batch)
+
+        output = capsys.readouterr().out
+        assert "Activity 7" in output
+        assert "timed out" in output
 
     def test_print_list(
         self, printer: ResultConsolePrinter, capsys: pytest.CaptureFixture[str]

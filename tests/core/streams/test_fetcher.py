@@ -1,11 +1,14 @@
+import asyncio
+from typing import cast
 from unittest.mock import AsyncMock, Mock
 
-import pandas as pd
 import pytest
 
 from src.core.streams.fetcher import ActivityStreamsFetcher
-from src.utils import constants as constant
-from src.utils import exceptions
+from src.domain.activity_stream import ActivityStream, StreamBatch
+from src.utils import constants
+from src.utils.exceptions import TooManyRequestError
+from tests.factories import stream_payload
 
 
 @pytest.fixture
@@ -15,108 +18,102 @@ def mock_async_api() -> Mock:
     return api
 
 
-@pytest.fixture
-def stream_fetcher(mock_async_api: Mock) -> ActivityStreamsFetcher:
-    return ActivityStreamsFetcher(api=mock_async_api, activity_id=123)
+@pytest.mark.asyncio
+async def test_fetches_and_validates_one_activity_stream(mock_async_api: Mock) -> None:
+    mock_async_api.make_request.return_value = stream_payload()
+
+    result = await ActivityStreamsFetcher(
+        api=mock_async_api,
+        activity_id=123,
+    ).fetch_activity_data(stream_keys=constants.ACTIVITY_STREAMS_KEYS)
+
+    assert isinstance(result, ActivityStream)
+    assert result.activity_id == 123
+    assert len(result.samples) == 3
+    mock_async_api.make_request.assert_awaited_once_with(
+        "/activities/123/streams",
+        {"keys": "time,distance,heartrate", "key_by_type": "true"},
+    )
 
 
-stream_response_type = list[dict[str, dict[str, list[float]]]]
-STREAM_RESPONSES: stream_response_type = [
-    {
-        "time": {"data": [0, 1, 2]},
-        "distance": {"data": [0, 1, 2]},
-        "heartrate": {"data": [60, 62, 64]},
-    },
-    {
-        "time": {"data": [3, 4, 5]},
-        "distance": {"data": [0, 10, 20]},
-        "heartrate": {"data": [100, 101, 102]},
-    },
-    {
-        "time": {"data": [6, 7, 8]},
-        "distance": {"data": [0.5, 20.5, 40.5]},
-        "heartrate": {"data": [110, 111, 112]},
-    },
-]
+@pytest.mark.asyncio
+async def test_rejects_non_object_stream_response(mock_async_api: Mock) -> None:
+    mock_async_api.make_request.return_value = []
 
-
-class TestActivityStreamsFetcher:
-    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
-    @pytest.mark.asyncio
-    async def test_fetch_activity_data_success(
-        self,
-        stream_fetcher: ActivityStreamsFetcher,
-        mock_async_api: Mock,
-        stream_response: stream_response_type,
-    ) -> None:
-        mock_async_api.make_request.return_value = stream_response
-
-        result = await stream_fetcher.fetch_activity_data(
-            stream_keys=constant.ACTIVITY_STREAMS_KEYS
-        )
-
-        assert isinstance(result, pd.DataFrame)
-        assert list(result.columns) == ["time", "distance", "heartrate", "id"]
-        assert len(result) == 3
-        assert all(result["id"] == 123)
-
-    @pytest.mark.asyncio
-    async def test_fetch_activity_data_no_id(self, mock_async_api: Mock) -> None:
-        fetcher = ActivityStreamsFetcher(api=mock_async_api)
-        with pytest.raises(ValueError, match="Activity ID is required"):
-            await fetcher.fetch_activity_data(
-                stream_keys=constant.ACTIVITY_STREAMS_KEYS
-            )
-
-    @pytest.mark.asyncio
-    async def test_rejects_non_object_stream_response(
-        self, stream_fetcher: ActivityStreamsFetcher, mock_async_api: Mock
-    ) -> None:
-        mock_async_api.make_request.return_value = []
-
-        with pytest.raises(TypeError, match="response must be an object"):
-            await stream_fetcher.fetch_activity_data(
-                stream_keys=constant.ACTIVITY_STREAMS_KEYS
-            )
-
-    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
-    @pytest.mark.asyncio
-    async def test_fetch_multiple_activities_streams(
-        self,
-        mock_async_api: Mock,
-        stream_response: stream_response_type,
-    ) -> None:
-        activity_ids = [1, 2]
-        mock_async_api.make_request.return_value = stream_response
-
-        result = await ActivityStreamsFetcher.fetch_multiple_activities_streams(
+    with pytest.raises(TypeError, match="response must be an object"):
+        await ActivityStreamsFetcher(
             api=mock_async_api,
-            list_id_activities=activity_ids,
-            stream_keys=constant.ACTIVITY_STREAMS_KEYS,
-        )
+            activity_id=123,
+        ).fetch_activity_data(stream_keys=constants.ACTIVITY_STREAMS_KEYS)
 
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) == 6  # 2 activities × 3 data points each
-        assert set(result["id"].unique()) == {1, 2}
 
-    @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
-    @pytest.mark.asyncio
-    async def test_fetch_multiple_activities_streams_error_handling(
-        self,
-        mock_async_api: Mock,
-        stream_response: stream_response_type,
-    ) -> None:
-        activity_ids = [1, 2]
-        mock_async_api.make_request.side_effect = [
-            stream_response,
-            exceptions.TooManyRequestError("Rate limit exceeded"),
-        ]
-
-        result = await ActivityStreamsFetcher.fetch_multiple_activities_streams(
+@pytest.mark.parametrize("activity_id", [True, 0])
+def test_rejects_invalid_activity_id(
+    mock_async_api: Mock,
+    activity_id: object,
+) -> None:
+    expected_error = TypeError if activity_id is True else ValueError
+    with pytest.raises(expected_error):
+        ActivityStreamsFetcher(
             api=mock_async_api,
-            list_id_activities=activity_ids,
-            stream_keys=constant.ACTIVITY_STREAMS_KEYS,
+            activity_id=cast(int, activity_id),
         )
 
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) == 3  # Only data from successful request
+
+@pytest.mark.asyncio
+async def test_batch_retains_successes_and_failures(mock_async_api: Mock) -> None:
+    mock_async_api.make_request.side_effect = [
+        stream_payload(),
+        TooManyRequestError("Rate limit exceeded"),
+    ]
+
+    result = await ActivityStreamsFetcher.fetch_multiple_activities_streams(
+        api=mock_async_api,
+        list_id_activities=[1, 2],
+        stream_keys=constants.ACTIVITY_STREAMS_KEYS,
+    )
+
+    assert isinstance(result, StreamBatch)
+    assert result.sample_count == 3
+    assert result.is_partial
+    assert [stream.activity_id for stream in result.streams] == [1]
+    assert result.failures[0].activity_id == 2
+    assert result.failures[0].error_type == "TooManyRequestError"
+    assert result.failures[0].message == "Rate limit exceeded"
+
+
+@pytest.mark.asyncio
+async def test_batch_limits_concurrent_requests(mock_async_api: Mock) -> None:
+    active_requests = 0
+    peak_requests = 0
+
+    async def delayed_response(*_args: object, **_kwargs: object) -> object:
+        nonlocal active_requests, peak_requests
+        active_requests += 1
+        peak_requests = max(peak_requests, active_requests)
+        await asyncio.sleep(0)
+        active_requests -= 1
+        return stream_payload()
+
+    mock_async_api.make_request.side_effect = delayed_response
+
+    result = await ActivityStreamsFetcher.fetch_multiple_activities_streams(
+        api=mock_async_api,
+        list_id_activities=[1, 2, 3, 4],
+        stream_keys=constants.ACTIVITY_STREAMS_KEYS,
+        max_concurrency=2,
+    )
+
+    assert len(result.streams) == 4
+    assert peak_requests == 2
+
+
+@pytest.mark.asyncio
+async def test_batch_rejects_invalid_concurrency(mock_async_api: Mock) -> None:
+    with pytest.raises(ValueError, match="at least one"):
+        await ActivityStreamsFetcher.fetch_multiple_activities_streams(
+            api=mock_async_api,
+            list_id_activities=[1],
+            stream_keys=constants.ACTIVITY_STREAMS_KEYS,
+            max_concurrency=0,
+        )
