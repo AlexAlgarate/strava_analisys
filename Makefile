@@ -4,7 +4,7 @@
 help:
 	@echo "Comandos disponibles:"
 	@echo "  make run             - Run main.py"
-	@echo "  make lint            - Lint with ruff + mypy"
+	@echo "  make lint            - Lint with Ruff and type-check with ty"
 	@echo "  make format          - Format with ruff"
 	@echo "  make test            - Run tests with pytest"
 	@echo "  make import-linter   - Check clean architecture with import-linter"
@@ -17,7 +17,7 @@ run:
 
 lint:
 	uv run ruff check src
-	uv run mypy src
+	uv run ty check
 
 format:
 	uv run ruff format src
@@ -35,4 +35,3 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
 
 	find . -type f -name "*.pyc" -delete
-
