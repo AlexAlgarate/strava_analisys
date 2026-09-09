@@ -6,6 +6,8 @@ La documentación técnica se divide por responsabilidad:
   adaptadores, concurrencia y flujo de la CLI.
 - [Desarrollo y testing](development.md): entorno, convenciones de Python 3.13,
   pruebas sin credenciales, extensibilidad, Docker y contribución.
+- [Añadir una opción a la terminal](adding-cli-option.md): alcance, pasos,
+  ejemplos completos, tests y criterios para evolucionar el diseño.
 - [Credenciales y tokens](security.md): configuración, persistencia local
   cifrada, permisos y consideraciones de seguridad.
 
