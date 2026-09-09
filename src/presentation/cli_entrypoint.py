@@ -1,14 +1,10 @@
 import asyncio
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
 
-from src.core.activities.summary.handlers import (
-    ActivitySummaryBuilder,
-    ConsolePresenter,
-    JsonActivityLoader,
-)
 from src.core.activities.summary.service import ActivitySummaryService
+from src.core.service import StravaService
 from src.presentation.console_output.console_error_handler import (
     ConsoleErrorHandler,
 )
@@ -16,7 +12,6 @@ from src.presentation.console_output.result_console_printer import (
     ResultConsolePrinter,
 )
 from src.presentation.menu.options import MenuOption
-from src.strava_service import StravaService
 from src.utils import constants as constant
 
 
@@ -25,6 +20,7 @@ class MenuDependencies:
     service: StravaService
     result_printer: ResultConsolePrinter
     error_printer: ConsoleErrorHandler
+    summary_service: ActivitySummaryService | None
 
 
 class MenuHandler:
@@ -33,11 +29,13 @@ class MenuHandler:
         service: StravaService,
         result_console_printer: ResultConsolePrinter | None = None,
         error_console_printer: ConsoleErrorHandler | None = None,
+        summary_service: ActivitySummaryService | None = None,
     ) -> None:
         self.dependencies = MenuDependencies(
             service=service,
             result_printer=result_console_printer or ResultConsolePrinter(),
             error_printer=error_console_printer or ConsoleErrorHandler(),
+            summary_service=summary_service,
         )
         self._init_menu_options()
 
@@ -64,26 +62,20 @@ class MenuHandler:
             MenuOption.STREAMS_PREV_WEEK: lambda: self._handle_async(
                 self.dependencies.service.export_streams_for_selected_week, True
             ),
-            MenuOption.WEEKLY_REPORT: lambda: self._load_json_weekly_report(),
+            MenuOption.WEEKLY_REPORT: self._generate_weekly_report,
         }
 
-    def _provisional_handle_feature(self) -> Any:
-        return "This feature is not yet implemented."
-
-    def _handle_async(self, func: Callable, previous_week: bool | None = None) -> Any:
+    def _handle_async(
+        self,
+        func: Callable[..., Coroutine[Any, Any, Any]],
+        previous_week: bool,
+    ) -> Any:
         return asyncio.run(func(previous_week=previous_week))
 
     def _handle_single_stream(self) -> Any:
         return asyncio.run(
             self.dependencies.service.get_streams_for_activity(
                 activity_id=constant.EXAMPLE_ID_ONE_ACTIVITY
-            )
-        )
-
-    def _handle_weekly_streams(self, previous_week: bool) -> Any:
-        return asyncio.run(
-            self.dependencies.service.export_streams_for_selected_week(
-                previous_week=previous_week
             )
         )
 
@@ -94,15 +86,10 @@ class MenuHandler:
             )
         )
 
-    def _load_json_weekly_report(self) -> None:
-        data_loader = JsonActivityLoader("activities.json")
-
-        summary_builder = ActivitySummaryBuilder()
-        presenter = ConsolePresenter()
-
-        # Create and run service
-        service = ActivitySummaryService(data_loader, summary_builder, presenter)
-        service.generate_summary()
+    def _generate_weekly_report(self) -> None:
+        if self.dependencies.summary_service is None:
+            raise RuntimeError("No weekly summary service has been configured.")
+        self.dependencies.summary_service.generate_summary()
 
     def get_menu_options(self) -> dict[str, str]:
         return {str(option.id): option.description for option in MenuOption}

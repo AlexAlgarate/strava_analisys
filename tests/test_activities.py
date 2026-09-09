@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock
 import pandas as pd
 import pytest
 
-from src.activities.detailed_activities import (
+from src.core.activities.fetchers import (
     DetailedActivitiesFetcher,
     WeeklyActivitiesFetcher,
 )
@@ -76,7 +76,7 @@ class TestDetailedActivitiesFetcher:
         ]
 
         result = await activity_fetcher.fetch_activity_data(
-            keys=["id", "name"], previuos_week=False
+            keys=["id", "name"], previous_week=False
         )
 
         assert len(result) == 2
@@ -91,7 +91,7 @@ class TestDetailedActivitiesFetcher:
 
         with pytest.raises(ValueError, match="No activities found."):
             await activity_fetcher.fetch_activity_data(
-                keys=["id", "name"], previuos_week=False
+                keys=["id", "name"], previous_week=False
             )
 
     @pytest.mark.asyncio
@@ -104,7 +104,7 @@ class TestDetailedActivitiesFetcher:
         ]
 
         result = await activity_fetcher.fetch_activity_data(
-            keys=["id", "name"], previuos_week=False
+            keys=["id", "name"], previous_week=False
         )
 
         assert len(result) == 1
@@ -134,7 +134,7 @@ STREAM_RESPONSES: stream_response_type = [
 class TestActivityStreamsFetcher:
     @pytest.fixture
     def stream_fetcher(self, mock_async_api: Mock) -> ActivityStreamsFetcher:
-        return ActivityStreamsFetcher(api=mock_async_api, id_activity=123)
+        return ActivityStreamsFetcher(api=mock_async_api, activity_id=123)
 
     @pytest.mark.parametrize("stream_response", STREAM_RESPONSES)
     @pytest.mark.asyncio

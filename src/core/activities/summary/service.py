@@ -6,25 +6,26 @@ from src.core.activities.summary.calculators import (
     MovingTimeCalculator,
     PerceivedExertionCalculator,
 )
-from src.core.activities.summary.interfaces import (
-    IActivityDataLoader,
-    IActivitySummaryBuilder,
-    IActivitySummaryPresenter,
-    IMetricCalculator,
+from src.core.activities.summary.ports import (
+    ActivityDataLoader,
+    ActivitySummaryPresenter,
+    MetricCalculator,
+    SummaryBuilder,
+    SummaryData,
 )
 
 
 class ActivitySummaryService:
     def __init__(
         self,
-        data_loader: IActivityDataLoader,
-        summary_builder: IActivitySummaryBuilder,
-        presenter: IActivitySummaryPresenter,
+        data_loader: ActivityDataLoader,
+        summary_builder: SummaryBuilder,
+        presenter: ActivitySummaryPresenter,
     ) -> None:
         self.data_loader = data_loader
         self.summary_builder = summary_builder
         self.presenter = presenter
-        self.calculators: list[IMetricCalculator] = [
+        self.calculators: list[MetricCalculator] = [
             DistanceCalculator(),
             MovingTimeCalculator(),
             ElevationGainCalculator(),
@@ -44,7 +45,7 @@ class ActivitySummaryService:
 
         self.presenter.present_weekly_report(self.summary_builder.get_summary())
 
-    def _update_summary(self, result: dict) -> None:
+    def _update_summary(self, result: SummaryData) -> None:
         if "total_distance" in result:
             self.summary_builder.add_distance(result["total_distance"])
         if "total_moving_time" in result:

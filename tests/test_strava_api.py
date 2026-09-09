@@ -6,9 +6,11 @@ import aiohttp
 import pytest
 
 from src.infrastructure.api_clients.async_http_client import AsyncHTTPClient
-from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
-from src.interfaces.api_clients.async_http_client import BaseASyncHTTPClient
-from src.interfaces.api_clients.strava_api import StravaAPIConfig
+from src.infrastructure.api_clients.async_strava_api import (
+    AsyncStravaAPI,
+    StravaAPIConfig,
+)
+from src.infrastructure.api_clients.protocols import AsyncHttpClient
 from src.utils.exceptions import TooManyRequestError, UnauthorizedError
 
 
@@ -48,7 +50,7 @@ class TestStravaAPI:
 
     @pytest.fixture
     def http_client(self) -> Mock:
-        client = Mock(spec=BaseASyncHTTPClient)
+        client = Mock(spec=AsyncHttpClient)
         client.make_async_request = AsyncMock()
         return client
 

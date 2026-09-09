@@ -1,21 +1,21 @@
-from typing import Any, cast
+from collections.abc import Mapping
+from typing import cast
 
 import aiohttp
 
-from src.interfaces.api_clients.async_http_client import BaseASyncHTTPClient
 from src.utils import exceptions
 
 UNAUTHORIZED_USER = 401
 REACH_REQUEST_LIMIT = 429
 
 
-class AsyncHTTPClient(BaseASyncHTTPClient):
+class AsyncHTTPClient:
     async def make_async_request(
         self,
         url: str,
-        headers: dict[str, str],
-        params: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        headers: Mapping[str, str],
+        params: Mapping[str, str | int] | None = None,
+    ) -> object:
         async with (
             aiohttp.ClientSession() as session,
             session.get(url, headers=headers, params=params) as response,
@@ -30,4 +30,4 @@ class AsyncHTTPClient(BaseASyncHTTPClient):
                     "Strava rejected the access token. Reauthorize the application."
                 )
             response.raise_for_status()
-            return cast(dict[str, Any], await response.json())
+            return cast(object, await response.json())

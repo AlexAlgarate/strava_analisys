@@ -2,12 +2,10 @@ from typing import Any
 
 import pandas as pd
 
-from src.interfaces.console_printer import IPrinterResult
-
 from .formatter import ActivityFormatter
 
 
-class ResultConsolePrinter(IPrinterResult):
+class ResultConsolePrinter:
     def __init__(self) -> None:
         self.formatter = ActivityFormatter()
 

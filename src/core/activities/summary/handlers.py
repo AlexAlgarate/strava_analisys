@@ -1,13 +1,9 @@
-from typing import Any, cast
+from typing import Any
 
-from src.core.activities.summary.interfaces import (
-    IActivityDataLoader,
-    IActivitySummaryBuilder,
-    IActivitySummaryPresenter,
-)
+from src.core.activities.summary.ports import SummaryData
 
 
-class ActivitySummaryBuilder(IActivitySummaryBuilder):
+class ActivitySummaryBuilder:
     def __init__(self) -> None:
         self.reset()
 
@@ -33,38 +29,5 @@ class ActivitySummaryBuilder(IActivitySummaryBuilder):
     def add_perceived_exertion(self, value: float) -> None:
         self._summary["avg_perceived_exertion"] = value
 
-    def get_summary(self) -> dict[str, Any]:
+    def get_summary(self) -> SummaryData:
         return self._summary.copy()
-
-
-class JsonActivityLoader(IActivityDataLoader):
-    def __init__(self, file_path: str) -> None:
-        self.file_path = file_path
-
-    def load_activities(self) -> list[dict[str, Any]]:
-        import json
-
-        with open(self.file_path, encoding="utf-8") as f:
-            return cast(list[dict[str, Any]], json.load(f))
-
-
-class ConsolePresenter(IActivitySummaryPresenter):
-    def present_weekly_report(self, summary: dict[str, Any]) -> None:
-        print("\n---- Weekly Summary ----")
-        print(f"Total Distance: {summary['total_distance']} km")
-        print(f"Total Moving Time: {summary['total_moving_time']}")
-        print(f"Total Elevation Gain: {summary['total_elevation_gain']} m")
-        print(f"Average Heart Rate: {summary['avg_heartrate']} bpm")
-        print(f"Average Max Heart Rate: {summary['avg_max_heartrate']} bpm")
-        print(f"Total Calories: {summary['total_calories']} kcal")
-        print(f"Average Perceived Exertion: {summary['avg_perceived_exertion']}")
-
-    def present_weekly_report_by_sport(self, summary: dict[str, Any]) -> None:
-        print("\n---- Weekly Summary By Sport----")
-        print(f"Total Distance: {summary['total_distance']} km")
-        print(f"Total Moving Time: {summary['total_moving_time']}")
-        print(f"Total Elevation Gain: {summary['total_elevation_gain']} m")
-        print(f"Average Heart Rate: {summary['avg_heartrate']} bpm")
-        print(f"Average Max Heart Rate: {summary['avg_max_heartrate']} bpm")
-        print(f"Total Calories: {summary['total_calories']} kcal")
-        print(f"Average Perceived Exertion: {summary['avg_perceived_exertion']}")

@@ -17,7 +17,7 @@ def mock_async_api() -> Mock:
 
 @pytest.fixture
 def stream_fetcher(mock_async_api: Mock) -> ActivityStreamsFetcher:
-    return ActivityStreamsFetcher(api=mock_async_api, id_activity=123)
+    return ActivityStreamsFetcher(api=mock_async_api, activity_id=123)
 
 
 stream_response_type = list[dict[str, dict[str, list[float]]]]

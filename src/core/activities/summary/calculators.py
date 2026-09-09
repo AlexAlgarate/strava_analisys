@@ -1,17 +1,16 @@
 from datetime import timedelta
-from typing import Any
 
-from src.core.activities.summary.interfaces import IMetricCalculator
+from src.core.activities.summary.ports import ActivityRecord, SummaryData
 
 
-class DistanceCalculator(IMetricCalculator):
-    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
+class DistanceCalculator:
+    def calculate(self, activities: list[ActivityRecord]) -> SummaryData:
         total_distance = sum(activity.get("distance", 0) for activity in activities)
         return {"total_distance": round(total_distance / 1000, 2)}  # Convert to km
 
 
-class MovingTimeCalculator(IMetricCalculator):
-    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
+class MovingTimeCalculator:
+    def calculate(self, activities: list[ActivityRecord]) -> SummaryData:
         total_moving_time = sum(
             activity.get("moving_time", 0) for activity in activities
         )
@@ -19,16 +18,16 @@ class MovingTimeCalculator(IMetricCalculator):
         return {"total_moving_time": formatted_time}
 
 
-class ElevationGainCalculator(IMetricCalculator):
-    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
+class ElevationGainCalculator:
+    def calculate(self, activities: list[ActivityRecord]) -> SummaryData:
         total_elevation = sum(
             activity.get("total_elevation_gain", 0) for activity in activities
         )
         return {"total_elevation_gain": round(total_elevation, 1)}
 
 
-class HeartRateCalculator(IMetricCalculator):
-    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
+class HeartRateCalculator:
+    def calculate(self, activities: list[ActivityRecord]) -> SummaryData:
         total_hr = 0
         total_max_hr = 0
         activities_with_hr = 0
@@ -54,14 +53,14 @@ class HeartRateCalculator(IMetricCalculator):
         return {"avg_heartrate": avg_hr, "avg_max_heartrate": avg_max_hr}
 
 
-class CaloriesCalculator(IMetricCalculator):
-    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
+class CaloriesCalculator:
+    def calculate(self, activities: list[ActivityRecord]) -> SummaryData:
         total_calories = sum(activity.get("calories", 0) for activity in activities)
         return {"total_calories": round(total_calories, 1)}
 
 
-class PerceivedExertionCalculator(IMetricCalculator):
-    def calculate(self, activities: list[dict[str, Any]]) -> dict[str, Any]:
+class PerceivedExertionCalculator:
+    def calculate(self, activities: list[ActivityRecord]) -> SummaryData:
         total_pe = 0
         activities_with_pe = 0
 

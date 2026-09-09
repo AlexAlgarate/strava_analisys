@@ -2,9 +2,9 @@ from unittest.mock import Mock
 
 import pytest
 
+from src.core.auth.ports import AuthorizationCodeProvider, TokenGateway, TokenStore
 from src.core.auth.service import AccessTokenService
 from src.domain.token import TokenSet
-from src.interfaces.auth import AuthorizationCodeProvider, TokenGateway, TokenStore
 from src.utils.constants import OAUTH_URL
 
 

@@ -1,19 +1,21 @@
 from datetime import datetime
-from typing import Any
-
-from src.interfaces.formatter import IValueFormatter
+from typing import Any, Protocol
 
 
-class ActivityDateFormatter(IValueFormatter):
-    def format(self, value: Any) -> str:
+class ValueFormatter(Protocol):
+    def format(self, value: object) -> str: ...
+
+
+class ActivityDateFormatter:
+    def format(self, value: object) -> str:
         try:
-            dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            dt = datetime.fromisoformat(str(value))
             return dt.strftime("%Y-%m-%d %H:%M:%S")
         except ValueError:
             return str(value)
 
 
-class ActivityDistanceFormatter(IValueFormatter):
+class ActivityDistanceFormatter:
     def format(self, value: Any) -> str:
         try:
             return f"{float(value) / 1000:.2f} km"
@@ -21,7 +23,7 @@ class ActivityDistanceFormatter(IValueFormatter):
             return str(value)
 
 
-class ActivityPaceFormatter(IValueFormatter):
+class ActivityPaceFormatter:
     def format(self, value: Any) -> str:
         try:
             return f"{float(value) * 3.6:.2f} km/h"
@@ -29,7 +31,7 @@ class ActivityPaceFormatter(IValueFormatter):
             return str(value)
 
 
-class ActivityDurationFormatter(IValueFormatter):
+class ActivityDurationFormatter:
     def format(self, value: Any) -> str:
         try:
             minutes = int(value) // 60
@@ -39,7 +41,7 @@ class ActivityDurationFormatter(IValueFormatter):
             return str(value)
 
 
-class ActivityHeartRateFormatter(IValueFormatter):
+class ActivityHeartRateFormatter:
     def format(self, value: Any) -> str:
         try:
             return f"{int(value)} ppm"
@@ -47,7 +49,7 @@ class ActivityHeartRateFormatter(IValueFormatter):
             return str(value)
 
 
-class ActivityCaloriesFormatter(IValueFormatter):
+class ActivityCaloriesFormatter:
     def format(self, value: Any) -> str:
         try:
             return f"{int(value)} kcal"
@@ -55,7 +57,7 @@ class ActivityCaloriesFormatter(IValueFormatter):
             return str(value)
 
 
-class ActivityExertionFormatter(IValueFormatter):
+class ActivityExertionFormatter:
     def format(self, value: Any) -> str:
         try:
             return f"{int(value)} RPE"
@@ -65,7 +67,7 @@ class ActivityExertionFormatter(IValueFormatter):
 
 class ActivityFormatter:
     def __init__(self) -> None:
-        self.formatters = {
+        self.formatters: dict[str, ValueFormatter] = {
             "start_date": ActivityDateFormatter(),
             "start_date_local": ActivityDateFormatter(),
             "distance": ActivityDistanceFormatter(),
@@ -81,7 +83,7 @@ class ActivityFormatter:
     def format_key(self, key: str) -> str:
         return key.replace("_", " ").title()
 
-    def format_value(self, key: str, value: Any) -> str:
+    def format_value(self, key: str, value: object) -> str:
         formatter = self.formatters.get(key)
         if formatter:
             return formatter.format(value)

@@ -4,7 +4,8 @@ from unittest.mock import AsyncMock, Mock
 import pandas as pd
 import pytest
 
-from src.strava_service import StravaService
+from src.core.service import StravaService
+from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
 
 
 def _create_base_api_mock() -> Mock:
@@ -23,7 +24,10 @@ def mock_async_api() -> Mock:
 
 @pytest.fixture
 def service(mock_async_api: Mock) -> StravaService:
-    return StravaService(api_async=mock_async_api)
+    return StravaService(
+        api=mock_async_api,
+        exporters={"csv": CsvStreamExporter()},
+    )
 
 
 class TestStravaService:

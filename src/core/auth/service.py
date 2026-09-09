@@ -1,8 +1,12 @@
 import time
 from collections.abc import Callable
 
+from src.core.auth.ports import (
+    AuthorizationCodeProvider,
+    TokenGateway,
+    TokenStore,
+)
 from src.domain.token import TokenSet
-from src.interfaces.auth import AuthorizationCodeProvider, TokenGateway, TokenStore
 from src.utils.constants import OAUTH_URL
 
 
