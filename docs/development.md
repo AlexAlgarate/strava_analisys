@@ -82,6 +82,9 @@ Antes de publicar una rama se ejecuta siempre `make check` completo.
 
 ## Cómo añadir un caso de uso
 
+La guía [Añadir una opción a la terminal](adding-cli-option.md) desarrolla este
+proceso con ejemplos completos y una matriz de archivos afectados.
+
 1. Modela en `src/domain` los datos y sus invariantes si el concepto aún no
    existe. Convierte la respuesta externa en la frontera con un constructor
    como `from_mapping`.
