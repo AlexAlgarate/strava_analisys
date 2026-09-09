@@ -112,8 +112,7 @@ from src.domain.activity_stream import ActivityStream
 
 
 class ExampleStreamExporter:
-    def export(self, streams: Sequence[ActivityStream], path: Path, /) -> None:
-        ...
+    def export(self, streams: Sequence[ActivityStream], path: Path, /) -> None: ...
 ```
 
 No necesita heredar de una clase base. Se registra en el mapa `exporters` al
