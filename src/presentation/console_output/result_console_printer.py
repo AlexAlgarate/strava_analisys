@@ -35,13 +35,9 @@ class ResultConsolePrinter:
     def print_result(self, option: MenuOption | str, result: object) -> None:
         menu_option = _resolve_option(option)
         heading = (
-            menu_option.description
-            if menu_option is not None
-            else f"Option {option}"
+            menu_option.description if menu_option is not None else f"Option {option}"
         )
-        self._console.rule(
-            Text.assemble(("✓ ", "success"), (heading, "heading"))
-        )
+        self._console.rule(Text.assemble(("✓ ", "success"), (heading, "heading")))
 
         if isinstance(result, StreamExportResult):
             self._print_stream_batch(result.batch)
