@@ -19,17 +19,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version-file: ".python-version"
 
       - name: Set up uv with cache
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.0.1
         with:
-          version: "0.6.14"
+          version: "0.12.11"
           enable-cache: true
 
       - name: Run tests
@@ -41,43 +41,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version-file: ".python-version"
 
       - name: Set up uv with cache
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.0.1
         with:
-          version: "0.6.16"
+          version: "0.12.11"
           enable-cache: true
 
       - name: Lint code with Ruff
         run: uv run ruff check . --fix
 
-  # Static type check with mypy
+  # Static type check with ty
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version-file: ".python-version"
 
       - name: Set up uv with cache
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.0.1
         with:
-          version: "0.6.16"
+          version: "0.12.11"
           enable-cache: true
 
-      - name: Type check with mypy
-        run: uv run mypy .
+      - name: Type check with ty
+        run: uv run ty check
 
   # Build and push Docker image
   docker:
@@ -86,17 +86,17 @@ jobs:
     needs: [test, lint, typecheck]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           push: true
           tags: ghcr.io/alexalgarate/strava_analisys:latest

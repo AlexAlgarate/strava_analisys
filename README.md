@@ -64,6 +64,12 @@ Run the test suite using pytest:
 uv run pytest tests/ -vv
 ```
 
+Run the Python 3.13 type checker:
+
+```bash
+uv run ty check
+```
+
 ## Project Structure
 
 ```text

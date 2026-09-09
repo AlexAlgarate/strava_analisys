@@ -8,7 +8,7 @@ import pandas as pd
 class StreamExporter(Protocol):
     """Persist activity stream data in one output format."""
 
-    def export(self, data: pd.DataFrame, path: Path) -> None: ...
+    def export(self, data: pd.DataFrame, path: Path, /) -> None: ...
 
 
 class ActivityDetailsWriter(Protocol):

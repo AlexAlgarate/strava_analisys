@@ -38,6 +38,5 @@ class DetailedActivity:
 
         for attribute, rule in validation_rules.items():
             value = getattr(self, attribute)
-            if not rule(value):  # type: ignore
+            if not rule(value):
                 raise ValueError(f"Invalid value for {attribute}: {value}")
-                
