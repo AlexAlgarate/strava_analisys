@@ -110,3 +110,17 @@ def test_save_cleans_up_temporary_file_after_failure(
         store.save(TokenSet("access", "refresh", 100))
 
     assert list(token_path.parent.iterdir()) == []
+
+
+def test_save_translates_directory_creation_failure(
+    store: EncryptedFileTokenStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        Path,
+        "mkdir",
+        Mock(side_effect=OSError("read-only filesystem")),
+    )
+
+    with pytest.raises(TokenStorageError, match="Could not write"):
+        store.save(TokenSet("access", "refresh", 100))

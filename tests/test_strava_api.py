@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Any, Self
+from typing import Self
 from unittest.mock import AsyncMock, Mock, patch
 
 import aiohttp
@@ -15,11 +15,11 @@ from src.utils.exceptions import TooManyRequestError, UnauthorizedError
 
 
 class MockResponse:
-    def __init__(self, data: Any, status: int = 200) -> None:
+    def __init__(self, data: object, status: int = 200) -> None:
         self._data = data
         self.status = status
 
-    async def json(self) -> Any:
+    async def json(self) -> object:
         return self._data
 
     def raise_for_status(self) -> None:

@@ -1,5 +1,5 @@
 from collections.abc import Mapping, Sequence
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from src.core.ports.export import ActivityZonesWriter
 from src.core.ports.strava import StravaAPI
@@ -41,7 +41,8 @@ class ActivityZones:
         if len(zones) != len(self.ZONE_KEYS):
             raise ValueError("Strava must return exactly five heartrate zones.")
 
-        zones_dict = dict(zip(self.ZONE_KEYS, zones, strict=True))
+        zone_values = cast(Sequence[object], zones)
+        zones_dict = dict(zip(self.ZONE_KEYS, zone_values, strict=True))
         if save_zones:
             if self._writer is None:
                 raise RuntimeError("No activity zones writer has been configured.")

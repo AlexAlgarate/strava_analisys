@@ -46,7 +46,7 @@ class MenuHandler:
         self._init_menu_options()
 
     def _init_menu_options(self) -> None:
-        self.menu_options: dict[MenuOption, Callable[[], Any]] = {
+        self.menu_options: dict[MenuOption, Callable[[], object]] = {
             MenuOption.ACTIVITY_DETAILS: lambda: self._handle_async(
                 self.dependencies.service.get_activity_details, False
             ),
@@ -71,21 +71,21 @@ class MenuHandler:
             MenuOption.WEEKLY_REPORT: self._generate_weekly_report,
         }
 
-    def _handle_async(
+    def _handle_async[T](
         self,
-        func: Callable[..., Coroutine[Any, Any, Any]],
+        func: Callable[..., Coroutine[Any, Any, T]],
         previous_week: bool,
-    ) -> Any:
+    ) -> T:
         return asyncio.run(func(previous_week=previous_week))
 
-    def _handle_single_stream(self) -> Any:
+    def _handle_single_stream(self) -> object:
         return asyncio.run(
             self.dependencies.service.get_streams_for_activity(
                 activity_id=constant.EXAMPLE_ID_ONE_ACTIVITY
             )
         )
 
-    def _handle_multiple_streams(self) -> Any:
+    def _handle_multiple_streams(self) -> object:
         return asyncio.run(
             self.dependencies.service.get_streams_for_multiple_activities(
                 activity_ids=constant.EXAMPLE_ID_ACTIVITIES
@@ -101,7 +101,7 @@ class MenuHandler:
     def get_menu_options(self) -> dict[str, str]:
         return {str(option.id): option.description for option in MenuOption}
 
-    def execute_option(self, option: str) -> Any | None:
+    def execute_option(self, option: str) -> object:
         try:
             menu_option = self._validate_option(option=option)
             result = self.menu_options[menu_option]()

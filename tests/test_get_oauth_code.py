@@ -40,7 +40,7 @@ class TestGetOauthCode:
     def test_create_full_url_with_empty_params(
         self, oauth_handler: GetOauthCode
     ) -> None:
-        params: dict = {}
+        params: dict[str, str] = {}
 
         result = oauth_handler._create_full_url(self.base_url, params)
         assert result == self.base_url

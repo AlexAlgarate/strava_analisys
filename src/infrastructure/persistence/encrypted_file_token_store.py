@@ -55,6 +55,7 @@ class EncryptedFileTokenStore:
             ) from exc
 
     def _write_private_file(self, content: bytes) -> None:
+        temp_path: Path | None = None
         try:
             self._path.parent.mkdir(
                 mode=_PRIVATE_DIRECTORY_MODE, parents=True, exist_ok=True
@@ -66,7 +67,7 @@ class EncryptedFileTokenStore:
             os.replace(temp_path, self._path)
             self._path.chmod(_PRIVATE_FILE_MODE)
         except OSError as exc:
-            if "temp_path" in locals():
+            if temp_path is not None:
                 temp_path.unlink(missing_ok=True)
             raise TokenStorageError(
                 f"Could not write the encrypted token file at {self._path}."

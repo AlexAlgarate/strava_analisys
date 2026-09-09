@@ -1,5 +1,13 @@
 from datetime import datetime
-from typing import Any, Protocol
+from typing import Protocol
+
+type NumericInput = str | int | float
+
+
+def _require_numeric_input(value: object) -> NumericInput:
+    if isinstance(value, (str, int, float)):
+        return value
+    raise TypeError("Value must be numeric or a numeric string.")
 
 
 class ValueFormatter(Protocol):
@@ -16,51 +24,52 @@ class ActivityDateFormatter:
 
 
 class ActivityDistanceFormatter:
-    def format(self, value: Any) -> str:
+    def format(self, value: object) -> str:
         try:
-            return f"{float(value) / 1000:.2f} km"
+            return f"{float(_require_numeric_input(value)) / 1000:.2f} km"
         except (ValueError, TypeError):
             return str(value)
 
 
 class ActivityPaceFormatter:
-    def format(self, value: Any) -> str:
+    def format(self, value: object) -> str:
         try:
-            return f"{float(value) * 3.6:.2f} km/h"
+            return f"{float(_require_numeric_input(value)) * 3.6:.2f} km/h"
         except (ValueError, TypeError):
             return str(value)
 
 
 class ActivityDurationFormatter:
-    def format(self, value: Any) -> str:
+    def format(self, value: object) -> str:
         try:
-            minutes = int(value) // 60
-            seconds = int(value) % 60
+            numeric_value = _require_numeric_input(value)
+            minutes = int(numeric_value) // 60
+            seconds = int(numeric_value) % 60
             return f"{minutes}m {seconds}s"
         except (ValueError, TypeError):
             return str(value)
 
 
 class ActivityHeartRateFormatter:
-    def format(self, value: Any) -> str:
+    def format(self, value: object) -> str:
         try:
-            return f"{int(value)} ppm"
+            return f"{int(_require_numeric_input(value))} ppm"
         except (ValueError, TypeError):
             return str(value)
 
 
 class ActivityCaloriesFormatter:
-    def format(self, value: Any) -> str:
+    def format(self, value: object) -> str:
         try:
-            return f"{int(value)} kcal"
+            return f"{int(_require_numeric_input(value))} kcal"
         except (ValueError, TypeError):
             return str(value)
 
 
 class ActivityExertionFormatter:
-    def format(self, value: Any) -> str:
+    def format(self, value: object) -> str:
         try:
-            return f"{int(value)} RPE"
+            return f"{int(_require_numeric_input(value))} RPE"
         except (ValueError, TypeError):
             return str(value)
 
