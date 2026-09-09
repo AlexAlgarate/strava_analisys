@@ -60,6 +60,7 @@ class EncryptedFileTokenStore:
             self._path.parent.mkdir(
                 mode=_PRIVATE_DIRECTORY_MODE, parents=True, exist_ok=True
             )
+            self._path.parent.chmod(_PRIVATE_DIRECTORY_MODE)
             with NamedTemporaryFile(dir=self._path.parent, delete=False) as temp_file:
                 temp_path = Path(temp_file.name)
                 temp_file.write(content)
@@ -68,7 +69,13 @@ class EncryptedFileTokenStore:
             self._path.chmod(_PRIVATE_FILE_MODE)
         except OSError as exc:
             if temp_path is not None:
-                temp_path.unlink(missing_ok=True)
+                try:
+                    temp_path.unlink(missing_ok=True)
+                except OSError as cleanup_error:
+                    exc.add_note(
+                        f"Could not remove temporary token file {temp_path}: "
+                        f"{cleanup_error}"
+                    )
             raise TokenStorageError(
                 f"Could not write the encrypted token file at {self._path}."
             ) from exc

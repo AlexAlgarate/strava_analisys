@@ -83,6 +83,19 @@ def test_fernet_secrets_creates_and_reuses_private_local_key(
     assert stat.S_IMODE(key_path.parent.stat().st_mode) == 0o700
 
 
+def test_fernet_secrets_restricts_existing_directory_permissions(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("FERNET_KEY", raising=False)
+    config_directory = tmp_path / "config"
+    config_directory.mkdir(mode=0o755)
+    config_directory.chmod(0o755)
+
+    FernetSecrets(config_directory / "fernet.key")
+
+    assert stat.S_IMODE(config_directory.stat().st_mode) == 0o700
+
+
 def test_fernet_secrets_rejects_invalid_environment_key(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

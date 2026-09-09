@@ -48,16 +48,12 @@ class FernetSecrets:
     @staticmethod
     def _load_or_create_key(path: Path) -> bytes:
         if path.exists():
-            try:
-                key = path.read_bytes().strip()
-                path.chmod(0o600)
-                return key
-            except OSError as exc:
-                raise ValueError(f"Could not read the Fernet key at {path}.") from exc
+            return FernetSecrets._read_private_key(path)
 
         key = Fernet.generate_key()
         try:
             path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            path.parent.chmod(0o700)
             file_descriptor = os.open(
                 path,
                 os.O_WRONLY | os.O_CREAT | os.O_EXCL,
@@ -66,7 +62,17 @@ class FernetSecrets:
             with os.fdopen(file_descriptor, "wb") as key_file:
                 key_file.write(key)
         except FileExistsError:
-            return path.read_bytes().strip()
+            return FernetSecrets._read_private_key(path)
         except OSError as exc:
             raise ValueError(f"Could not store the Fernet key at {path}.") from exc
         return key
+
+    @staticmethod
+    def _read_private_key(path: Path) -> bytes:
+        try:
+            path.parent.chmod(0o700)
+            key = path.read_bytes().strip()
+            path.chmod(0o600)
+            return key
+        except OSError as exc:
+            raise ValueError(f"Could not read the Fernet key at {path}.") from exc

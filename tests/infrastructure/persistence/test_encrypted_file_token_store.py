@@ -45,6 +45,17 @@ def test_round_trip_is_encrypted_and_private(
     assert stat.S_IMODE(token_path.parent.stat().st_mode) == 0o700
 
 
+def test_save_restricts_existing_directory_permissions(
+    store: EncryptedFileTokenStore, token_path: Path
+) -> None:
+    token_path.parent.mkdir(mode=0o755)
+    token_path.parent.chmod(0o755)
+
+    store.save(TokenSet("access", "refresh", 100))
+
+    assert stat.S_IMODE(token_path.parent.stat().st_mode) == 0o700
+
+
 def test_save_replaces_previous_token(
     store: EncryptedFileTokenStore,
 ) -> None:
@@ -124,3 +135,20 @@ def test_save_translates_directory_creation_failure(
 
     with pytest.raises(TokenStorageError, match="Could not write"):
         store.save(TokenSet("access", "refresh", 100))
+
+
+def test_cleanup_failure_does_not_hide_write_error(
+    store: EncryptedFileTokenStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    replace_error = OSError("replace failed")
+    monkeypatch.setattr(
+        "src.infrastructure.persistence.encrypted_file_token_store.os.replace",
+        Mock(side_effect=replace_error),
+    )
+    monkeypatch.setattr(Path, "unlink", Mock(side_effect=OSError("cleanup failed")))
+
+    with pytest.raises(TokenStorageError) as error:
+        store.save(TokenSet("access", "refresh", 100))
+
+    assert error.value.__cause__ is replace_error
