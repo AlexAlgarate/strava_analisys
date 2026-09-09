@@ -1,4 +1,6 @@
-__pycache__/
-.env
-*.pyc
-.git
+*
+!main.py
+!pyproject.toml
+!uv.lock
+!src/
+!src/**

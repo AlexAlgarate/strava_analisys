@@ -1,13 +1,22 @@
-FROM python:3.13-slim-bookworm
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
+FROM python:3.13-slim-trixie AS builder
 
-ADD https://astral.sh/uv/0.6.6/install.sh /uv-installer.sh
-RUN sh /uv-installer.sh && rm /uv-installer.sh
-ENV PATH="/root/.local/bin/:$PATH"
-ADD . /app
+COPY --from=ghcr.io/astral-sh/uv:0.12.11 /uv /bin/uv
+
+ENV UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
 
-COPY . .
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev --no-install-project
 
 
-CMD ["uv", "run", "main.py"]
+FROM python:3.13-slim-trixie
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+WORKDIR /app
+
+COPY --from=builder /app/.venv /app/.venv
+COPY main.py ./
+COPY src ./src
+
+CMD ["/app/.venv/bin/python", "main.py"]
