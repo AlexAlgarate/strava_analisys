@@ -5,15 +5,13 @@ import pytest
 from rich.console import Console
 
 from src.core.service import StreamExportResult
-from src.domain.activity_stream import ActivityStream, StreamBatch, StreamFetchFailure
-from src.domain.detailed_activity import DetailedActivity
-from src.domain.heart_rate_zones import HeartRateZones
+from src.domain.activity_stream import StreamBatch, StreamFetchFailure
 from src.presentation.console_output.console import STRAVA_THEME
 from src.presentation.console_output.result_console_printer import (
     ResultConsolePrinter,
 )
 from src.presentation.menu.options import MenuOption
-from tests.factories import activity_payload, stream_payload, zones_payload
+from tests.factories import activity_model, activity_stream, heart_rate_zones
 
 
 @pytest.fixture
@@ -40,7 +38,7 @@ def test_print_activity_stream_and_truncation(
     printer: ResultConsolePrinter,
     output: StringIO,
 ) -> None:
-    stream = ActivityStream.from_mapping(7, stream_payload())
+    stream = activity_stream(7)
 
     printer.print_result(MenuOption.SINGLE_STREAM, stream)
 
@@ -84,7 +82,7 @@ def test_print_activity_list(
     output: StringIO,
     option: MenuOption,
 ) -> None:
-    activity = DetailedActivity.from_mapping(activity_payload())
+    activity = activity_model()
 
     printer.print_result(option, [activity])
 
@@ -130,7 +128,7 @@ def test_print_zones(
     printer: ResultConsolePrinter,
     output: StringIO,
 ) -> None:
-    zones = HeartRateZones.from_api_response(7, zones_payload())
+    zones = heart_rate_zones(7)
 
     printer.print_result(MenuOption.ACTIVITY_ZONES, zones)
 

@@ -1,27 +1,24 @@
 from datetime import timedelta
 
 from src.domain.activity_summary import WeeklyActivitySummary
-from src.domain.detailed_activity import DetailedActivity
-from tests.factories import activity_payload
+from tests.factories import activity_model
 
 
 def test_calculates_weekly_summary_from_domain_activities() -> None:
     activities = [
-        DetailedActivity.from_mapping(activity_payload()),
-        DetailedActivity.from_mapping(
-            activity_payload(
-                2,
-                "Evening Ride",
-                distance=20_555,
-                moving_time=1_800,
-                elapsed_time=2_000,
-                total_elevation_gain=80.56,
-                average_heartrate=135,
-                max_heartrate=165,
-                calories=400.25,
-                perceived_exertion=4,
-                sport_type="Ride",
-            )
+        activity_model(),
+        activity_model(
+            2,
+            "Evening Ride",
+            distance=20_555,
+            moving_time=1_800,
+            elapsed_time=2_000,
+            total_elevation_gain=80.56,
+            average_heartrate=135,
+            max_heartrate=165,
+            calories=400.25,
+            perceived_exertion=4,
+            sport_type="Ride",
         ),
     ]
 
@@ -51,11 +48,13 @@ def test_empty_week_has_zero_totals_and_unknown_averages() -> None:
 
 
 def test_missing_optional_metrics_do_not_count_as_zero_in_averages() -> None:
-    complete = DetailedActivity.from_mapping(activity_payload())
-    incomplete_payload = activity_payload(2)
-    for key in ("average_heartrate", "max_heartrate", "perceived_exertion"):
-        incomplete_payload.pop(key)
-    incomplete = DetailedActivity.from_mapping(incomplete_payload)
+    complete = activity_model()
+    incomplete = activity_model(
+        2,
+        average_heartrate=None,
+        max_heartrate=None,
+        perceived_exertion=None,
+    )
 
     summary = WeeklyActivitySummary.from_activities([complete, incomplete])
 

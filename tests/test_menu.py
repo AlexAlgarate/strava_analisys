@@ -8,7 +8,6 @@ from rich.console import Console
 from src.core.activities.summary.service import ActivitySummaryService
 from src.domain.activity_stream import StreamBatch
 from src.domain.activity_summary import WeeklyActivitySummary
-from src.domain.detailed_activity import DetailedActivity
 from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
 from src.presentation.console_output.console import STRAVA_THEME
 from src.presentation.console_output.console_error_handler import (
@@ -23,7 +22,7 @@ from src.presentation.console_output.weekly_summary_presenter import (
 )
 from src.presentation.menu.options import MenuOption
 from src.presentation.menu.renderer import MenuRenderer
-from tests.factories import activity_payload
+from tests.factories import activity_model
 
 
 @pytest.fixture
@@ -175,7 +174,7 @@ class TestMenuHandler:
         previous_week: bool,
     ) -> None:
         method = getattr(mock_service, service_method)
-        method.return_value = [DetailedActivity.from_mapping(activity_payload())]
+        method.return_value = [activity_model()]
 
         result = await menu_handler.execute_option(str(option.id))
 

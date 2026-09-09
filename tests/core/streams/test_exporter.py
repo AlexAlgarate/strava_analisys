@@ -7,7 +7,7 @@ import pytest
 from src.core.streams.exporter import DataExporter
 from src.domain.activity_stream import ActivityStream
 from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
-from tests.factories import stream_payload
+from tests.factories import activity_stream
 
 
 class CountingExporter:
@@ -20,7 +20,7 @@ class CountingExporter:
 
 @pytest.fixture
 def sample_streams() -> tuple[ActivityStream, ...]:
-    return (ActivityStream.from_mapping(1, stream_payload()),)
+    return (activity_stream(),)
 
 
 @pytest.fixture

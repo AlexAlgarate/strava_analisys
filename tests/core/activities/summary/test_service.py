@@ -4,13 +4,12 @@ import pytest
 
 from src.core.activities.summary.service import ActivitySummaryService
 from src.domain.activity_summary import WeeklyActivitySummary
-from src.domain.detailed_activity import DetailedActivity
-from tests.factories import activity_payload
+from tests.factories import activity_model
 
 
 @pytest.mark.asyncio
 async def test_generates_summary_from_live_activity_provider() -> None:
-    activities = [DetailedActivity.from_mapping(activity_payload())]
+    activities = [activity_model()]
     provider = Mock()
     provider.get_activity_details = AsyncMock(return_value=activities)
     service = ActivitySummaryService(provider)
