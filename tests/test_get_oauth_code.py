@@ -1,3 +1,4 @@
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -8,7 +9,7 @@ from src.infrastructure.auth.oauth_code import GetOauthCode
 
 class TestGetOauthCode:
     base_url = "https://example.com/auth"
-    params = {
+    params: ClassVar[dict[str, str]] = {
         "client_id": "123",
         "response_type": "code",
         "redirect_uri": "http://localhost/exchange_token",
