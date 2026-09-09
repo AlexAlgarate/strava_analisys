@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 
 from src.core.activities.service import ActivityService
@@ -14,6 +15,14 @@ from src.core.streams.manager import StreamManager
 from src.domain.activity_stream import ActivityStream, StreamBatch
 from src.domain.detailed_activity import DetailedActivity
 from src.domain.heart_rate_zones import HeartRateZones
+
+
+@dataclass(frozen=True, slots=True)
+class StreamExportResult:
+    """Outcome of exporting a batch of activity streams."""
+
+    batch: StreamBatch
+    path: Path
 
 
 class StravaService:
@@ -63,17 +72,17 @@ class StravaService:
         selected_format: str = "csv",
         output_dir: str | Path = ".",
         previous_week: bool = False,
-    ) -> StreamBatch:
+    ) -> StreamExportResult:
         batch = await self._stream_manager.get_weekly_streams(
             previous_week=previous_week
         )
-        self._data_exporter.export_streams(
+        path = self._data_exporter.export_streams(
             batch.streams,
             selected_format=selected_format,
             output_dir=output_dir,
             previous_week=previous_week,
         )
-        return batch
+        return StreamExportResult(batch=batch, path=path)
 
     async def get_activity_zones(
         self, activity_id: int, save_zones: bool = False

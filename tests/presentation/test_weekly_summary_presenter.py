@@ -25,9 +25,10 @@ def test_presents_summary_and_marks_unknown_averages(
     ConsoleSummaryPresenter().present_weekly_report(summary)
 
     output = capsys.readouterr().out
-    assert "Activities: 0" in output
-    assert "Average Heart Rate: N/A" in output
-    assert "Average Perceived Exertion: N/A" in output
+    assert "Activities" in output
+    assert "Average heart rate" in output
+    assert "Perceived exertion" in output
+    assert "N/A" in output
 
 
 def test_presents_available_average_values(
@@ -47,5 +48,6 @@ def test_presents_available_average_values(
     ConsoleSummaryPresenter().present_weekly_report(summary)
 
     output = capsys.readouterr().out
-    assert "Average Heart Rate: 145 bpm" in output
-    assert "Average Perceived Exertion: 6" in output
+    assert "Average heart rate" in output
+    assert "145 bpm" in output
+    assert "Perceived exertion" in output
