@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from src.core.service import StravaService
+from src.core.service import StravaService, StreamExportResult
 from src.domain.activity_stream import ActivityStream, StreamBatch
 from src.domain.detailed_activity import DetailedActivity
 from src.domain.heart_rate_zones import HeartRateZones
@@ -69,8 +69,9 @@ async def test_export_streams_for_selected_week(
         previous_week=True,
     )
 
-    assert isinstance(result, StreamBatch)
-    assert result.sample_count == 6
+    assert isinstance(result, StreamExportResult)
+    assert result.batch.sample_count == 6
+    assert result.path == tmp_path / "streams_previous_week.csv"
     assert (tmp_path / "streams_previous_week.csv").exists()
 
 
