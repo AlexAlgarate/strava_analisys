@@ -10,16 +10,20 @@ from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
 from src.infrastructure.export.json_activity_zones_writer import (
     JsonActivityZonesWriter,
 )
-from src.presentation.cli_entrypoint import MenuHandler
+from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
+from src.presentation.console_output.console import create_console
 from src.presentation.console_output.console_error_handler import (
     ConsoleErrorHandler,
 )
+from src.presentation.console_output.progress import ConsoleProgress
+from src.presentation.console_output.prompts import ConsolePrompts
 from src.presentation.console_output.result_console_printer import (
     ResultConsolePrinter,
 )
 from src.presentation.console_output.weekly_summary_presenter import (
     ConsoleSummaryPresenter,
 )
+from src.presentation.menu.renderer import MenuRenderer
 from src.utils.logger_config import setup_logging
 
 
@@ -33,8 +37,10 @@ async def run_cli() -> None:
     access_token = token.get_access_token()
 
     async with AsyncStravaAPI(access_token=access_token) as strava_api:
-        result_console_printer = ResultConsolePrinter()
-        error_console_printer = ConsoleErrorHandler()
+        console = create_console()
+        prompts = ConsolePrompts(console)
+        result_console_printer = ResultConsolePrinter(console)
+        error_console_printer = ConsoleErrorHandler(console)
 
         service = StravaService(
             api=strava_api,
@@ -44,22 +50,30 @@ async def run_cli() -> None:
         summary_service = ActivitySummaryService(activity_provider=service)
 
         menu = MenuHandler(
-            service=service,
-            result_console_printer=result_console_printer,
-            error_console_printer=error_console_printer,
-            summary_service=summary_service,
-            summary_presenter=ConsoleSummaryPresenter(),
+            MenuDependencies(
+                service=service,
+                result_printer=result_console_printer,
+                error_printer=error_console_printer,
+                summary_service=summary_service,
+                summary_presenter=ConsoleSummaryPresenter(console),
+                prompts=prompts,
+                menu_view=MenuRenderer(console),
+                progress=ConsoleProgress(console),
+            )
         )
 
-        while True:
-            menu.print_menu()
-            option = input("\nChoose an option (number or 'q' to exit): ")
-
-            if option.lower() == "q":
-                print("\n👋 Goodbye")
-                break
-
-            await menu.execute_option(option)
+        menu.print_welcome()
+        try:
+            while True:
+                menu.print_menu()
+                option = menu.ask_option()
+                if option == "q":
+                    break
+                await menu.execute_option(option)
+        except (EOFError, KeyboardInterrupt):
+            pass
+        finally:
+            menu.print_goodbye()
 
 
 def main() -> None:

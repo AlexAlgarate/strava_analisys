@@ -2,48 +2,36 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
 
-from src.core.activities.summary.service import ActivitySummaryService
-from src.core.service import StravaService
-from src.presentation.console_output.console_error_handler import (
-    ConsoleErrorHandler,
-)
-from src.presentation.console_output.result_console_printer import (
-    ResultConsolePrinter,
-)
-from src.presentation.console_output.weekly_summary_presenter import (
-    ConsoleSummaryPresenter,
-)
 from src.presentation.menu.options import MenuOption
-from src.utils import constants as constant
+from src.presentation.ports import (
+    ErrorPresenter,
+    MenuView,
+    OperationProgress,
+    PromptReader,
+    ResultPresenter,
+    StravaUseCases,
+    WeeklySummaryPresenter,
+    WeeklySummaryUseCase,
+)
 
 type MenuAction = Callable[[], Awaitable[object]]
 
 
 @dataclass(frozen=True, slots=True)
 class MenuDependencies:
-    service: StravaService
-    result_printer: ResultConsolePrinter
-    error_printer: ConsoleErrorHandler
-    summary_service: ActivitySummaryService | None
-    summary_presenter: ConsoleSummaryPresenter
+    service: StravaUseCases
+    result_printer: ResultPresenter
+    error_printer: ErrorPresenter
+    summary_service: WeeklySummaryUseCase | None
+    summary_presenter: WeeklySummaryPresenter
+    prompts: PromptReader
+    menu_view: MenuView
+    progress: OperationProgress
 
 
 class MenuHandler:
-    def __init__(
-        self,
-        service: StravaService,
-        result_console_printer: ResultConsolePrinter | None = None,
-        error_console_printer: ConsoleErrorHandler | None = None,
-        summary_service: ActivitySummaryService | None = None,
-        summary_presenter: ConsoleSummaryPresenter | None = None,
-    ) -> None:
-        self.dependencies = MenuDependencies(
-            service=service,
-            result_printer=result_console_printer or ResultConsolePrinter(),
-            error_printer=error_console_printer or ConsoleErrorHandler(),
-            summary_service=summary_service,
-            summary_presenter=summary_presenter or ConsoleSummaryPresenter(),
-        )
+    def __init__(self, dependencies: MenuDependencies) -> None:
+        self.dependencies = dependencies
         self._init_menu_options()
 
     def _init_menu_options(self) -> None:
@@ -75,17 +63,22 @@ class MenuHandler:
                 previous_week=True,
             ),
             MenuOption.WEEKLY_REPORT: self._generate_weekly_report,
+            MenuOption.ACTIVITY_ZONES: self._handle_activity_zones,
         }
 
     async def _handle_single_stream(self) -> object:
-        return await self.dependencies.service.get_streams_for_activity(
-            activity_id=constant.EXAMPLE_ID_ONE_ACTIVITY
-        )
+        activity_id = self.dependencies.prompts.ask_activity_id()
+        return await self.dependencies.service.get_streams_for_activity(activity_id)
 
     async def _handle_multiple_streams(self) -> object:
+        activity_ids = self.dependencies.prompts.ask_activity_ids()
         return await self.dependencies.service.get_streams_for_multiple_activities(
-            activity_ids=constant.EXAMPLE_ID_ACTIVITIES
+            activity_ids
         )
+
+    async def _handle_activity_zones(self) -> object:
+        activity_id = self.dependencies.prompts.ask_activity_id()
+        return await self.dependencies.service.get_activity_zones(activity_id)
 
     async def _generate_weekly_report(self) -> None:
         if self.dependencies.summary_service is None:
@@ -96,27 +89,45 @@ class MenuHandler:
     def get_menu_options(self) -> dict[str, str]:
         return {str(option.id): option.description for option in MenuOption}
 
-    async def execute_option(self, option: str) -> object:
+    def ask_option(self) -> str:
+        return self.dependencies.prompts.ask_menu_option(self.get_menu_options())
+
+    async def execute_option(self, option: str) -> object | None:
         try:
             menu_option = self._validate_option(option=option)
-            result = await self._menu_options[menu_option]()
-            if result is not None:
-                self.dependencies.result_printer.print_result(
-                    option=option,
-                    result=result,
-                )
-            return result
-        except (ValueError, KeyError):
-            self.dependencies.error_printer.print_error(option=option)
+        except ValueError:
+            self.dependencies.error_printer.print_invalid_option(option)
             return None
 
+        try:
+            with self.dependencies.progress.track(menu_option.description):
+                result = await self._menu_options[menu_option]()
+        except Exception as error:  # noqa: BLE001 - terminal boundary stays alive
+            self.dependencies.error_printer.print_operation_error(
+                menu_option.description,
+                error,
+            )
+            return None
+
+        if result is not None:
+            self.dependencies.result_printer.print_result(
+                option=menu_option,
+                result=result,
+            )
+        return result
+
     def _validate_option(self, option: str) -> MenuOption:
-        valid_options = {str(opt.id): opt for opt in MenuOption}
-        if option not in valid_options:
-            raise ValueError(f"Option {option} not found")
-        return valid_options[option]
+        valid_options = {str(item.id): item for item in MenuOption}
+        try:
+            return valid_options[option]
+        except KeyError as error:
+            raise ValueError(f"Option {option} not found") from error
+
+    def print_welcome(self) -> None:
+        self.dependencies.menu_view.print_welcome()
 
     def print_menu(self) -> None:
-        print("\n📌 Choose an option: \n")
-        for key, desc in self.get_menu_options().items():
-            print(f"{key}. {desc}")
+        self.dependencies.menu_view.print_menu(MenuOption)
+
+    def print_goodbye(self) -> None:
+        self.dependencies.menu_view.print_goodbye()
