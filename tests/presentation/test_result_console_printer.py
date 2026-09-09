@@ -54,9 +54,7 @@ def test_print_stream_batch_failures(
     printer: ResultConsolePrinter,
     output: StringIO,
 ) -> None:
-    batch = StreamBatch(
-        failures=(StreamFetchFailure(7, "TimeoutError", "timed out"),)
-    )
+    batch = StreamBatch(failures=(StreamFetchFailure(7, "TimeoutError", "timed out"),))
 
     printer.print_result(MenuOption.MULTIPLE_STREAMS, batch)
 
