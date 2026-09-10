@@ -125,7 +125,7 @@ def test_setup_logging_refuses_symbolic_link_file(
     log_file = tmp_path / "application.log"
     log_file.symlink_to(target)
 
-    with pytest.raises(OSError):
+    with pytest.raises(OSError, match="Too many levels of symbolic links"):
         setup_logging(log_file=log_file)
 
     assert target.read_text(encoding="utf-8") == "do not append\n"
@@ -140,7 +140,7 @@ def test_setup_logging_refuses_symbolic_link_directory(
     log_directory = tmp_path / "logs"
     log_directory.symlink_to(target_directory, target_is_directory=True)
 
-    with pytest.raises(OSError):
+    with pytest.raises(OSError, match="symbolic link as log directory"):
         setup_logging(log_file=log_directory / "application.log")
 
     assert list(target_directory.iterdir()) == []
