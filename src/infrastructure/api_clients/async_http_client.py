@@ -6,7 +6,7 @@ from typing import Self, cast
 
 import aiohttp
 
-from src.utils import exceptions
+from src.application.errors import RateLimitExceededError, UnauthorizedError
 
 UNAUTHORIZED_USER = 401
 REACH_REQUEST_LIMIT = 429
@@ -89,11 +89,11 @@ class AsyncHTTPClient:
             params=params,
         ) as response:
             if response.status == REACH_REQUEST_LIMIT:
-                raise exceptions.TooManyRequestError(
+                raise RateLimitExceededError(
                     "You have reached the request limit. Please try again later."
                 )
             if response.status == UNAUTHORIZED_USER:
-                raise exceptions.UnauthorizedError(
+                raise UnauthorizedError(
                     "Strava rejected the access token. Reauthorize the application."
                 )
             response.raise_for_status()

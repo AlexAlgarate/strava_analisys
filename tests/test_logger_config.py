@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from src.utils.logger_config import setup_logging
+from src.infrastructure.logging import setup_logging
 
 
 @pytest.fixture

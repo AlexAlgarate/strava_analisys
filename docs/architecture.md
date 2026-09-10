@@ -1,55 +1,60 @@
 # Arquitectura
 
-Strava Analysis sigue una arquitectura por capas con dependencias dirigidas
-hacia el dominio. `main.py` es la raíz de composición: crea los adaptadores
-concretos y los inyecta en los casos de uso y en la interfaz de terminal.
+Strava Analysis separa dominio, aplicación, infraestructura y presentación.
+Las dependencias apuntan hacia dentro y `src/composition.py` es el único módulo
+que construye adaptadores concretos y los conecta con casos de uso.
 
 ```mermaid
 flowchart LR
-    Main["main.py<br/>raíz de composición"]
+    Main["main.py<br/>arranque y ciclo de vida"]
+    Composition["composition.py<br/>ensamblado"]
     Presentation["presentation<br/>CLI y presentadores"]
-    Core["core<br/>casos de uso y puertos"]
+    Application["application<br/>casos de uso y puertos"]
     Infrastructure["infrastructure<br/>adaptadores externos"]
     Domain["domain<br/>modelos y reglas"]
     Strava["API de Strava"]
-    Local["almacenamiento local cifrado"]
+    Local["archivos locales cifrados"]
 
+    Main --> Composition
     Main --> Presentation
-    Main --> Core
     Main --> Infrastructure
-    Presentation --> Core
+    Composition --> Application
+    Composition --> Infrastructure
+    Presentation --> Application
     Presentation --> Domain
-    Core --> Domain
-    Infrastructure --> Core
+    Infrastructure --> Application
     Infrastructure --> Domain
+    Application --> Domain
     Infrastructure --> Strava
     Infrastructure --> Local
 ```
 
-El dominio no conoce ninguna capa externa. Presentación e infraestructura
-tampoco se conocen entre sí: ambas se conectan mediante contratos definidos
-por la capa que consume la funcionalidad.
+Presentación e infraestructura no se conocen entre sí. Ambas dependen de
+contratos de aplicación o de dominio y se conectan únicamente desde
+`composition.py`. `main.py` limita su responsabilidad al arranque, el ciclo
+de vida del cliente HTTP y la construcción de los adaptadores de terminal.
 
 ## Responsabilidad de cada capa
 
 | Capa | Responsabilidad | Ejemplos |
 | --- | --- | --- |
-| `domain` | Representar estados válidos y reglas de negocio puras | `DetailedActivity`, `ActivityStream`, `HeartRateZones`, `TokenSet` |
-| `core` | Orquestar casos de uso y declarar puertos | consulta semanal, exportación, resumen, OAuth |
-| `infrastructure` | Implementar I/O y servicios externos | HTTP, API de Strava, CSV, JSON y tokens cifrados |
-| `presentation` | Recoger entradas y presentar resultados | menú, prompts, tablas, errores y progreso |
-| `main.py` | Construir e inyectar dependencias | cliente API, exportadores, servicios y CLI |
+| `domain` | Estados válidos y reglas puras | `DetailedActivity`, `ActivityStream`, `WeekPeriod`, `TokenSet` |
+| `application` | Casos de uso, puertos y resultados | consultas semanales, exportación, resumen y OAuth |
+| `infrastructure` | I/O y traducción de sistemas externos | HTTP, Strava, OAuth, CSV, JSON, logging y tokens cifrados |
+| `presentation` | Entrada y salida de terminal | menú, prompts, tablas, errores y progreso |
+| `composition.py` | Construcción y conexión de implementaciones | gateways, stores, writers y servicios |
+| `main.py` | Bootstrap y ciclo de vida | token, cliente API, consola y bucle del menú |
 
-`src/utils` contiene únicamente elementos transversales pequeños, como
-constantes, excepciones y configuración de logging. No debe convertirse en una
-capa alternativa con lógica de negocio.
+No existe un cajón genérico transversal. Cada concepto vive junto a la capa que
+lo posee: los errores del contrato están en `application.errors`, el logging en
+`infrastructure.logging` y los cálculos semanales en `domain.week_period`.
 
 ## Dominio y límites de confianza
 
-Las respuestas de Strava entran como `object`. Los adaptadores y casos de uso
-comprueban su forma y las convierten de inmediato a modelos de dominio
-inmutables (`@dataclass(frozen=True, slots=True)`). De esta forma, el resto de
-la aplicación no trabaja con diccionarios externos de estructura ambigua.
+Las respuestas de Strava entran como `object`. Los mapeadores de
+`infrastructure/strava` comprueban su forma y las convierten de inmediato a
+modelos de dominio inmutables (`@dataclass(frozen=True, slots=True)`). Ni
+aplicación ni presentación reciben diccionarios de la API.
 
 Los modelos protegen invariantes como:
 
@@ -57,72 +62,62 @@ Los modelos protegen invariantes como:
 - distancias, tiempos y métricas finitas no negativas;
 - coherencia entre tiempo transcurrido y tiempo en movimiento;
 - exactamente cinco zonas cardiacas;
-- muestras de streams sincronizadas, incluso cuando falta alguna serie;
-- tokens completos y con una fecha de expiración válida.
+- muestras de streams sincronizadas aunque falte una serie;
+- tokens completos con una fecha de expiración válida.
 
 `StreamBatch` conserva por separado los streams obtenidos y cada
-`StreamFetchFailure`. Un fallo parcial, por tanto, no se confunde con un lote
-completamente correcto ni descarta los resultados válidos.
+`StreamFetchFailure`. Un fallo parcial no descarta resultados válidos ni se
+confunde con un lote completamente correcto.
 
-## Puertos, adaptadores y abstracciones
+## Puertos y adaptadores
 
-Los límites se expresan con `typing.Protocol` en lugar de clases base
-abstractas. El tipado estructural permite que un adaptador satisfaga un
-contrato por su comportamiento, sin heredar de una jerarquía ni depender de
-una implementación concreta.
+Los límites se expresan con `typing.Protocol`, sin herencia nominal:
 
-Los principales puertos son:
+- `ActivityGateway` expone a los casos de uso actividades, detalles, streams y
+  zonas ya convertidos al dominio;
+- `StreamExporter` y `ActivityZonesWriter` abstraen la escritura;
+- `TokenStore`, `TokenGateway` y `AuthorizationCodeProvider` aíslan OAuth;
+- `ActivityQueries`, `ActivityStreamQueries`, `StreamExportUseCase`,
+  `ActivityZonesUseCase` y `WeeklySummaryUseCase` son puertos de entrada
+  pequeños que consume el menú;
+- `ResultPresenter`, `PromptReader`, `MenuView` y `OperationProgress`
+  pertenecen a presentación.
 
-- `StravaAPI`, consumido por los casos de uso que consultan actividades,
-  streams y zonas;
-- `StreamExporter` y `ActivityZonesWriter`, consumidos por la exportación;
-- `TokenStore`, `TokenGateway` y `AuthorizationCodeProvider`, consumidos por
-  el flujo OAuth;
-- los puertos de presentación (`ResultPresenter`, `PromptReader`, `MenuView`,
-  etc.), consumidos por `MenuHandler`.
+El tipado estructural permite dobles sencillos y adaptadores independientes. Un
+adaptador traduce excepciones y payloads externos en conceptos internos antes
+de cruzar el puerto.
 
-Esta elección facilita usar dobles sencillos en tests. Una clase base abstracta
-solo sería preferible si varias implementaciones necesitaran compartir estado,
-invariantes o comportamiento reutilizable; actualmente no existe esa
-necesidad.
+## Flujo de una operación
 
-## Flujo de una operación de terminal
-
-1. `main.py` obtiene un token y construye los adaptadores concretos.
-2. `MenuHandler` valida la opción y solicita los parámetros interactivos.
-3. La presentación invoca un puerto de caso de uso, sin construir
-   infraestructura.
-4. El caso de uso consulta el puerto de Strava y transforma la respuesta en
-   objetos de dominio.
-5. El presentador recibe esos objetos y genera tablas, paneles o mensajes.
-6. La frontera de terminal captura un error no recuperable de la operación,
-   lo presenta y mantiene viva la sesión.
-
-El indicador de progreso envuelve únicamente el trabajo remoto. La validación
-de entradas y el renderizado permanecen separados de la lógica de negocio.
+1. `main.py` obtiene el token con el servicio construido por composición.
+2. Abre un único `AsyncStravaAPI` y pide a composición los servicios.
+3. Construye `MenuDependencies` con un puerto específico por capacidad.
+4. `MenuHandler` valida la opción, pide parámetros e invoca el caso de uso.
+5. El caso de uso orquesta el dominio a través de un gateway.
+6. Infraestructura valida y transforma la respuesta externa.
+7. El presentador muestra el resultado; un error de operación no cierra la
+   sesión.
 
 ## Acceso a Strava y concurrencia
 
-`AsyncHTTPClient` reutiliza una única `aiohttp.ClientSession`, configura un
-timeout total y reintenta errores de conexión, timeouts y respuestas 5xx con
-espera incremental. Los errores 4xx conocidos se traducen a errores de la
-aplicación y no se reintentan indiscriminadamente.
+`AsyncHTTPClient` reutiliza una `aiohttp.ClientSession`, aplica timeout y
+reintenta conexiones, timeouts y respuestas 5xx con espera incremental. Los
+errores 4xx conocidos se traducen a errores de aplicación y no se reintentan.
 
-La consulta semanal pagina de 200 en 200 hasta recibir una página incompleta.
-Las consultas de detalles y streams usan `map_concurrently`, que conserva el
-orden de entrada y limita a cinco las peticiones simultáneas por defecto. El
-límite se inyecta y puede ajustarse o probarse sin variables globales.
+`StravaActivityGateway` pagina de 200 en 200 hasta recibir una página
+incompleta. Los detalles y streams usan `map_concurrently`, que conserva el
+orden y limita a cinco las peticiones simultáneas por defecto. El límite es
+inyectable para poder configurarlo y probarlo.
 
 ## Contratos automatizados
 
-`.importlinter` verifica en cada ejecución de `make check` y en CI que:
+`.importlinter` comprueba con `make architecture` que:
 
-- las dependencias respetan la dirección presentación → infraestructura →
-  core → dominio permitida por el contrato general;
-- presentación no construye adaptadores de infraestructura;
-- presentación e infraestructura permanecen independientes;
-- dominio no importa ninguna capa externa.
+- `presentation → application → domain`;
+- `infrastructure → application → domain`;
+- presentación e infraestructura son independientes;
+- dominio no depende de capas externas;
+- ninguna capa interna depende de `composition.py`.
 
-El contrato general admite que una capa exterior dependa de otra interior; los
-contratos específicos endurecen los límites que deben permanecer totalmente
-desacoplados.
+`make check` ejecuta estos contratos junto a Ruff, formato, `ty` y pytest con
+cobertura de ramas.

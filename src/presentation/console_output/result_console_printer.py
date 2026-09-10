@@ -7,7 +7,7 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
-from src.core.service import StreamExportResult
+from src.application.results import StreamExportResult
 from src.domain.activity_stream import ActivityStream, StreamBatch
 from src.domain.detailed_activity import DetailedActivity
 from src.domain.heart_rate_zones import HeartRateZones
@@ -168,7 +168,11 @@ class ResultConsolePrinter:
             self._console.print(failures)
 
     def _print_streams(self, streams: Sequence[ActivityStream]) -> None:
-        rows = [row for stream in streams for row in stream.as_rows()]
+        rows = [
+            (stream.activity_id, sample)
+            for stream in streams
+            for sample in stream.samples
+        ]
         if not rows:
             self._print_empty("No stream samples available")
             return
@@ -184,12 +188,21 @@ class ResultConsolePrinter:
         table.add_column("Time", justify="right")
         table.add_column("Distance", justify="right")
         table.add_column("Heart rate", justify="right")
-        for row in rows[: self._max_stream_rows]:
+        for activity_id, sample in rows[: self._max_stream_rows]:
             table.add_row(
-                self._display_value(row["id"]),
-                self._format_optional_metric("elapsed_time", row["time"]),
-                self._format_optional_metric("distance", row["distance"]),
-                self._format_optional_metric("average_heartrate", row["heartrate"]),
+                str(activity_id),
+                self._format_optional_metric(
+                    "elapsed_time",
+                    sample.elapsed_seconds,
+                ),
+                self._format_optional_metric(
+                    "distance",
+                    sample.distance_metres,
+                ),
+                self._format_optional_metric(
+                    "average_heartrate",
+                    sample.heart_rate_bpm,
+                ),
             )
         if len(rows) > self._max_stream_rows:
             table.caption = (
@@ -253,10 +266,6 @@ class ResultConsolePrinter:
 
     def _format_optional_metric(self, key: str, value: object) -> str:
         return "—" if value is None else self._formatter.format_value(key, value)
-
-    @staticmethod
-    def _display_value(value: object) -> str:
-        return "—" if value is None else str(value)
 
 
 def _resolve_option(option: MenuOption | str) -> MenuOption | None:
