@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Protocol
 
 type NumericInput = str | int | float
@@ -12,15 +11,6 @@ def _require_numeric_input(value: object) -> NumericInput:
 
 class ValueFormatter(Protocol):
     def format(self, value: object) -> str: ...
-
-
-class ActivityDateFormatter:
-    def format(self, value: object) -> str:
-        try:
-            dt = datetime.fromisoformat(str(value))
-            return dt.strftime("%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            return str(value)
 
 
 class ActivityDistanceFormatter:
@@ -53,7 +43,7 @@ class ActivityDurationFormatter:
 class ActivityHeartRateFormatter:
     def format(self, value: object) -> str:
         try:
-            return f"{int(_require_numeric_input(value))} ppm"
+            return f"{int(_require_numeric_input(value))} bpm"
         except (ValueError, TypeError):
             return str(value)
 
@@ -66,34 +56,25 @@ class ActivityCaloriesFormatter:
             return str(value)
 
 
-class ActivityExertionFormatter:
-    def format(self, value: object) -> str:
-        try:
-            return f"{int(_require_numeric_input(value))} RPE"
-        except (ValueError, TypeError):
-            return str(value)
-
-
 class ActivityFormatter:
     def __init__(self) -> None:
-        self.formatters: dict[str, ValueFormatter] = {
-            "start_date": ActivityDateFormatter(),
-            "start_date_local": ActivityDateFormatter(),
-            "distance": ActivityDistanceFormatter(),
-            "average_speed": ActivitySpeedFormatter(),
-            "moving_time": ActivityDurationFormatter(),
-            "elapsed_time": ActivityDurationFormatter(),
-            "average_heartrate": ActivityHeartRateFormatter(),
-            "max_heartrate": ActivityHeartRateFormatter(),
-            "calories": ActivityCaloriesFormatter(),
-            "perceived_exertion": ActivityExertionFormatter(),
-        }
+        self._distance = ActivityDistanceFormatter()
+        self._speed = ActivitySpeedFormatter()
+        self._duration = ActivityDurationFormatter()
+        self._heart_rate = ActivityHeartRateFormatter()
+        self._calories = ActivityCaloriesFormatter()
 
-    def format_key(self, key: str) -> str:
-        return key.replace("_", " ").title()
+    def format_distance(self, value: object) -> str:
+        return self._distance.format(value)
 
-    def format_value(self, key: str, value: object) -> str:
-        formatter = self.formatters.get(key)
-        if formatter:
-            return formatter.format(value)
-        return str(value)
+    def format_speed(self, value: object) -> str:
+        return self._speed.format(value)
+
+    def format_duration(self, value: object) -> str:
+        return self._duration.format(value)
+
+    def format_heart_rate(self, value: object) -> str:
+        return self._heart_rate.format(value)
+
+    def format_calories(self, value: object) -> str:
+        return self._calories.format(value)

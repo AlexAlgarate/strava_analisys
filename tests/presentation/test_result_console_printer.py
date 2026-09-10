@@ -1,6 +1,7 @@
 from collections.abc import Callable, Sequence
 from io import StringIO
 from pathlib import Path
+from typing import cast
 
 import pytest
 from rich.console import Console
@@ -56,6 +57,25 @@ def test_presents_activity_stream_and_truncation(
     assert "Showing 2 of 3 samples" in rendered
 
 
+def test_interleaves_truncated_rows_across_activity_streams(
+    printer: ResultConsolePrinter,
+    output: StringIO,
+) -> None:
+    printer.present_stream_batch(
+        StreamBatch(
+            streams=(
+                activity_stream(111_111),
+                activity_stream(222_222),
+            )
+        )
+    )
+
+    rendered = output.getvalue()
+    assert "111111" in rendered
+    assert "222222" in rendered
+    assert "Showing 2 of 6 samples" in rendered
+
+
 def test_presents_stream_batch_failures(
     printer: ResultConsolePrinter,
     output: StringIO,
@@ -105,12 +125,28 @@ def test_presents_detailed_activity_list(
     assert "Calories" in rendered
 
 
+def test_sanitizes_terminal_controls_from_external_activity_text(
+    printer: ResultConsolePrinter,
+    output: StringIO,
+) -> None:
+    printer.present_activity_list(
+        [activity_model(name="Before\x1b[2JAfter", sport_type="Run\x07\u202e")]
+    )
+
+    rendered = output.getvalue()
+    assert "\x1b[2J" not in rendered
+    assert "\x07" not in rendered
+    assert "\u202e" not in rendered
+    assert "Before�[2JAfter" in rendered
+
+
 @pytest.mark.parametrize(
     "present",
     [
         lambda printer, activities: printer.present_activity_list(activities),
         lambda printer, activities: printer.present_detailed_activities(activities),
     ],
+    ids=["compact", "detailed"],
 )
 def test_presents_empty_activity_collections(
     printer: ResultConsolePrinter,
@@ -155,3 +191,9 @@ def test_presents_activity_zones_export_result(
 def test_rejects_invalid_row_limit(console: Console) -> None:
     with pytest.raises(ValueError, match="must be positive"):
         ResultConsolePrinter(console, max_stream_rows=0)
+
+
+@pytest.mark.parametrize("value", [True, 1.5, "20"])
+def test_rejects_non_integer_row_limit(console: Console, value: object) -> None:
+    with pytest.raises(TypeError, match="must be an integer"):
+        ResultConsolePrinter(console, max_stream_rows=cast(int, value))
