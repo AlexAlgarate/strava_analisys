@@ -38,8 +38,6 @@ class HTTPClientConfig:
             self.max_attempts, int
         ):
             raise TypeError("HTTP max attempts must be an integer.")
-        if self.timeout_seconds <= 0:
-            raise ValueError("HTTP timeout must be positive.")
         if self.max_attempts < 1:
             raise ValueError("HTTP max attempts must be at least one.")
         _validate_duration(
@@ -88,7 +86,11 @@ class AsyncHTTPClient:
         for attempt in range(1, self._config.max_attempts + 1):
             try:
                 return await self._request_once(url, headers, params)
-            except (aiohttp.ClientConnectionError, TimeoutError) as error:
+            except (
+                aiohttp.ClientConnectionError,
+                aiohttp.ClientPayloadError,
+                TimeoutError,
+            ) as error:
                 if attempt == self._config.max_attempts:
                     raise ExternalServiceUnavailableError(
                         "Could not reach Strava after retrying."
@@ -114,7 +116,13 @@ class AsyncHTTPClient:
             url,
             headers=headers,
             params=params,
+            allow_redirects=False,
         ) as response:
+            if 300 <= response.status < 400:
+                raise ExternalServiceResponseError(
+                    f"Strava returned unexpected HTTP status {response.status}.",
+                    status_code=response.status,
+                )
             if response.status == RATE_LIMIT_EXCEEDED:
                 raise RateLimitExceededError(
                     "You have reached the request limit. Please try again later."
@@ -175,7 +183,11 @@ def _is_inactive_application_error(error: object) -> bool:
 def _validate_duration(name: str, value: object, *, allow_zero: bool) -> None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"HTTP {name} must be numeric.")
-    if not isfinite(value):
+    try:
+        finite = isfinite(value)
+    except OverflowError as error:
+        raise ValueError(f"HTTP {name} must be finite.") from error
+    if not finite:
         raise ValueError(f"HTTP {name} must be finite.")
     if value < 0 or (not allow_zero and value == 0):
         qualifier = "non-negative" if allow_zero else "positive"

@@ -72,3 +72,21 @@ def test_rejects_invalid_activity_collections(payload: object) -> None:
 def test_rejects_non_object_activity() -> None:
     with pytest.raises(TypeError, match="must be an object"):
         map_activity("invalid")
+
+
+@pytest.mark.parametrize("field", ["distance", "average_speed"])
+def test_rejects_numbers_too_large_for_float(field: str) -> None:
+    payload = activity_payload()
+    payload[field] = 10**400
+
+    with pytest.raises(ValueError, match=rf"Activity {field} must be finite") as error:
+        map_activity(payload)
+
+    assert isinstance(error.value.__cause__, OverflowError)
+
+
+def test_rejects_a_duration_too_large_for_domain_calculations() -> None:
+    with pytest.raises(ValueError, match="supported duration range") as error:
+        map_activity(activity_payload(moving_time=10**100, elapsed_time=10**100))
+
+    assert isinstance(error.value.__cause__, OverflowError)

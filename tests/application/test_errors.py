@@ -30,6 +30,17 @@ from src.application.errors import (
         (TokenError("token"), ApplicationError),
         (TokenStorageError("storage"), TokenError),
     ],
+    ids=[
+        "external-service",
+        "service-unavailable",
+        "unexpected-response",
+        "invalid-external-data",
+        "inactive-application",
+        "rate-limit",
+        "unauthorized",
+        "token",
+        "token-storage",
+    ],
 )
 def test_application_error_hierarchy(error: Exception, base: type[Exception]) -> None:
     assert isinstance(error, base)
