@@ -2,11 +2,12 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Protocol
 
-from src.application.results import StreamExportResult
+from src.application.results import ActivityZonesExportResult, StreamExportResult
 from src.domain.activity_stream import ActivityStream, StreamBatch
 from src.domain.activity_summary import WeeklyActivitySummary
 from src.domain.detailed_activity import DetailedActivity
 from src.domain.heart_rate_zones import HeartRateZones
+from src.domain.week_period import WeekSelection
 
 
 class ActivityQueries(Protocol):
@@ -14,12 +15,14 @@ class ActivityQueries(Protocol):
 
     async def get_activity_range(
         self,
-        previous_week: bool = False,
+        *,
+        week: WeekSelection,
     ) -> list[DetailedActivity]: ...
 
     async def get_activity_details(
         self,
-        previous_week: bool = False,
+        *,
+        week: WeekSelection,
     ) -> list[DetailedActivity]: ...
 
 
@@ -35,7 +38,8 @@ class ActivityStreamQueries(Protocol):
 
     async def get_weekly_streams(
         self,
-        previous_week: bool = False,
+        *,
+        week: WeekSelection,
     ) -> StreamBatch: ...
 
 
@@ -46,18 +50,27 @@ class StreamExportUseCase(Protocol):
         self,
         selected_format: str = "csv",
         output_dir: str | Path = ".",
-        previous_week: bool = False,
+        *,
+        week: WeekSelection,
     ) -> StreamExportResult: ...
 
 
 class ActivityZonesUseCase(Protocol):
-    """Retrieve and optionally persist heart-rate zones."""
+    """Retrieve heart-rate zones for one activity."""
 
     async def get_activity_zones(
         self,
         activity_id: int,
-        save_zones: bool = False,
     ) -> HeartRateZones: ...
+
+
+class ActivityZonesExportUseCase(Protocol):
+    """Retrieve and persist heart-rate zones for one activity."""
+
+    async def export_activity_zones(
+        self,
+        activity_id: int,
+    ) -> ActivityZonesExportResult: ...
 
 
 class WeeklySummaryUseCase(Protocol):
@@ -65,5 +78,6 @@ class WeeklySummaryUseCase(Protocol):
 
     async def generate_summary(
         self,
-        previous_week: bool = False,
+        *,
+        week: WeekSelection,
     ) -> WeeklyActivitySummary: ...

@@ -1,5 +1,6 @@
 from src.application.ports.use_cases import ActivityQueries
 from src.domain.activity_summary import WeeklyActivitySummary
+from src.domain.week_period import WeekSelection
 
 
 class ActivitySummaryService:
@@ -10,9 +11,8 @@ class ActivitySummaryService:
 
     async def generate_summary(
         self,
-        previous_week: bool = False,
+        *,
+        week: WeekSelection,
     ) -> WeeklyActivitySummary:
-        activities = await self._activities.get_activity_details(
-            previous_week=previous_week
-        )
+        activities = await self._activities.get_activity_details(week=week)
         return WeeklyActivitySummary.from_activities(activities)

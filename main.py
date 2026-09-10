@@ -1,7 +1,11 @@
 import asyncio
 import logging
 
-from src.composition import build_access_token_service, build_application_services
+from src.composition import (
+    build_access_token_service,
+    build_application_services,
+    build_menu_commands,
+)
 from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
 from src.infrastructure.logging import setup_logging
 from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
@@ -35,17 +39,17 @@ async def run_cli() -> None:
         error_console_printer = ConsoleErrorHandler(console)
 
         services = build_application_services(strava_api)
+        commands = build_menu_commands(
+            services,
+            prompts=prompts,
+            result_presenter=result_console_printer,
+            summary_presenter=ConsoleSummaryPresenter(console),
+        )
 
         menu = MenuHandler(
             MenuDependencies(
-                activities=services.activities,
-                streams=services.streams,
-                stream_export=services.stream_export,
-                activity_zones=services.activity_zones,
-                summary=services.summary,
-                result_printer=result_console_printer,
+                commands=commands,
                 error_printer=error_console_printer,
-                summary_presenter=ConsoleSummaryPresenter(console),
                 prompts=prompts,
                 menu_view=MenuRenderer(console),
                 progress=ConsoleProgress(console),

@@ -11,11 +11,14 @@ class PatchedApplication:
     token_service: Mock
     api_context: MagicMock
     services: Mock
+    commands: Mock
     menu: Mock
     api_factory: Mock
     token_service_factory: Mock
     services_factory: Mock
+    commands_factory: Mock
     menu_factory: Mock
+    prompts: Mock
 
 
 def _patch_application(
@@ -35,6 +38,8 @@ def _patch_application(
     services.stream_export = Mock()
     services.activity_zones = Mock()
     services.summary = Mock()
+    commands = Mock()
+    commands_factory = Mock(return_value=commands)
     menu = Mock()
     menu.execute_option = AsyncMock()
     menu.ask_option.side_effect = answers
@@ -42,23 +47,28 @@ def _patch_application(
     token_service_factory = Mock(return_value=token_service)
     services_factory = Mock(return_value=services)
     menu_factory = Mock(return_value=menu)
+    prompts = Mock()
 
     monkeypatch.setattr(cli, "setup_logging", Mock())
     monkeypatch.setattr(cli, "build_access_token_service", token_service_factory)
     monkeypatch.setattr(cli, "build_application_services", services_factory)
+    monkeypatch.setattr(cli, "build_menu_commands", commands_factory)
     monkeypatch.setattr(cli, "AsyncStravaAPI", api_factory)
     monkeypatch.setattr(cli, "MenuHandler", menu_factory)
     monkeypatch.setattr(cli, "create_console", Mock(return_value=Mock()))
-    monkeypatch.setattr(cli, "ConsolePrompts", Mock(return_value=Mock()))
+    monkeypatch.setattr(cli, "ConsolePrompts", Mock(return_value=prompts))
     return PatchedApplication(
         token_service=token_service,
         api_context=api_context,
         services=services,
+        commands=commands,
         menu=menu,
         api_factory=api_factory,
         token_service_factory=token_service_factory,
         services_factory=services_factory,
+        commands_factory=commands_factory,
         menu_factory=menu_factory,
+        prompts=prompts,
     )
 
 
@@ -76,13 +86,19 @@ async def test_run_cli_wires_and_runs_application(
     patched.services_factory.assert_called_once_with(
         patched.api_context.__aenter__.return_value
     )
+    assert patched.commands_factory.call_args.args == (patched.services,)
+    assert patched.commands_factory.call_args.kwargs["prompts"] is patched.prompts
+    assert isinstance(
+        patched.commands_factory.call_args.kwargs["result_presenter"],
+        cli.ResultConsolePrinter,
+    )
+    assert isinstance(
+        patched.commands_factory.call_args.kwargs["summary_presenter"],
+        cli.ConsoleSummaryPresenter,
+    )
     dependencies = patched.menu_factory.call_args.args[0]
     assert isinstance(dependencies, cli.MenuDependencies)
-    assert dependencies.activities is patched.services.activities
-    assert dependencies.streams is patched.services.streams
-    assert dependencies.stream_export is patched.services.stream_export
-    assert dependencies.activity_zones is patched.services.activity_zones
-    assert dependencies.summary is patched.services.summary
+    assert dependencies.commands is patched.commands
     patched.menu.print_welcome.assert_called_once_with()
     assert patched.menu.print_menu.call_count == 2
     patched.menu.execute_option.assert_awaited_once_with("1")

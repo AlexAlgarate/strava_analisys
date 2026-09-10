@@ -2,10 +2,6 @@ class ApplicationError(Exception):
     """Base class for errors exposed by the application boundary."""
 
 
-class ActivitiesNotFoundError(ApplicationError):
-    """Raised when a use case requires activities but none are available."""
-
-
 class ExternalServiceError(ApplicationError):
     """Base class for failures reported by an external service adapter."""
 

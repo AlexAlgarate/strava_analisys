@@ -1,3 +1,4 @@
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
@@ -5,6 +6,7 @@ from types import MappingProxyType
 from src.application.ports.export import StreamExporter
 from src.application.ports.use_cases import ActivityStreamQueries
 from src.application.results import StreamExportResult
+from src.domain.week_period import WeekSelection
 
 
 class StreamExportService:
@@ -15,10 +17,16 @@ class StreamExportService:
         streams: ActivityStreamQueries,
         exporters: Mapping[str, StreamExporter],
     ) -> None:
+        normalized_exporters: dict[str, StreamExporter] = {}
+        for name, exporter in exporters.items():
+            normalized_name = _normalize_format(name)
+            if normalized_name in normalized_exporters:
+                raise ValueError(f"Duplicate stream export format: {normalized_name}")
+            normalized_exporters[normalized_name] = exporter
+        if not normalized_exporters:
+            raise ValueError("At least one stream exporter must be configured.")
         self._streams = streams
-        self._exporters = MappingProxyType(
-            {name.lower(): exporter for name, exporter in exporters.items()}
-        )
+        self._exporters = MappingProxyType(normalized_exporters)
 
     @property
     def supported_formats(self) -> tuple[str, ...]:
@@ -28,24 +36,35 @@ class StreamExportService:
         self,
         selected_format: str = "csv",
         output_dir: str | Path = ".",
-        previous_week: bool = False,
+        *,
+        week: WeekSelection,
     ) -> StreamExportResult:
-        fmt = selected_format.lower()
+        fmt = _normalize_format(selected_format)
         try:
             exporter = self._exporters[fmt]
         except KeyError as error:
             raise ValueError(f"Unsupported format: {fmt}") from error
 
-        batch = await self._streams.get_weekly_streams(previous_week=previous_week)
-        path = _stream_export_path(output_dir, previous_week, fmt)
+        batch = await self._streams.get_weekly_streams(week=week)
+        path = _stream_export_path(output_dir, fmt, week=week)
         exporter.export(batch.streams, path)
         return StreamExportResult(batch=batch, path=path)
 
 
 def _stream_export_path(
     output_dir: str | Path,
-    previous_week: bool,
     file_format: str,
+    *,
+    week: WeekSelection,
 ) -> Path:
-    suffix = "previous_week" if previous_week else "current_week"
+    suffix = f"{week.value}_week"
     return Path(output_dir) / f"streams_{suffix}.{file_format}"
+
+
+def _normalize_format(value: object) -> str:
+    if not isinstance(value, str):
+        raise TypeError("Stream export format must be a string.")
+    normalized = value.strip().lower()
+    if re.fullmatch(r"[a-z0-9]+(?:[-_][a-z0-9]+)*", normalized) is None:
+        raise ValueError("Stream export format must be a safe file extension.")
+    return normalized

@@ -18,7 +18,7 @@ def test_presents_summary_and_marks_unknown_averages(
         total_elevation_gain=0,
         average_heartrate=None,
         average_max_heartrate=None,
-        total_calories=0,
+        total_calories=None,
         average_perceived_exertion=None,
     )
 
@@ -28,6 +28,7 @@ def test_presents_summary_and_marks_unknown_averages(
     assert "Activities" in output
     assert "Average heart rate" in output
     assert "Perceived exertion" in output
+    assert "Calories" in output
     assert "N/A" in output
 
 

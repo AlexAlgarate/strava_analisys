@@ -8,6 +8,9 @@ from src import composition
 from src.application.use_cases.activities import ActivityService
 from src.application.use_cases.activity_summary import ActivitySummaryService
 from src.application.use_cases.activity_zones import ActivityZonesService
+from src.application.use_cases.activity_zones_export import (
+    ActivityZonesExportService,
+)
 from src.application.use_cases.authentication import AccessTokenService
 from src.application.use_cases.stream_export import StreamExportService
 from src.application.use_cases.streams import ActivityStreamService
@@ -64,6 +67,7 @@ def test_builds_application_services() -> None:
     assert isinstance(services.streams, ActivityStreamService)
     assert isinstance(services.stream_export, StreamExportService)
     assert isinstance(services.activity_zones, ActivityZonesService)
+    assert isinstance(services.activity_zones_export, ActivityZonesExportService)
     assert isinstance(services.summary, ActivitySummaryService)
 
 
@@ -71,4 +75,7 @@ def test_builds_default_export_adapters() -> None:
     services = composition.build_application_services(Mock())
 
     assert services.stream_export.supported_formats == ("csv",)
-    assert isinstance(services.activity_zones._writer, JsonActivityZonesWriter)
+    assert isinstance(
+        services.activity_zones_export._writer,
+        JsonActivityZonesWriter,
+    )

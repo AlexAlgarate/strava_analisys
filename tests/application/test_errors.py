@@ -1,7 +1,6 @@
 import pytest
 
 from src.application.errors import (
-    ActivitiesNotFoundError,
     ApplicationError,
     ExternalServiceError,
     ExternalServiceResponseError,
@@ -18,7 +17,6 @@ from src.application.errors import (
 @pytest.mark.parametrize(
     ("error", "base"),
     [
-        (ActivitiesNotFoundError("empty"), ApplicationError),
         (ExternalServiceError("offline"), ApplicationError),
         (ExternalServiceUnavailableError("offline"), ExternalServiceError),
         (
