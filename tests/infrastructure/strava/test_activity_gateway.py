@@ -29,7 +29,7 @@ async def test_lists_activities_for_period(api: Mock, period: WeekPeriod) -> Non
 
     assert [activity.id for activity in result] == [1, 2]
     api.make_request.assert_awaited_once_with(
-        endpoint="/activities",
+        endpoint="/athlete/activities",
         params={
             "per_page": 200,
             "page": 1,

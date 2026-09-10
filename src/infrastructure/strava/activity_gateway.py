@@ -9,6 +9,7 @@ from src.infrastructure.strava.stream_mapper import map_activity_stream
 
 DEFAULT_PAGE_SIZE = 200
 STREAM_KEYS = ("time", "distance", "heartrate")
+ATHLETE_ACTIVITIES_ENDPOINT = "/athlete/activities"
 
 
 class StravaActivityGateway:
@@ -30,7 +31,7 @@ class StravaActivityGateway:
         page = 1
         while True:
             response = await self._api.make_request(
-                endpoint="/activities",
+                endpoint=ATHLETE_ACTIVITIES_ENDPOINT,
                 params={
                     "per_page": self._page_size,
                     "page": page,
