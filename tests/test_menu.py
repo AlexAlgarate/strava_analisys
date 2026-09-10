@@ -1,11 +1,12 @@
 from contextlib import nullcontext
+from dataclasses import dataclass
 from io import StringIO
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 from rich.console import Console
 
-from src.core.activities.summary.service import ActivitySummaryService
+from src.application.use_cases.activity_summary import ActivitySummaryService
 from src.domain.activity_stream import StreamBatch
 from src.domain.activity_summary import WeeklyActivitySummary
 from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
@@ -40,16 +41,32 @@ def console(output: StringIO) -> Console:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class UseCaseMocks:
+    activities: Mock
+    streams: Mock
+    stream_export: Mock
+    activity_zones: Mock
+
+
 @pytest.fixture
-def mock_service() -> Mock:
-    service = Mock()
-    service.get_activity_details = AsyncMock()
-    service.get_activity_range = AsyncMock()
-    service.get_streams_for_activity = AsyncMock()
-    service.get_streams_for_multiple_activities = AsyncMock()
-    service.export_streams_for_selected_week = AsyncMock()
-    service.get_activity_zones = AsyncMock()
-    return service
+def use_cases() -> UseCaseMocks:
+    activities = Mock()
+    activities.get_activity_details = AsyncMock()
+    activities.get_activity_range = AsyncMock()
+    streams = Mock()
+    streams.get_streams_for_activity = AsyncMock()
+    streams.get_streams_for_multiple_activities = AsyncMock()
+    stream_export = Mock()
+    stream_export.export_streams_for_selected_week = AsyncMock()
+    activity_zones = Mock()
+    activity_zones.get_activity_zones = AsyncMock()
+    return UseCaseMocks(
+        activities=activities,
+        streams=streams,
+        stream_export=stream_export,
+        activity_zones=activity_zones,
+    )
 
 
 @pytest.fixture
@@ -85,7 +102,7 @@ def mock_progress() -> Mock:
 
 @pytest.fixture
 def menu_handler(
-    mock_service: Mock,
+    use_cases: UseCaseMocks,
     mock_result_printer: Mock,
     mock_error_printer: Mock,
     mock_prompts: Mock,
@@ -94,10 +111,13 @@ def menu_handler(
 ) -> MenuHandler:
     return MenuHandler(
         MenuDependencies(
-            service=mock_service,
+            activities=use_cases.activities,
+            streams=use_cases.streams,
+            stream_export=use_cases.stream_export,
+            activity_zones=use_cases.activity_zones,
+            summary=None,
             result_printer=mock_result_printer,
             error_printer=mock_error_printer,
-            summary_service=None,
             summary_presenter=Mock(spec=ConsoleSummaryPresenter),
             prompts=mock_prompts,
             menu_view=mock_menu_view,
@@ -110,11 +130,14 @@ class TestMenuHandler:
     def test_keeps_injected_dependencies(
         self,
         menu_handler: MenuHandler,
-        mock_service: Mock,
+        use_cases: UseCaseMocks,
         mock_prompts: Mock,
     ) -> None:
         assert isinstance(menu_handler.dependencies, MenuDependencies)
-        assert menu_handler.dependencies.service is mock_service
+        assert menu_handler.dependencies.activities is use_cases.activities
+        assert menu_handler.dependencies.streams is use_cases.streams
+        assert menu_handler.dependencies.stream_export is use_cases.stream_export
+        assert menu_handler.dependencies.activity_zones is use_cases.activity_zones
         assert menu_handler.dependencies.prompts is mock_prompts
 
     def test_get_menu_options(self, menu_handler: MenuHandler) -> None:
@@ -145,19 +168,36 @@ class TestMenuHandler:
         mock_error_printer.print_invalid_option.assert_called_once_with("999")
 
     @pytest.mark.parametrize(
-        ("option", "service_method", "previous_week"),
+        ("option", "use_case", "service_method", "previous_week"),
         [
-            (MenuOption.ACTIVITY_DETAILS, "get_activity_details", False),
-            (MenuOption.ACTIVITY_DETAILS_PREV_WEEK, "get_activity_details", True),
-            (MenuOption.ACTIVITY_RANGE, "get_activity_range", False),
-            (MenuOption.ACTIVITY_RANGE_PREV_WEEK, "get_activity_range", True),
+            (
+                MenuOption.ACTIVITY_DETAILS,
+                "activities",
+                "get_activity_details",
+                False,
+            ),
+            (
+                MenuOption.ACTIVITY_DETAILS_PREV_WEEK,
+                "activities",
+                "get_activity_details",
+                True,
+            ),
+            (MenuOption.ACTIVITY_RANGE, "activities", "get_activity_range", False),
+            (
+                MenuOption.ACTIVITY_RANGE_PREV_WEEK,
+                "activities",
+                "get_activity_range",
+                True,
+            ),
             (
                 MenuOption.STREAMS_CURRENT_WEEK,
+                "stream_export",
                 "export_streams_for_selected_week",
                 False,
             ),
             (
                 MenuOption.STREAMS_PREV_WEEK,
+                "stream_export",
                 "export_streams_for_selected_week",
                 True,
             ),
@@ -167,13 +207,14 @@ class TestMenuHandler:
     async def test_executes_period_options(
         self,
         menu_handler: MenuHandler,
-        mock_service: Mock,
+        use_cases: UseCaseMocks,
         mock_result_printer: Mock,
         option: MenuOption,
+        use_case: str,
         service_method: str,
         previous_week: bool,
     ) -> None:
-        method = getattr(mock_service, service_method)
+        method = getattr(getattr(use_cases, use_case), service_method)
         method.return_value = [activity_model()]
 
         result = await menu_handler.execute_option(str(option.id))
@@ -186,27 +227,39 @@ class TestMenuHandler:
         )
 
     @pytest.mark.parametrize(
-        ("option", "service_method", "expected_argument"),
+        ("option", "use_case", "service_method", "expected_argument"),
         [
-            (MenuOption.SINGLE_STREAM, "get_streams_for_activity", 123),
+            (
+                MenuOption.SINGLE_STREAM,
+                "streams",
+                "get_streams_for_activity",
+                123,
+            ),
             (
                 MenuOption.MULTIPLE_STREAMS,
+                "streams",
                 "get_streams_for_multiple_activities",
                 [123, 456],
             ),
-            (MenuOption.ACTIVITY_ZONES, "get_activity_zones", 123),
+            (
+                MenuOption.ACTIVITY_ZONES,
+                "activity_zones",
+                "get_activity_zones",
+                123,
+            ),
         ],
     )
     @pytest.mark.asyncio
     async def test_stream_and_zone_options_use_prompted_ids(
         self,
         menu_handler: MenuHandler,
-        mock_service: Mock,
+        use_cases: UseCaseMocks,
         option: MenuOption,
+        use_case: str,
         service_method: str,
         expected_argument: object,
     ) -> None:
-        method = getattr(mock_service, service_method)
+        method = getattr(getattr(use_cases, use_case), service_method)
         method.return_value = StreamBatch()
 
         await menu_handler.execute_option(str(option.id))
@@ -217,11 +270,11 @@ class TestMenuHandler:
     async def test_operation_errors_are_not_reported_as_invalid_options(
         self,
         menu_handler: MenuHandler,
-        mock_service: Mock,
+        use_cases: UseCaseMocks,
         mock_error_printer: Mock,
     ) -> None:
         error = RuntimeError("Strava is unavailable")
-        mock_service.get_activity_details.side_effect = error
+        use_cases.activities.get_activity_details.side_effect = error
 
         result = await menu_handler.execute_option(str(MenuOption.ACTIVITY_DETAILS.id))
 
@@ -245,7 +298,7 @@ class TestMenuHandler:
     @pytest.mark.asyncio
     async def test_weekly_report_uses_live_summary_service(
         self,
-        mock_service: Mock,
+        use_cases: UseCaseMocks,
         mock_result_printer: Mock,
         mock_error_printer: Mock,
         mock_prompts: Mock,
@@ -258,10 +311,13 @@ class TestMenuHandler:
         presenter = Mock(spec=ConsoleSummaryPresenter)
         handler = MenuHandler(
             MenuDependencies(
-                service=mock_service,
+                activities=use_cases.activities,
+                streams=use_cases.streams,
+                stream_export=use_cases.stream_export,
+                activity_zones=use_cases.activity_zones,
+                summary=summary_service,
                 result_printer=mock_result_printer,
                 error_printer=mock_error_printer,
-                summary_service=summary_service,
                 summary_presenter=presenter,
                 prompts=mock_prompts,
                 menu_view=mock_menu_view,

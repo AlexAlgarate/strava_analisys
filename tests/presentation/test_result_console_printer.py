@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from rich.console import Console
 
-from src.core.service import StreamExportResult
+from src.application.results import StreamExportResult
 from src.domain.activity_stream import StreamBatch, StreamFetchFailure
 from src.presentation.console_output.console import STRAVA_THEME
 from src.presentation.console_output.result_console_printer import (

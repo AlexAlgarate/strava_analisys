@@ -7,7 +7,7 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
-from src.core.service import StreamExportResult
+from src.application.results import StreamExportResult
 from src.domain.activity_stream import ActivityStream, StreamBatch
 from src.domain.detailed_activity import DetailedActivity
 from src.domain.heart_rate_zones import HeartRateZones
