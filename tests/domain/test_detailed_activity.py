@@ -15,7 +15,9 @@ def test_keeps_valid_activity_values() -> None:
     activity = activity_model(gear_id="g1")
 
     assert activity.id == 1
-    assert activity.start_date_local == datetime.fromisoformat("2026-09-07T07:30:00")
+    assert activity.start_date_local == datetime.fromisoformat(
+        "2026-09-07T07:30:00+02:00"
+    )
     assert activity.distance == 10_000
     assert activity.gear_id == "g1"
 
@@ -46,6 +48,10 @@ def test_rejects_invalid_field_types(
     [
         ({"name": ""}, "name cannot be empty"),
         ({"sport_type": ""}, "sport type cannot be empty"),
+        (
+            {"start_date_local": datetime.fromisoformat("2026-09-07T07:30:00")},
+            "timezone-aware",
+        ),
         ({"distance": -1}, "distance"),
         ({"moving_time": -1}, "moving_time"),
         ({"elapsed_time": 3_000}, "shorter"),

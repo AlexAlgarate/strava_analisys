@@ -10,7 +10,9 @@ def test_maps_activity_payload() -> None:
     activity = map_activity(activity_payload(gear_id="g1"))
 
     assert activity.id == 1
-    assert activity.start_date_local == datetime.fromisoformat("2026-09-07T07:30:00")
+    assert activity.start_date_local == datetime.fromisoformat(
+        "2026-09-07T07:30:00+02:00"
+    )
     assert activity.gear_id == "g1"
 
 
@@ -45,6 +47,7 @@ def test_optional_metrics_default_to_missing() -> None:
         ("distance", "far", TypeError),
         ("moving_time", 1.5, TypeError),
         ("start_date_local", "not-a-date", ValueError),
+        ("start_date_local", "2026-09-07T07:30:00", ValueError),
         ("gear_id", 42, TypeError),
     ],
 )

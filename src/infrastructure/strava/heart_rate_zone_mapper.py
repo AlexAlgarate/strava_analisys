@@ -24,7 +24,7 @@ def map_heart_rate_zones(activity_id: int, payload: object) -> HeartRateZones:
             HeartRateZone(
                 number=number,
                 minimum_bpm=_required_int(values, "min"),
-                maximum_bpm=_required_int(values, "max"),
+                maximum_bpm=_maximum_bpm(values),
                 time_seconds=_required_int(values, "time"),
             )
         )
@@ -52,3 +52,8 @@ def _required_int(payload: Mapping[str, object], key: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError(f"Heart-rate zone {key} must be an integer.")
     return value
+
+
+def _maximum_bpm(payload: Mapping[str, object]) -> int | None:
+    value = _required_int(payload, "max")
+    return None if value == -1 else value
