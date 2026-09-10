@@ -1,7 +1,7 @@
 import os
 import tempfile
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import TextIO
 
@@ -21,24 +21,26 @@ def atomic_text_file(
         prefix=f".{path.name}.",
         dir=path.parent,
     )
+    owned_descriptor: int | None = descriptor
     temporary_path = Path(temporary_name)
 
     try:
         os.fchmod(descriptor, _PRIVATE_FILE_MODE)
-        with os.fdopen(
+        output = os.fdopen(
             descriptor,
             mode="w",
             encoding="utf-8",
             newline=newline,
-        ) as output:
+        )
+        owned_descriptor = None
+        with output:
             yield output
             output.flush()
             os.fsync(output.fileno())
         os.replace(temporary_path, path)
     except BaseException:
-        try:
-            os.close(descriptor)
-        except OSError:
-            pass
+        if owned_descriptor is not None:
+            with suppress(OSError):
+                os.close(owned_descriptor)
         temporary_path.unlink(missing_ok=True)
         raise
