@@ -2,25 +2,27 @@
 root_package = src
 include_external_packages = False
 
-[importlinter:contract:architectural_layers]
-name = presentation -> infrastructure -> core -> domain
+[importlinter:contract:presentation_layers]
+name = presentation -> application -> domain
 type = layers
 layers =
     presentation
-    infrastructure
-    core
+    application
     domain
 containers =
     src
 exhaustive = false
 
-[importlinter:contract:presentation_independence]
-name = presentation does not construct infrastructure adapters
-type = forbidden
-source_modules =
-    src.presentation
-forbidden_modules =
-    src.infrastructure
+[importlinter:contract:infrastructure_layers]
+name = infrastructure -> application -> domain
+type = layers
+layers =
+    infrastructure
+    application
+    domain
+containers =
+    src
+exhaustive = false
 
 [importlinter:contract:adapter_independence]
 name = presentation and infrastructure adapters are independent
@@ -35,6 +37,18 @@ type = forbidden
 source_modules =
     src.domain
 forbidden_modules =
-    src.core
+    src.application
     src.infrastructure
     src.presentation
+    src.composition
+
+[importlinter:contract:composition_is_outermost]
+name = inner layers do not depend on composition
+type = forbidden
+source_modules =
+    src.domain
+    src.application
+    src.infrastructure
+    src.presentation
+forbidden_modules =
+    src.composition
