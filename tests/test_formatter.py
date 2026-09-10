@@ -9,12 +9,12 @@ from src.presentation.console_output.formatter import (
     ActivityDurationFormatter,
     ActivityExertionFormatter,
     ActivityHeartRateFormatter,
-    ActivityPaceFormatter,
+    ActivitySpeedFormatter,
     ValueFormatter,
 )
 
 
-class TestValidFormatter:
+class TestActivityFormatters:
     invalid_inputs: ClassVar[list[object]] = [
         "abc",
         None,
@@ -22,10 +22,11 @@ class TestValidFormatter:
         [],
         "",
         "  ",
+        True,
     ]
 
     @pytest.mark.parametrize(
-        "formatter_cls, input_value, expected_output",
+        ("formatter_cls", "input_value", "expected_output"),
         [
             (
                 ActivityDateFormatter,
@@ -39,8 +40,8 @@ class TestValidFormatter:
             ),
             (ActivityDistanceFormatter, 1000, "1.00 km"),
             (ActivityDistanceFormatter, 100, "0.10 km"),
-            (ActivityPaceFormatter, 5, "18.00 km/h"),
-            (ActivityPaceFormatter, 2.5, "9.00 km/h"),
+            (ActivitySpeedFormatter, 5, "18.00 km/h"),
+            (ActivitySpeedFormatter, 2.5, "9.00 km/h"),
             (ActivityDurationFormatter, 65, "1m 5s"),
             (ActivityDurationFormatter, 3600, "60m 0s"),
             (ActivityHeartRateFormatter, 65, "65 ppm"),
@@ -65,7 +66,7 @@ class TestValidFormatter:
         [
             ActivityDateFormatter,
             ActivityDistanceFormatter,
-            ActivityPaceFormatter,
+            ActivitySpeedFormatter,
             ActivityDurationFormatter,
             ActivityHeartRateFormatter,
             ActivityCaloriesFormatter,

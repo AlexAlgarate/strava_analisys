@@ -5,7 +5,7 @@ type NumericInput = str | int | float
 
 
 def _require_numeric_input(value: object) -> NumericInput:
-    if isinstance(value, (str, int, float)):
+    if not isinstance(value, bool) and isinstance(value, (str, int, float)):
         return value
     raise TypeError("Value must be numeric or a numeric string.")
 
@@ -31,7 +31,7 @@ class ActivityDistanceFormatter:
             return str(value)
 
 
-class ActivityPaceFormatter:
+class ActivitySpeedFormatter:
     def format(self, value: object) -> str:
         try:
             return f"{float(_require_numeric_input(value)) * 3.6:.2f} km/h"
@@ -80,7 +80,7 @@ class ActivityFormatter:
             "start_date": ActivityDateFormatter(),
             "start_date_local": ActivityDateFormatter(),
             "distance": ActivityDistanceFormatter(),
-            "average_speed": ActivityPaceFormatter(),
+            "average_speed": ActivitySpeedFormatter(),
             "moving_time": ActivityDurationFormatter(),
             "elapsed_time": ActivityDurationFormatter(),
             "average_heartrate": ActivityHeartRateFormatter(),
