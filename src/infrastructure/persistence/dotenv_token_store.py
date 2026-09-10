@@ -9,7 +9,7 @@ from src.application.errors import TokenStorageError
 from src.domain.token import TokenSet
 from src.infrastructure.serialization.token import token_from_mapping, token_to_mapping
 
-TOKEN_ENV_VARIABLE: Final = "STRAVA_OAUTH_TOKEN"
+TOKEN_ENV_VARIABLE: Final = "STRAVA_OAUTH_TOKEN"  # noqa: S105  # Variable name.
 _PRIVATE_FILE_MODE: Final = 0o600
 
 

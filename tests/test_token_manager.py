@@ -7,7 +7,6 @@ from src.application.errors import TokenError
 from src.domain.token import TokenSet
 from src.infrastructure.auth.strava_token_gateway import (
     TOKEN_URL,
-    GrantType,
     StravaTokenGateway,
 )
 
@@ -23,17 +22,6 @@ TEST_PAYLOAD: dict[str, object] = {
 @pytest.fixture
 def gateway() -> StravaTokenGateway:
     return StravaTokenGateway(TEST_CLIENT_ID, TEST_SECRET, request_timeout=3.0)
-
-
-def test_prepare_refresh_request(gateway: StravaTokenGateway) -> None:
-    assert gateway._prepare_request_data(
-        GrantType.REFRESH_TOKEN, refresh_token="refresh"
-    ) == {
-        "client_id": TEST_CLIENT_ID,
-        "client_secret": TEST_SECRET,
-        "grant_type": "refresh_token",
-        "refresh_token": "refresh",
-    }
 
 
 @patch("src.infrastructure.auth.strava_token_gateway.requests.post")
@@ -67,8 +55,19 @@ def test_refresh_access_token(post: MagicMock, gateway: StravaTokenGateway) -> N
 
     result = gateway.refresh_access_token("old-refresh")
 
-    assert result.access_token == "access"
-    assert post.call_args.kwargs["data"]["refresh_token"] == "old-refresh"
+    assert result == TokenSet("access", "refresh", 2_000_000_000)
+    post.assert_called_once_with(
+        TOKEN_URL,
+        data={
+            "client_id": TEST_CLIENT_ID,
+            "client_secret": TEST_SECRET,
+            "grant_type": "refresh_token",
+            "refresh_token": "old-refresh",
+        },
+        timeout=3.0,
+        allow_redirects=False,
+    )
+    post.return_value.raise_for_status.assert_called_once_with()
 
 
 @patch("src.infrastructure.auth.strava_token_gateway.requests.post")
@@ -128,9 +127,16 @@ def test_rejects_non_string_credentials(credentials: tuple[object, object]) -> N
 
 @pytest.mark.parametrize(
     "timeout",
-    [0.0, -1.0, float("inf"), float("-inf"), float("nan")],
+    [
+        pytest.param(0.0, id="zero"),
+        pytest.param(-1.0, id="negative"),
+        pytest.param(float("inf"), id="positive-infinity"),
+        pytest.param(float("-inf"), id="negative-infinity"),
+        pytest.param(float("nan"), id="nan"),
+        pytest.param(10**10_000, id="unrepresentable"),
+    ],
 )
-def test_rejects_invalid_request_timeout(timeout: float) -> None:
+def test_rejects_invalid_request_timeout(timeout: int | float) -> None:
     with pytest.raises(ValueError, match="timeout"):
         StravaTokenGateway(TEST_CLIENT_ID, TEST_SECRET, request_timeout=timeout)
 

@@ -56,12 +56,16 @@ def test_rejects_invalid_oauth_state_type() -> None:
 
 def test_reads_code_from_matching_browser_redirect() -> None:
     opened_urls: list[str] = []
+    prompts: list[str] = []
+
+    def read_callback(prompt: str) -> str:
+        prompts.append(prompt)
+        return "http://localhost/exchange_token?state=oauth-state&code=secret-code"
+
     provider = BrowserAuthorizationCodeProvider(
         StravaAuthorizationConfig("client-id"),
         opener=lambda url: opened_urls.append(url),
-        input_reader=lambda _prompt: (
-            "http://localhost/exchange_token?state=oauth-state&code=secret-code"
-        ),
+        input_reader=read_callback,
         state_factory=lambda: "oauth-state",
     )
 
@@ -76,6 +80,7 @@ def test_reads_code_from_matching_browser_redirect() -> None:
         "scope": ["read,activity:read_all"],
         "state": ["oauth-state"],
     }
+    assert opened_url in prompts[0]
 
 
 def test_requests_a_fresh_state_from_factory_for_each_attempt() -> None:
@@ -213,6 +218,15 @@ def test_rejects_oauth_error_response() -> None:
         )
 
 
+def test_rejects_mismatched_state_before_oauth_error_response() -> None:
+    with pytest.raises(ValueError, match="OAuth state does not match"):
+        BrowserAuthorizationCodeProvider._extract_code(
+            "http://localhost/exchange_token?error=access_denied&state=attacker",
+            expected_state="expected",
+            redirect_uri="http://localhost/exchange_token",
+        )
+
+
 def test_rejects_malformed_callback_query() -> None:
     with pytest.raises(ValueError, match="query is invalid"):
         BrowserAuthorizationCodeProvider._extract_code(
@@ -236,17 +250,30 @@ def test_rejects_invalid_configured_redirect_uri(redirect_uri: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "configuration",
+    ("configuration", "expected_error"),
     [
-        {"authorization_url": "http://www.strava.com/oauth/authorize"},
-        {"authorization_url": "https://user:secret@example.test/oauth"},
-        {"redirect_uri": "http://example.test/exchange_token"},
-        {"redirect_uri": "file:///tmp/exchange_token"},
-        {"scope": " "},
+        (
+            {"authorization_url": "http://www.strava.com/oauth/authorize"},
+            "authorization URL must use HTTPS",
+        ),
+        (
+            {"authorization_url": "https://user:secret@example.test/oauth"},
+            "authorization URL cannot contain credentials",
+        ),
+        (
+            {"redirect_uri": "http://example.test/exchange_token"},
+            "HTTP Strava redirect must use a loopback host",
+        ),
+        (
+            {"redirect_uri": "file:///tmp/exchange_token"},
+            "redirect URI must be absolute",
+        ),
+        ({"scope": " "}, "scope cannot be empty"),
     ],
 )
 def test_rejects_unsafe_authorization_configuration(
     configuration: dict[str, str],
+    expected_error: str,
 ) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=expected_error):
         StravaAuthorizationConfig("client-id", **configuration)

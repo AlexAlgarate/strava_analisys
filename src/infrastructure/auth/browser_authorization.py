@@ -88,7 +88,8 @@ class BrowserAuthorizationCodeProvider:
         )
         self._opener(auth_url)
         callback_url = self._input_reader(
-            "Paste here the URL from the browser: "
+            "If the browser did not open, visit this URL:\n"
+            f"{auth_url}\n\nPaste here the URL from the browser: "
         ).strip()
         return self._extract_code(
             callback_url,
@@ -134,10 +135,6 @@ class BrowserAuthorizationCodeProvider:
         if duplicate is not None:
             raise ValueError(f"OAuth callback parameter '{duplicate}' is duplicated.")
 
-        if "error" in parameters:
-            oauth_error = parameters["error"][0] or "unknown_error"
-            raise ValueError(f"OAuth authorization failed: {oauth_error}.")
-
         returned_state = _single_value(parameters, "state")
         if not returned_state:
             raise ValueError("No OAuth state found in the callback URL.")
@@ -146,6 +143,10 @@ class BrowserAuthorizationCodeProvider:
             expected_state.encode(),
         ):
             raise ValueError("OAuth state does not match the authorization request.")
+
+        if "error" in parameters:
+            oauth_error = parameters["error"][0] or "unknown_error"
+            raise ValueError(f"OAuth authorization failed: {oauth_error}.")
 
         code = _single_value(parameters, "code")
         if not code:

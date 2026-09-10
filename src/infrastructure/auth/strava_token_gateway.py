@@ -9,11 +9,11 @@ from src.domain.token import TokenSet
 from src.infrastructure.serialization.token import token_from_mapping
 
 logger = logging.getLogger(__name__)
-TOKEN_URL = "https://www.strava.com/oauth/token"
+TOKEN_URL = "https://www.strava.com/oauth/token"  # noqa: S105  # Public endpoint.
 
 
 class GrantType(StrEnum):
-    REFRESH_TOKEN = "refresh_token"
+    REFRESH_TOKEN = "refresh_token"  # noqa: S105  # OAuth grant name.
     AUTHORIZATION_CODE = "authorization_code"
 
 
@@ -36,7 +36,13 @@ class StravaTokenGateway:
             (int, float),
         ):
             raise TypeError("OAuth request timeout must be numeric.")
-        if not isfinite(request_timeout) or request_timeout <= 0:
+        try:
+            finite_timeout = isfinite(request_timeout)
+        except OverflowError as error:
+            raise ValueError(
+                "OAuth request timeout must be a finite positive number."
+            ) from error
+        if not finite_timeout or request_timeout <= 0:
             raise ValueError("OAuth request timeout must be a finite positive number.")
         self._request_timeout = float(request_timeout)
 
