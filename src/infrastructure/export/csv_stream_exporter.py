@@ -16,4 +16,13 @@ class CsvStreamExporter:
                 fieldnames=("time", "distance", "heartrate", "id"),
             )
             writer.writeheader()
-            writer.writerows(row for stream in streams for row in stream.as_rows())
+            writer.writerows(
+                {
+                    "time": sample.elapsed_seconds,
+                    "distance": sample.distance_metres,
+                    "heartrate": sample.heart_rate_bpm,
+                    "id": stream.activity_id,
+                }
+                for stream in streams
+                for sample in stream.samples
+            )

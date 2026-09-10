@@ -1,0 +1,94 @@
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, Mock
+
+import pytest
+
+from src.domain.week_period import WeekPeriod
+from src.infrastructure.strava.activity_gateway import StravaActivityGateway
+from tests.factories import activity_payload, stream_payload, zones_payload
+
+
+@pytest.fixture
+def api() -> Mock:
+    result = Mock()
+    result.make_request = AsyncMock()
+    return result
+
+
+@pytest.fixture
+def period() -> WeekPeriod:
+    return WeekPeriod.containing(datetime(2026, 9, 9, tzinfo=UTC))
+
+
+@pytest.mark.asyncio
+async def test_lists_activities_for_period(api: Mock, period: WeekPeriod) -> None:
+    api.make_request.return_value = [activity_payload(1), activity_payload(2)]
+    gateway = StravaActivityGateway(api)
+
+    result = await gateway.list_activities(period)
+
+    assert [activity.id for activity in result] == [1, 2]
+    api.make_request.assert_awaited_once_with(
+        endpoint="/activities",
+        params={
+            "per_page": 200,
+            "page": 1,
+            "after": period.start_epoch,
+            "before": period.end_epoch,
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_lists_every_activity_page(api: Mock, period: WeekPeriod) -> None:
+    api.make_request.side_effect = [
+        [activity_payload(1), activity_payload(2)],
+        [activity_payload(3)],
+    ]
+    gateway = StravaActivityGateway(api, page_size=2)
+
+    result = await gateway.list_activities(period)
+
+    assert [activity.id for activity in result] == [1, 2, 3]
+    assert api.make_request.await_args_list[1].kwargs["params"]["page"] == 2
+
+
+def test_rejects_invalid_page_size(api: Mock) -> None:
+    with pytest.raises(ValueError, match="at least one"):
+        StravaActivityGateway(api, page_size=0)
+
+
+@pytest.mark.asyncio
+async def test_gets_activity_details(api: Mock) -> None:
+    api.make_request.return_value = activity_payload(7)
+    gateway = StravaActivityGateway(api)
+
+    result = await gateway.get_activity_details(7)
+
+    assert result.id == 7
+    api.make_request.assert_awaited_once_with("/activities/7")
+
+
+@pytest.mark.asyncio
+async def test_gets_activity_stream(api: Mock) -> None:
+    api.make_request.return_value = stream_payload()
+    gateway = StravaActivityGateway(api)
+
+    result = await gateway.get_activity_stream(7)
+
+    assert result.activity_id == 7
+    api.make_request.assert_awaited_once_with(
+        "/activities/7/streams",
+        {"keys": "time,distance,heartrate", "key_by_type": "true"},
+    )
+
+
+@pytest.mark.asyncio
+async def test_gets_activity_zones(api: Mock) -> None:
+    api.make_request.return_value = zones_payload()
+    gateway = StravaActivityGateway(api)
+
+    result = await gateway.get_activity_zones(7)
+
+    assert result.activity_id == 7
+    api.make_request.assert_awaited_once_with("/activities/7/zones")

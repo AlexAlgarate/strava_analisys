@@ -3,77 +3,25 @@ from typing import cast
 
 import pytest
 
-from src.domain.activity_stream import (
-    ActivityStream,
-    StreamBatch,
-    StreamFetchFailure,
-    StreamSample,
-)
-from tests.factories import stream_payload
-
-
-def test_builds_aligned_samples_and_rows_from_uneven_streams() -> None:
-    stream = ActivityStream.from_mapping(
-        42,
-        stream_payload(
-            times=[0, 1],
-            distances=[0, 10.5, 20.5],
-            heart_rates=[120],
-        ),
-    )
-
-    assert len(stream.samples) == 3
-    assert stream.samples[1].heart_rate_bpm is None
-    assert stream.samples[2].elapsed_seconds is None
-    assert stream.as_rows()[0] == {
-        "time": 0,
-        "distance": 0.0,
-        "heartrate": 120,
-        "id": 42,
-    }
-
-
-def test_missing_streams_produce_an_empty_stream() -> None:
-    stream = ActivityStream.from_mapping(1, {})
-
-    assert stream.samples == ()
-    assert stream.as_rows() == []
+from src.domain.activity_stream import StreamBatch, StreamFetchFailure, StreamSample
+from tests.factories import activity_stream
 
 
 @pytest.mark.parametrize("activity_id", [True, 0, -1, "1"])
 def test_rejects_invalid_activity_ids(activity_id: object) -> None:
     expected_error = TypeError if isinstance(activity_id, (bool, str)) else ValueError
+
     with pytest.raises(expected_error):
-        ActivityStream(activity_id=cast(int, activity_id), samples=())
-
-
-@pytest.mark.parametrize(
-    ("payload", "message"),
-    [
-        ({"time": []}, "must be an object"),
-        ({"time": {"data": "bad"}}, "data must be a sequence"),
-        ({"time": {"data": [1.5]}}, "values must be integers"),
-        ({"time": {"data": [-1]}}, "cannot be negative"),
-        ({"distance": {"data": [True]}}, "values must be numeric"),
-        ({"distance": {"data": [math.inf]}}, "finite and non-negative"),
-    ],
-)
-def test_rejects_invalid_stream_values(
-    payload: dict[str, object],
-    message: str,
-) -> None:
-    with pytest.raises((TypeError, ValueError), match=message):
-        ActivityStream.from_mapping(1, payload)
+        activity_stream(cast(int, activity_id))
 
 
 def test_batch_reports_counts_and_partial_state() -> None:
-    stream = ActivityStream.from_mapping(1, stream_payload())
+    stream = activity_stream()
     failure = StreamFetchFailure(2, "TimeoutError", "request timed out")
     batch = StreamBatch(streams=(stream,), failures=(failure,))
 
     assert batch.sample_count == 3
     assert batch.is_partial
-    assert len(batch.as_rows()) == 3
     assert not StreamBatch().is_partial
 
 

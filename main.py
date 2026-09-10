@@ -1,15 +1,9 @@
 import asyncio
 import logging
-from pathlib import Path
 
-from src.access_token import GetAccessToken
-from src.core.activities.summary.service import ActivitySummaryService
-from src.core.service import StravaService
+from src.composition import build_access_token_service, build_application_services
 from src.infrastructure.api_clients.async_strava_api import AsyncStravaAPI
-from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
-from src.infrastructure.export.json_activity_zones_writer import (
-    JsonActivityZonesWriter,
-)
+from src.infrastructure.logging import setup_logging
 from src.presentation.cli_entrypoint import MenuDependencies, MenuHandler
 from src.presentation.console_output.console import create_console
 from src.presentation.console_output.console_error_handler import (
@@ -24,7 +18,6 @@ from src.presentation.console_output.weekly_summary_presenter import (
     ConsoleSummaryPresenter,
 )
 from src.presentation.menu.renderer import MenuRenderer
-from src.utils.logger_config import setup_logging
 
 
 async def run_cli() -> None:
@@ -33,8 +26,7 @@ async def run_cli() -> None:
     logger = logging.getLogger(__name__)
     logger.info("Starting Strava CLI\n")
 
-    token = GetAccessToken()
-    access_token = token.get_access_token()
+    access_token = build_access_token_service().get_access_token()
 
     async with AsyncStravaAPI(access_token=access_token) as strava_api:
         console = create_console()
@@ -42,19 +34,17 @@ async def run_cli() -> None:
         result_console_printer = ResultConsolePrinter(console)
         error_console_printer = ConsoleErrorHandler(console)
 
-        service = StravaService(
-            api=strava_api,
-            exporters={"csv": CsvStreamExporter()},
-            zones_writer=JsonActivityZonesWriter(Path("json_zones_files")),
-        )
-        summary_service = ActivitySummaryService(activity_provider=service)
+        services = build_application_services(strava_api)
 
         menu = MenuHandler(
             MenuDependencies(
-                service=service,
+                activities=services.activities,
+                streams=services.streams,
+                stream_export=services.stream_export,
+                activity_zones=services.activity_zones,
+                summary=services.summary,
                 result_printer=result_console_printer,
                 error_printer=error_console_printer,
-                summary_service=summary_service,
                 summary_presenter=ConsoleSummaryPresenter(console),
                 prompts=prompts,
                 menu_view=MenuRenderer(console),

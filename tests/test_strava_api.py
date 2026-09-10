@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import aiohttp
 import pytest
 
+from src.application.errors import RateLimitExceededError, UnauthorizedError
 from src.infrastructure.api_clients.async_http_client import (
     AsyncHTTPClient,
     HTTPClientConfig,
@@ -14,7 +15,6 @@ from src.infrastructure.api_clients.async_strava_api import (
     StravaAPIConfig,
 )
 from src.infrastructure.api_clients.protocols import AsyncHttpClient
-from src.utils.exceptions import TooManyRequestError, UnauthorizedError
 
 
 class MockResponse:
@@ -151,7 +151,7 @@ async def test_http_client_returns_json_and_reuses_session() -> None:
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("status", "error_type"),
-    [(401, UnauthorizedError), (429, TooManyRequestError)],
+    [(401, UnauthorizedError), (429, RateLimitExceededError)],
 )
 async def test_http_client_translates_strava_statuses(
     status: int,
