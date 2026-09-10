@@ -18,19 +18,14 @@ from src.infrastructure.auth.browser_authorization import (
     StravaAuthorizationConfig,
 )
 from src.infrastructure.auth.credentials import (
-    FernetSecrets,
     StravaSecrets,
-    get_default_key_path,
-    get_default_token_path,
 )
 from src.infrastructure.auth.strava_token_gateway import StravaTokenGateway
 from src.infrastructure.export.csv_stream_exporter import CsvStreamExporter
 from src.infrastructure.export.json_activity_zones_writer import (
     JsonActivityZonesWriter,
 )
-from src.infrastructure.persistence.encrypted_file_token_store import (
-    EncryptedFileTokenStore,
-)
+from src.infrastructure.persistence.dotenv_token_store import DotenvTokenStore
 from src.infrastructure.strava.activity_gateway import StravaActivityGateway
 
 
@@ -46,17 +41,13 @@ class ApplicationServices:
 
 
 def build_access_token_service(
-    token_path: Path | None = None,
-    key_path: Path | None = None,
+    env_path: Path | None = None,
 ) -> AccessTokenService:
     """Build the OAuth use case and all of its driven adapters."""
-    load_dotenv()
+    resolved_env_path = env_path or Path(".env")
+    load_dotenv(dotenv_path=resolved_env_path, interpolate=False)
     credentials = StravaSecrets()
-    cipher = FernetSecrets(key_path or get_default_key_path()).cipher
-    token_store = EncryptedFileTokenStore(
-        path=token_path or get_default_token_path(),
-        cipher=cipher,
-    )
+    token_store = DotenvTokenStore(resolved_env_path)
     return AccessTokenService(
         token_store=token_store,
         token_gateway=StravaTokenGateway(

@@ -28,15 +28,12 @@ Crea un archivo `.env` en la raíz:
 ```dotenv
 STRAVA_CLIENT_ID=<client-id>
 STRAVA_SECRET_KEY=<client-secret>
-# Opcional: si se omite, se genera una clave local privada.
-FERNET_KEY=<fernet-key>
 ```
 
 Los tokens OAuth no requieren Supabase ni otra base de datos. Se guardan
-cifrados fuera del repositorio, por defecto en
-`~/.local/share/strava-analysis/tokens.enc`. La clave generada localmente se
-guarda con permisos exclusivos del usuario en
-`~/.config/strava-analysis/fernet.key`.
+automáticamente en la variable `STRAVA_OAUTH_TOKEN` del mismo `.env`. No hay
+que crearla ni editarla manualmente. El archivo está excluido por `.gitignore`
+y la aplicación restringe sus permisos a `0600` al escribir el token.
 
 Los logs se escriben fuera del repositorio, en
 `$XDG_STATE_HOME/strava-analysis/application.log` o, si esa variable no está

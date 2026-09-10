@@ -23,16 +23,12 @@ def test_builds_local_token_service(
     monkeypatch.setattr(composition, "load_dotenv", load_dotenv)
     monkeypatch.setenv("STRAVA_CLIENT_ID", "client-id")
     monkeypatch.setenv("STRAVA_SECRET_KEY", "secret")
-    monkeypatch.delenv("FERNET_KEY", raising=False)
-    key_path = tmp_path / "key"
-    token_path = tmp_path / "token"
+    env_path = tmp_path / ".env"
 
-    service = composition.build_access_token_service(token_path, key_path)
+    service = composition.build_access_token_service(env_path)
 
     assert isinstance(service, AccessTokenService)
-    assert key_path.exists()
-    assert not token_path.exists()
-    load_dotenv.assert_called_once_with()
+    load_dotenv.assert_called_once_with(dotenv_path=env_path, interpolate=False)
 
 
 def test_builds_application_services() -> None:

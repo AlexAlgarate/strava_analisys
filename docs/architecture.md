@@ -13,7 +13,7 @@ flowchart LR
     Infrastructure["infrastructure<br/>adaptadores externos"]
     Domain["domain<br/>modelos y reglas"]
     Strava["API de Strava"]
-    Local["archivos locales cifrados"]
+    Local[".env local ignorado por Git"]
 
     Main --> Composition
     Main --> Presentation
@@ -40,7 +40,7 @@ de vida del cliente HTTP y la construcción de los adaptadores de terminal.
 | --- | --- | --- |
 | `domain` | Estados válidos y reglas puras | `DetailedActivity`, `ActivityStream`, `WeekPeriod`, `TokenSet` |
 | `application` | Casos de uso, puertos y resultados | consultas semanales, exportación, resumen y OAuth |
-| `infrastructure` | I/O y traducción de sistemas externos | HTTP, Strava, OAuth, CSV, JSON, logging y tokens cifrados |
+| `infrastructure` | I/O y traducción de sistemas externos | HTTP, Strava, OAuth, CSV, JSON, logging y token local |
 | `presentation` | Entrada y salida de terminal | menú, prompts, tablas, errores y progreso |
 | `composition.py` | Construcción y conexión de implementaciones | gateways, stores, writers y servicios |
 | `main.py` | Bootstrap y ciclo de vida | token, cliente API, consola y bucle del menú |
