@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from types import TracebackType
 from typing import Self, cast
 from unittest.mock import AsyncMock, Mock, patch
@@ -6,7 +7,10 @@ import aiohttp
 import pytest
 
 from src.application.errors import (
+    ExternalServiceResponseError,
+    ExternalServiceUnavailableError,
     InactiveApplicationError,
+    InvalidExternalDataError,
     RateLimitExceededError,
     UnauthorizedError,
 )
@@ -57,6 +61,12 @@ def _session(*responses: MockResponse) -> Mock:
     return session
 
 
+def _unchecked_http_config(**kwargs: object) -> HTTPClientConfig:
+    """Exercise runtime validation with values outside the static contract."""
+    factory = cast(Callable[..., HTTPClientConfig], HTTPClientConfig)
+    return factory(**kwargs)
+
+
 class TestStravaAPI:
     test_token = "test-token"
     test_config = StravaAPIConfig(
@@ -91,6 +101,20 @@ class TestStravaAPI:
     def test_rejects_empty_access_token(self) -> None:
         with pytest.raises(ValueError, match="Access token"):
             AsyncStravaAPI(access_token="")
+
+    @pytest.mark.parametrize("token", [None, 123])
+    def test_rejects_non_string_access_token(self, token: object) -> None:
+        with pytest.raises(TypeError, match="must be a string"):
+            AsyncStravaAPI(access_token=cast(str, token))
+
+    @pytest.mark.parametrize("endpoint", ["athlete", "//other.test/path"])
+    def test_rejects_invalid_endpoint(
+        self,
+        async_api: AsyncStravaAPI,
+        endpoint: str,
+    ) -> None:
+        with pytest.raises(ValueError, match="absolute path"):
+            async_api.get_url(endpoint)
 
     @pytest.mark.asyncio
     async def test_make_request_delegates_to_http_client(
@@ -191,14 +215,15 @@ async def test_http_client_explains_inactive_strava_application() -> None:
 
 
 @pytest.mark.asyncio
-async def test_http_client_preserves_unknown_forbidden_error() -> None:
+async def test_http_client_translates_unknown_forbidden_error() -> None:
     session = _session(MockResponse({"message": "Forbidden"}, status=403))
     client = AsyncHTTPClient(session=cast(aiohttp.ClientSession, session))
 
-    with pytest.raises(aiohttp.ClientResponseError) as error:
+    with pytest.raises(ExternalServiceResponseError) as error:
         await client.make_async_request("https://example.test", {})
 
-    assert error.value.status == 403
+    assert error.value.status_code == 403
+    assert "403" in str(error.value)
 
 
 @pytest.mark.asyncio
@@ -223,8 +248,10 @@ async def test_http_client_raises_final_server_error() -> None:
         session=cast(aiohttp.ClientSession, session),
     )
 
-    with pytest.raises(aiohttp.ClientResponseError):
+    with pytest.raises(ExternalServiceResponseError) as error:
         await client.make_async_request("https://example.test", {})
+
+    assert error.value.status_code == 500
 
 
 @pytest.mark.asyncio
@@ -240,6 +267,33 @@ async def test_http_client_retries_connection_errors() -> None:
     )
 
     assert await client.make_async_request("https://example.test", {}) == {"ok": True}
+
+
+@pytest.mark.asyncio
+async def test_http_client_translates_final_connection_error() -> None:
+    session = _session()
+    session.get.side_effect = aiohttp.ClientConnectionError("offline")
+    client = AsyncHTTPClient(
+        config=HTTPClientConfig(max_attempts=2, retry_backoff_seconds=0),
+        session=cast(aiohttp.ClientSession, session),
+    )
+
+    with pytest.raises(ExternalServiceUnavailableError, match="after retrying"):
+        await client.make_async_request("https://example.test", {})
+
+    assert session.get.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_http_client_rejects_invalid_json_response() -> None:
+    response = MockResponse({})
+    response.json = AsyncMock(side_effect=ValueError("invalid JSON"))
+    client = AsyncHTTPClient(
+        session=cast(aiohttp.ClientSession, _session(response)),
+    )
+
+    with pytest.raises(InvalidExternalDataError, match="not valid JSON"):
+        await client.make_async_request("https://example.test", {})
 
 
 @pytest.mark.asyncio
@@ -276,4 +330,43 @@ def test_accepts_valid_http_configuration(config: HTTPClientConfig) -> None:
 )
 def test_rejects_invalid_http_configuration(kwargs: dict[str, int]) -> None:
     with pytest.raises(ValueError):
-        HTTPClientConfig(**kwargs)  # type: ignore[arg-type]
+        _unchecked_http_config(**kwargs)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"timeout_seconds": True},
+        {"max_attempts": 1.5},
+        {"retry_backoff_seconds": False},
+    ],
+)
+def test_rejects_invalid_http_configuration_types(kwargs: dict[str, object]) -> None:
+    with pytest.raises(TypeError):
+        _unchecked_http_config(**kwargs)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"timeout_seconds": float("inf")},
+        {"retry_backoff_seconds": float("nan")},
+    ],
+)
+def test_rejects_non_finite_http_configuration(kwargs: dict[str, float]) -> None:
+    with pytest.raises(ValueError, match="finite"):
+        _unchecked_http_config(**kwargs)
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        {"base_url": "http://www.strava.com/api/v3"},
+        {"base_url": "https://user:secret@example.test/api"},
+        {"base_url": "https://example.test/api?redirect=evil"},
+        {"content_type": " "},
+    ],
+)
+def test_rejects_unsafe_strava_api_configuration(config: dict[str, str]) -> None:
+    with pytest.raises(ValueError):
+        StravaAPIConfig(**config)

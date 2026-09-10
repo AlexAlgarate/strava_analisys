@@ -4,7 +4,10 @@ from src.application.errors import (
     ActivitiesNotFoundError,
     ApplicationError,
     ExternalServiceError,
+    ExternalServiceResponseError,
+    ExternalServiceUnavailableError,
     InactiveApplicationError,
+    InvalidExternalDataError,
     RateLimitExceededError,
     TokenError,
     TokenStorageError,
@@ -17,6 +20,12 @@ from src.application.errors import (
     [
         (ActivitiesNotFoundError("empty"), ApplicationError),
         (ExternalServiceError("offline"), ApplicationError),
+        (ExternalServiceUnavailableError("offline"), ExternalServiceError),
+        (
+            ExternalServiceResponseError("bad response", status_code=500),
+            ExternalServiceError,
+        ),
+        (InvalidExternalDataError("invalid"), ExternalServiceError),
         (InactiveApplicationError("inactive"), ExternalServiceError),
         (RateLimitExceededError("limited"), ExternalServiceError),
         (UnauthorizedError("unauthorized"), ExternalServiceError),
