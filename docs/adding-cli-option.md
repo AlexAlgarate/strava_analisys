@@ -63,7 +63,7 @@ En [options.py](../src/presentation/menu/options.py):
 class MenuOption(Enum):
     # Opciones existentes...
     PREVIOUS_WEEKLY_REPORT = (
-        11,
+        12,
         MenuCategory.INSIGHTS,
         "Previous-week training summary",
     )
@@ -101,7 +101,7 @@ tanto la acción como el presenter:
 async def test_previous_weekly_report_selects_previous_week_and_presenter(
     command_composition: CommandComposition,
 ) -> None:
-    result = await command_composition.registry.resolve("11").execute()
+    result = await command_composition.registry.resolve("12").execute()
 
     command_composition.summary.generate_summary.assert_awaited_once_with(
         week=WeekSelection.PREVIOUS
@@ -117,8 +117,8 @@ todas las opciones.
 ## Caso 2: pedir datos antes de ejecutar
 
 Una acción de comando no recibe parámetros. Cuando necesita entrada del
-usuario, declara una closure asíncrona local en `build_menu_commands`. Por
-ejemplo, para exponer la exportación de zonas cardiacas ya existente:
+usuario, declara una closure asíncrona local en `build_menu_commands`. La
+opción 11, que exporta las zonas cardiacas a JSON, aplica este patrón:
 
 ```python
 async def export_activity_zones() -> ActivityZonesExportResult:
@@ -126,7 +126,7 @@ async def export_activity_zones() -> ActivityZonesExportResult:
     return await services.activity_zones_export.export_activity_zones(activity_id)
 ```
 
-Registra la acción con su presenter tipado:
+La acción se registra con su presenter tipado:
 
 ```python
 MenuCommand[ActivityZonesExportResult](

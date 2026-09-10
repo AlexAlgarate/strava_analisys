@@ -20,6 +20,7 @@ make run           # Ejecutar la CLI
 make lint          # Ruff, formato y ty
 make test          # Pytest con cobertura de ramas
 make architecture  # Contratos de import-linter
+make audit         # Vulnerabilidades del entorno fijado en uv.lock
 make check         # Todos los controles anteriores
 ```
 
@@ -69,7 +70,9 @@ uv run --no-sync pytest tests/domain/test_activity_stream.py -q
 uv run --no-sync pytest tests/application/use_cases/test_streams.py -q
 ```
 
-Antes de publicar una rama se ejecuta `make check`.
+Antes de publicar una rama se ejecuta `make check`. La auditoría consulta OSV,
+por lo que necesita acceso de red; `--locked` garantiza que no modifica
+`uv.lock` durante la comprobación.
 
 ## Cómo añadir un caso de uso
 
@@ -123,12 +126,21 @@ del caso de uso.
 
 ```bash
 docker build -t strava-analysis .
-docker run --rm --env-file .env -it strava-analysis
+docker volume create strava-analysis-data
+docker run --rm --env-file .env.docker \
+  --mount type=volume,src=strava-analysis-data,dst=/data \
+  -it strava-analysis
 ```
 
-GitHub Actions ejecuta tests, Ruff, formato, `ty` y los contratos de
-arquitectura. La imagen se publica en GHCR únicamente desde un `push` a
-`main`.
+El proceso usa UID/GID `10001`, no puede modificar `/app` y escribe estado y
+exportaciones en `/data`. El volumen nombrado conserva `/data/.env`, los logs
+en `/data/state` y las exportaciones entre ejecuciones. `.env.docker` debe tener
+permisos `0600` y contener solo `STRAVA_CLIENT_ID` y `STRAVA_SECRET_KEY`; no
+reutilices el `.env` local porque también puede contener el token OAuth.
+
+GitHub Actions ejecuta tests, Ruff, formato, `ty`, los contratos de arquitectura
+y `uv audit --locked`. La imagen se publica en GHCR únicamente desde un `push`
+a `main`.
 
 ## Flujo de contribución
 

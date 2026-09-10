@@ -76,13 +76,17 @@ confunde con un lote completamente correcto.
 
 Los límites se expresan con `typing.Protocol`, sin herencia nominal:
 
-- `ActivityGateway` expone a los casos de uso actividades, detalles, streams y
-  zonas ya convertidos al dominio;
+- `ActivityQueryGateway`, `ActivityStreamGateway` y `ActivityZonesGateway`
+  separan las consultas externas por capacidad; `StravaActivityGateway`
+  implementa los tres contratos sin obligar a cada caso de uso a depender de
+  operaciones que no utiliza;
 - `StreamExporter` y `ActivityZonesWriter` abstraen la escritura;
 - `TokenStore`, `TokenGateway` y `AuthorizationCodeProvider` aíslan OAuth;
-- `ActivityQueries`, `ActivityStreamQueries`, `StreamExportUseCase`,
-  `ActivityZonesUseCase`, `ActivityZonesExportUseCase` y `WeeklySummaryUseCase`
-  son puertos de entrada pequeños expuestos a los adaptadores de presentación;
+- `WeeklyActivityList`, `WeeklyDetailedActivityList`, su composición
+  `WeeklyActivityQueries`, `ActivityStreamQueries`, `WeeklyStreamBatchProvider`,
+  `StreamExportUseCase`, `ActivityZonesUseCase`, `ActivityZonesExportUseCase` y
+  `WeeklySummaryUseCase` son puertos de entrada pequeños; cada consumidor
+  depende solo de las operaciones que necesita;
 - `ResultPresenter`, `PromptReader`, `MenuView` y `OperationProgress`
   pertenecen a presentación.
 
