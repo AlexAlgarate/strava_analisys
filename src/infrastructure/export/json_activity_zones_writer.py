@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from src.domain.heart_rate_zones import HeartRateZones
+from src.infrastructure.export.atomic_text_file import atomic_text_file
 
 
 class JsonActivityZonesWriter:
@@ -10,10 +11,9 @@ class JsonActivityZonesWriter:
     def __init__(self, output_directory: Path) -> None:
         self._output_directory = output_directory
 
-    def write(self, zones: HeartRateZones) -> None:
-        self._output_directory.mkdir(parents=True, exist_ok=True)
+    def write(self, zones: HeartRateZones) -> Path:
         path = self._output_directory / f"zones_{zones.activity_id}.json"
-        with path.open("w", encoding="utf-8") as output:
+        with atomic_text_file(path) as output:
             json.dump(
                 {
                     f"Zone_{zone.number}": {
@@ -27,3 +27,4 @@ class JsonActivityZonesWriter:
                 ensure_ascii=False,
                 indent=4,
             )
+        return path

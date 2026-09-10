@@ -1,4 +1,4 @@
-.PHONY: help setup run lint format test architecture check clean
+.PHONY: help setup run lint format test architecture audit check clean
 
 UV_RUN := uv run --no-sync
 
@@ -11,6 +11,7 @@ help:
 	@echo "  make format       - Fix lint issues and format the project"
 	@echo "  make test         - Run tests with branch coverage"
 	@echo "  make architecture - Check dependency boundaries"
+	@echo "  make audit        - Audit locked dependencies for vulnerabilities"
 	@echo "  make check        - Run every local CI quality gate"
 	@echo "  make clean        - Remove Python cache files"
 
@@ -39,7 +40,11 @@ architecture:
 	$(UV_RUN) lint-imports --no-cache
 
 
-check: lint test architecture
+audit:
+	uv audit --locked --preview-features audit-command
+
+
+check: lint test architecture audit
 
 
 clean:

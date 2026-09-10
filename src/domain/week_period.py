@@ -1,6 +1,24 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Self
+from enum import Enum
+from typing import Self, assert_never
+
+
+class WeekSelection(Enum):
+    """A week selected relative to a reference instant."""
+
+    CURRENT = "current"
+    PREVIOUS = "previous"
+
+    @property
+    def weeks_before_current(self) -> int:
+        """Return the explicit calendar offset represented by this selection."""
+        match self:
+            case WeekSelection.CURRENT:
+                return 0
+            case WeekSelection.PREVIOUS:
+                return 1
+        assert_never(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,25 +36,34 @@ class WeekPeriod:
                 raise ValueError(f"Week {name} must be timezone-aware.")
         if self.end <= self.start:
             raise ValueError("Week end must be later than its start.")
+        if self.start.utcoffset() != timedelta(0) or self.end.utcoffset() != timedelta(
+            0
+        ):
+            raise ValueError("Week boundaries must be in UTC.")
+        if self.start.weekday() != 0 or self.start.time() != datetime.min.time():
+            raise ValueError("A week must start on Monday at midnight UTC.")
+        if self.end - self.start != timedelta(weeks=1):
+            raise ValueError("A week must span exactly seven days.")
 
     @classmethod
     def containing(
         cls,
         instant: datetime,
         *,
-        previous_week: bool = False,
+        week: WeekSelection,
     ) -> Self:
-        """Return the UTC week containing ``instant`` or the week before it."""
+        """Return the selected UTC week relative to ``instant``."""
         if not isinstance(instant, datetime):
             raise TypeError("Week reference instant must be a datetime.")
         if instant.tzinfo is None or instant.utcoffset() is None:
             raise ValueError("Week reference instant must be timezone-aware.")
+        if not isinstance(week, WeekSelection):
+            raise TypeError("Week selection must be a WeekSelection value.")
 
         utc_instant = instant.astimezone(UTC)
         start = utc_instant - timedelta(days=utc_instant.weekday())
         start = start.replace(hour=0, minute=0, second=0, microsecond=0)
-        if previous_week:
-            start -= timedelta(weeks=1)
+        start -= timedelta(weeks=week.weeks_before_current)
         return cls(start=start, end=start + timedelta(weeks=1))
 
     @property

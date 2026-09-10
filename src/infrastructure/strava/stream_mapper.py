@@ -13,10 +13,13 @@ def map_activity_stream(activity_id: int, payload: object) -> ActivityStream:
     times = _integer_stream(values, "time")
     distances = _float_stream(values, "distance")
     heart_rates = _integer_stream(values, "heartrate")
-    sample_count = max(
-        (len(times), len(distances), len(heart_rates)),
-        default=0,
+    available_streams = tuple(
+        stream for stream in (times, distances, heart_rates) if stream is not None
     )
+    stream_lengths = {len(stream) for stream in available_streams}
+    if len(stream_lengths) > 1:
+        raise ValueError("Present Strava streams must contain the same sample count.")
+    sample_count = next(iter(stream_lengths), 0)
 
     return ActivityStream(
         activity_id=activity_id,
@@ -31,23 +34,24 @@ def map_activity_stream(activity_id: int, payload: object) -> ActivityStream:
     )
 
 
-def _stream_values(payload: Mapping[str, object], key: str) -> Sequence[object]:
+def _stream_values(payload: Mapping[str, object], key: str) -> Sequence[object] | None:
     stream = payload.get(key)
     if stream is None:
-        return ()
+        return None
     if not isinstance(stream, Mapping):
         raise TypeError(f"Stream '{key}' must be an object.")
     values = stream.get("data")
-    if values is None:
-        return ()
     if not isinstance(values, Sequence) or isinstance(values, (str, bytes)):
         raise TypeError(f"Stream '{key}' data must be a sequence.")
     return values
 
 
-def _integer_stream(payload: Mapping[str, object], key: str) -> tuple[int, ...]:
+def _integer_stream(payload: Mapping[str, object], key: str) -> tuple[int, ...] | None:
+    stream_values = _stream_values(payload, key)
+    if stream_values is None:
+        return None
     values: list[int] = []
-    for value in _stream_values(payload, key):
+    for value in stream_values:
         if isinstance(value, bool) or not isinstance(value, int):
             raise TypeError(f"Stream '{key}' values must be integers.")
         if value < 0:
@@ -56,17 +60,25 @@ def _integer_stream(payload: Mapping[str, object], key: str) -> tuple[int, ...]:
     return tuple(values)
 
 
-def _float_stream(payload: Mapping[str, object], key: str) -> tuple[float, ...]:
+def _float_stream(payload: Mapping[str, object], key: str) -> tuple[float, ...] | None:
+    stream_values = _stream_values(payload, key)
+    if stream_values is None:
+        return None
     values: list[float] = []
-    for value in _stream_values(payload, key):
+    for value in stream_values:
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError(f"Stream '{key}' values must be numeric.")
-        numeric_value = float(value)
+        try:
+            numeric_value = float(value)
+        except OverflowError as error:
+            raise ValueError(
+                f"Stream '{key}' values must be finite and non-negative."
+            ) from error
         if not isfinite(numeric_value) or numeric_value < 0:
             raise ValueError(f"Stream '{key}' values must be finite and non-negative.")
         values.append(numeric_value)
     return tuple(values)
 
 
-def _value_at[T](values: Sequence[T], index: int) -> T | None:
-    return values[index] if index < len(values) else None
+def _value_at[T](values: Sequence[T] | None, index: int) -> T | None:
+    return None if values is None else values[index]

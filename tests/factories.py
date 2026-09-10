@@ -29,7 +29,7 @@ def activity_model(
         moving_time=moving_time,
         elapsed_time=elapsed_time,
         start_date_local=start_date_local
-        or datetime.fromisoformat("2026-09-07T07:30:00"),
+        or datetime.fromisoformat("2026-09-07T07:30:00+02:00"),
         sport_type=sport_type,
         total_elevation_gain=total_elevation_gain,
         gear_id=gear_id,
@@ -52,7 +52,7 @@ def activity_payload(
         "distance": 10_000,
         "moving_time": 3_600,
         "elapsed_time": 3_900,
-        "start_date_local": "2026-09-07T07:30:00",
+        "start_date_local": "2026-09-07T07:30:00+02:00",
         "sport_type": "Run",
         "total_elevation_gain": 120,
         "average_heartrate": 145,
@@ -92,7 +92,7 @@ def heart_rate_zones(activity_id: int = 1) -> HeartRateZones:
         (120, 140, 600),
         (140, 160, 900),
         (160, 180, 400),
-        (180, -1, 120),
+        (180, None, 120),
     )
     return HeartRateZones(
         activity_id=activity_id,

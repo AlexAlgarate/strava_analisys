@@ -1,18 +1,18 @@
-from src.application.ports.use_cases import ActivityQueries
+from src.application.ports.use_cases import WeeklyDetailedActivityList
 from src.domain.activity_summary import WeeklyActivitySummary
+from src.domain.week_period import WeekSelection
 
 
 class ActivitySummaryService:
     """Build a weekly summary from live detailed activity data."""
 
-    def __init__(self, activities: ActivityQueries) -> None:
+    def __init__(self, activities: WeeklyDetailedActivityList) -> None:
         self._activities = activities
 
     async def generate_summary(
         self,
-        previous_week: bool = False,
+        *,
+        week: WeekSelection,
     ) -> WeeklyActivitySummary:
-        activities = await self._activities.get_activity_details(
-            previous_week=previous_week
-        )
+        activities = await self._activities.list_detailed_activities(week=week)
         return WeeklyActivitySummary.from_activities(activities)

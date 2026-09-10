@@ -3,7 +3,8 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from src.domain.week_period import WeekPeriod
+from src.application.errors import InvalidExternalDataError
+from src.domain.week_period import WeekPeriod, WeekSelection
 from src.infrastructure.strava.activity_gateway import StravaActivityGateway
 from tests.factories import activity_payload, stream_payload, zones_payload
 
@@ -17,7 +18,10 @@ def api() -> Mock:
 
 @pytest.fixture
 def period() -> WeekPeriod:
-    return WeekPeriod.containing(datetime(2026, 9, 9, tzinfo=UTC))
+    return WeekPeriod.containing(
+        datetime(2026, 9, 9, tzinfo=UTC),
+        week=WeekSelection.CURRENT,
+    )
 
 
 @pytest.mark.asyncio
@@ -29,7 +33,7 @@ async def test_lists_activities_for_period(api: Mock, period: WeekPeriod) -> Non
 
     assert [activity.id for activity in result] == [1, 2]
     api.make_request.assert_awaited_once_with(
-        endpoint="/activities",
+        endpoint="/athlete/activities",
         params={
             "per_page": 200,
             "page": 1,
@@ -53,9 +57,90 @@ async def test_lists_every_activity_page(api: Mock, period: WeekPeriod) -> None:
     assert api.make_request.await_args_list[1].kwargs["params"]["page"] == 2
 
 
-def test_rejects_invalid_page_size(api: Mock) -> None:
+@pytest.mark.parametrize("name", ["page_size", "max_pages"])
+def test_rejects_non_positive_pagination_configuration(
+    api: Mock,
+    name: str,
+) -> None:
     with pytest.raises(ValueError, match="at least one"):
-        StravaActivityGateway(api, page_size=0)
+        StravaActivityGateway(api, **{name: 0})
+
+
+@pytest.mark.parametrize("name", ["page_size", "max_pages"])
+def test_rejects_non_integer_pagination_configuration(
+    api: Mock,
+    name: str,
+) -> None:
+    with pytest.raises(TypeError, match="must be an integer"):
+        StravaActivityGateway(api, **{name: True})
+
+
+def test_rejects_page_size_above_strava_limit(api: Mock) -> None:
+    with pytest.raises(ValueError, match="cannot exceed Strava's limit of 200"):
+        StravaActivityGateway(api, page_size=201)
+
+
+@pytest.mark.asyncio
+async def test_stops_runaway_pagination(api: Mock, period: WeekPeriod) -> None:
+    api.make_request.return_value = [activity_payload(1)]
+    gateway = StravaActivityGateway(api, page_size=1, max_pages=2)
+
+    with pytest.raises(InvalidExternalDataError, match="exceeded 2 pages"):
+        await gateway.list_activities(period)
+
+    assert api.make_request.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_translates_invalid_external_activity_data(
+    api: Mock,
+    period: WeekPeriod,
+) -> None:
+    api.make_request.return_value = [{"id": "not-an-integer"}]
+    gateway = StravaActivityGateway(api)
+
+    with pytest.raises(InvalidExternalDataError, match="activity list") as error:
+        await gateway.list_activities(period)
+
+    assert isinstance(error.value.__cause__, TypeError)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("method", "payload", "message"),
+    [
+        (
+            "get_activity_details",
+            activity_payload(distance=10**400),
+            "activity data",
+        ),
+        (
+            "get_activity_details",
+            activity_payload(moving_time=10**100, elapsed_time=10**100),
+            "activity data",
+        ),
+        (
+            "get_activity_stream",
+            stream_payload(distances=[10**400]),
+            "activity stream data",
+        ),
+    ],
+    ids=["activity-float", "activity-duration", "activity-stream"],
+)
+async def test_translates_overflowing_external_numbers(
+    api: Mock,
+    method: str,
+    payload: object,
+    message: str,
+) -> None:
+    api.make_request.return_value = payload
+    gateway = StravaActivityGateway(api)
+
+    with pytest.raises(InvalidExternalDataError, match=message) as error:
+        await getattr(gateway, method)(7)
+
+    assert isinstance(error.value.__cause__, ValueError)
+    assert isinstance(error.value.__cause__.__cause__, OverflowError)
 
 
 @pytest.mark.asyncio
@@ -67,6 +152,15 @@ async def test_gets_activity_details(api: Mock) -> None:
 
     assert result.id == 7
     api.make_request.assert_awaited_once_with("/activities/7")
+
+
+@pytest.mark.asyncio
+async def test_rejects_activity_details_for_a_different_id(api: Mock) -> None:
+    api.make_request.return_value = activity_payload(8)
+    gateway = StravaActivityGateway(api)
+
+    with pytest.raises(InvalidExternalDataError, match="different activity ID"):
+        await gateway.get_activity_details(7)
 
 
 @pytest.mark.asyncio
@@ -92,3 +186,26 @@ async def test_gets_activity_zones(api: Mock) -> None:
 
     assert result.activity_id == 7
     api.make_request.assert_awaited_once_with("/activities/7/zones")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("method", "payload", "message"),
+    [
+        ("get_activity_details", {}, "activity data"),
+        ("get_activity_stream", [], "activity stream data"),
+        ("get_activity_zones", [], "heart-rate zone data"),
+    ],
+    ids=["activity-details", "activity-stream", "activity-zones"],
+)
+async def test_translates_invalid_detail_payloads(
+    api: Mock,
+    method: str,
+    payload: object,
+    message: str,
+) -> None:
+    api.make_request.return_value = payload
+    gateway = StravaActivityGateway(api)
+
+    with pytest.raises(InvalidExternalDataError, match=message):
+        await getattr(gateway, method)(7)

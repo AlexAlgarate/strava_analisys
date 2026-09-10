@@ -1,4 +1,4 @@
-from collections.abc import Callable, Collection
+from collections.abc import Callable
 
 from rich.console import Console
 
@@ -16,22 +16,14 @@ class ConsolePrompts:
         self._console = console
         self._input = input_reader or console.input
 
-    def ask_menu_option(self, valid_options: Collection[str]) -> str:
-        allowed = {*valid_options, "q"}
-        while True:
-            answer = (
-                self._input(
-                    "\n[accent]Select an option[/accent] "
-                    "[muted](or q to quit)[/muted]: "
-                )
-                .strip()
-                .lower()
+    def ask_menu_option(self) -> str:
+        return (
+            self._input(
+                "\n[accent]Select an option[/accent] [muted](or q to quit)[/muted]: "
             )
-            if answer in allowed:
-                return answer
-            self._console.print(
-                "[error]Invalid choice.[/error] Enter one of the numbers shown."
-            )
+            .strip()
+            .lower()
+        )
 
     def ask_activity_id(self) -> int:
         while True:

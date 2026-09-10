@@ -8,14 +8,12 @@ license = { text = "MIT" }
 authors = [{ name = "Alex Algarate", email = "alex.algarate@gmail.com" }]
 dependencies = [
     "aiohttp>=3.14.3",
-    "cryptography>=50.0.1",
     "python-dotenv>=1.2.3",
     "requests>=2.34.2",
     "rich>=15.0.0",
 ]
 [dependency-groups]
 dev = [
-    "freezegun>=1.5.5",
     "import-linter>=2.15",
     "pre-commit>=4.6.2",
     "pytest>=9.1.1",
@@ -39,7 +37,41 @@ line-length = 88
 indent-width = 4
 
 [tool.ruff.lint]
+select = [
+    "A",
+    "ANN",
+    "ARG",
+    "ASYNC",
+    "B",
+    "BLE",
+    "C4",
+    "C901",
+    "DTZ",
+    "E4",
+    "E7",
+    "E9",
+    "ERA",
+    "F",
+    "FBT",
+    "G",
+    "I",
+    "LOG",
+    "N",
+    "PERF",
+    "PIE",
+    "PLR091",
+    "PT",
+    "RET",
+    "RUF",
+    "S",
+    "SIM",
+    "SLOT",
+    "T10",
+    "T20",
+    "UP",
+]
 fixable = ["ALL"]
+allowed-confusables = ["–"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -51,7 +83,16 @@ docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402"]
-"**/{tests,docs,tools}/*" = ["E402"]
+"**/{tests,docs,tools}/*" = [
+    "ARG001",
+    "E402",
+    "FBT003",
+    "PLR0913",
+    "PLR0917",
+    "S101",
+    "S105",
+    "S106",
+]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"

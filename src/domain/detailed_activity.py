@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import isfinite
 
 from src.domain.activity_id import require_activity_id
@@ -30,16 +30,9 @@ class DetailedActivity:
 
     def __post_init__(self) -> None:
         require_activity_id(self.id)
-        if not isinstance(self.name, str):
-            raise TypeError("Activity name must be a string.")
-        if not self.name.strip():
-            raise ValueError("Activity name cannot be empty.")
-        if not isinstance(self.sport_type, str):
-            raise TypeError("Activity sport type must be a string.")
-        if not self.sport_type.strip():
-            raise ValueError("Activity sport type cannot be empty.")
-        if not isinstance(self.start_date_local, datetime):
-            raise TypeError("Activity start date must be a datetime.")
+        _require_non_empty_text("name", self.name)
+        _require_non_empty_text("sport type", self.sport_type)
+        _require_aware_datetime(self.start_date_local)
         self._require_non_negative("distance", self.distance)
         self._require_non_negative_integer("moving_time", self.moving_time)
         self._require_non_negative_integer("elapsed_time", self.elapsed_time)
@@ -47,6 +40,18 @@ class DetailedActivity:
         if self.elapsed_time < self.moving_time:
             raise ValueError("Elapsed time cannot be shorter than moving time.")
 
+        self._validate_optional_metrics()
+        if self.gear_id is not None:
+            _require_non_empty_text("gear id", self.gear_id)
+        self._validate_perceived_exertion()
+        if (
+            self.average_heartrate is not None
+            and self.max_heartrate is not None
+            and self.average_heartrate > self.max_heartrate
+        ):
+            raise ValueError("Average heartrate cannot exceed maximum heartrate.")
+
+    def _validate_optional_metrics(self) -> None:
         for name, value in (
             ("average_heartrate", self.average_heartrate),
             ("max_heartrate", self.max_heartrate),
@@ -55,27 +60,28 @@ class DetailedActivity:
         ):
             if value is not None:
                 self._require_non_negative(name, value)
-        if self.gear_id is not None and not isinstance(self.gear_id, str):
-            raise TypeError("Activity gear id must be a string when provided.")
-        if self.perceived_exertion is not None:
-            if isinstance(self.perceived_exertion, bool) or not isinstance(
-                self.perceived_exertion, int
-            ):
-                raise TypeError("Perceived exertion must be an integer.")
-            if not 0 <= self.perceived_exertion <= 10:
-                raise ValueError("Perceived exertion must be between 0 and 10.")
-        if (
-            self.average_heartrate is not None
-            and self.max_heartrate is not None
-            and self.average_heartrate > self.max_heartrate
+
+    def _validate_perceived_exertion(self) -> None:
+        if self.perceived_exertion is None:
+            return
+        if isinstance(self.perceived_exertion, bool) or not isinstance(
+            self.perceived_exertion, int
         ):
-            raise ValueError("Average heartrate cannot exceed maximum heartrate.")
+            raise TypeError("Perceived exertion must be an integer.")
+        if not 0 <= self.perceived_exertion <= 10:
+            raise ValueError("Perceived exertion must be between 0 and 10.")
 
     @staticmethod
     def _require_non_negative(name: str, value: object) -> None:
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError(f"Activity {name} must be numeric.")
-        if not isfinite(value) or value < 0:
+        try:
+            finite = isfinite(value)
+        except OverflowError as error:
+            raise ValueError(
+                f"Activity {name} must be a finite non-negative value."
+            ) from error
+        if not finite or value < 0:
             raise ValueError(f"Activity {name} must be a finite non-negative value.")
 
     @staticmethod
@@ -84,3 +90,23 @@ class DetailedActivity:
             raise TypeError(f"Activity {name} must be an integer.")
         if value < 0:
             raise ValueError(f"Activity {name} cannot be negative.")
+        try:
+            timedelta(seconds=value)
+        except OverflowError as error:
+            raise ValueError(
+                f"Activity {name} exceeds the supported duration range."
+            ) from error
+
+
+def _require_non_empty_text(name: str, value: object) -> None:
+    if not isinstance(value, str):
+        raise TypeError(f"Activity {name} must be a string.")
+    if not value.strip():
+        raise ValueError(f"Activity {name} cannot be empty.")
+
+
+def _require_aware_datetime(value: object) -> None:
+    if not isinstance(value, datetime):
+        raise TypeError("Activity start date must be a datetime.")
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError("Activity start date must be timezone-aware.")

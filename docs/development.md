@@ -20,6 +20,7 @@ make run           # Ejecutar la CLI
 make lint          # Ruff, formato y ty
 make test          # Pytest con cobertura de ramas
 make architecture  # Contratos de import-linter
+make audit         # Vulnerabilidades del entorno fijado en uv.lock
 make check         # Todos los controles anteriores
 ```
 
@@ -69,7 +70,9 @@ uv run --no-sync pytest tests/domain/test_activity_stream.py -q
 uv run --no-sync pytest tests/application/use_cases/test_streams.py -q
 ```
 
-Antes de publicar una rama se ejecuta `make check`.
+Antes de publicar una rama se ejecuta `make check`. La auditoría consulta OSV,
+por lo que necesita acceso de red; `--locked` garantiza que no modifica
+`uv.lock` durante la comprobación.
 
 ## Cómo añadir un caso de uso
 
@@ -81,15 +84,23 @@ proceso con ejemplos completos.
 3. Implementa la orquestación en `src/application/use_cases`, recibiendo sus
    puertos por constructor.
 4. Traduce payloads y excepciones en un adaptador de `src/infrastructure`.
-5. Si lo usa la CLI, declara un puerto de entrada pequeño en
-   `application/ports/use_cases.py` y añádelo a `MenuDependencies`.
-6. Conecta implementaciones en `src/composition.py`; deja en `main.py` solo
-   bootstrap, ciclo de vida y adaptadores de presentación.
-7. Añade tests por capa y refuerza `.importlinter` si aparece una relación
+5. Expón un puerto de entrada pequeño cuando una frontera lo necesite y conecta
+   el servicio en `ApplicationServices` y `build_application_services`.
+6. Si lo usa la CLI, añade el `MenuOption` y registra un
+   `MenuCommand[T]` en `build_menu_commands`, eligiendo allí su acción y
+   presenter tipado. Amplía prompts o presenters solo si el contrato es nuevo.
+7. Deja `MenuDependencies` estable: no contiene casos de uso, sino el registro
+   de comandos y los servicios transversales de terminal.
+8. Mantén en `main.py` únicamente bootstrap, ciclo de vida y adaptadores de
+   presentación.
+9. Añade tests por capa y refuerza `.importlinter` si aparece una relación
    nueva.
 
 Presentación nunca importa ni instancia clientes HTTP, stores o exportadores
-concretos. Aplicación tampoco importa infraestructura o presentación.
+concretos. Aplicación tampoco importa infraestructura o presentación. Los tests
+de composición de comandos verifican opción, argumentos y presenter; los de
+`MenuHandler` verifican resolución, progreso y contención de errores sin
+duplicar la lógica de cada caso de uso.
 
 ## Cómo añadir un exportador
 
@@ -115,12 +126,21 @@ del caso de uso.
 
 ```bash
 docker build -t strava-analysis .
-docker run --rm --env-file .env -it strava-analysis
+docker volume create strava-analysis-data
+docker run --rm --env-file .env.docker \
+  --mount type=volume,src=strava-analysis-data,dst=/data \
+  -it strava-analysis
 ```
 
-GitHub Actions ejecuta tests, Ruff, formato, `ty` y los contratos de
-arquitectura. La imagen se publica en GHCR únicamente desde un `push` a
-`main`.
+El proceso usa UID/GID `10001`, no puede modificar `/app` y escribe estado y
+exportaciones en `/data`. El volumen nombrado conserva `/data/.env`, los logs
+en `/data/state` y las exportaciones entre ejecuciones. `.env.docker` debe tener
+permisos `0600` y contener solo `STRAVA_CLIENT_ID` y `STRAVA_SECRET_KEY`; no
+reutilices el `.env` local porque también puede contener el token OAuth.
+
+GitHub Actions ejecuta tests, Ruff, formato, `ty`, los contratos de arquitectura
+y `uv audit --locked`. La imagen se publica en GHCR únicamente desde un `push`
+a `main`.
 
 ## Flujo de contribución
 

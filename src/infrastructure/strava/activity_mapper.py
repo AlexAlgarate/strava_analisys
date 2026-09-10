@@ -81,7 +81,7 @@ def _required_number(payload: Mapping[str, object], key: str) -> float:
     value = payload.get(key)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"Activity {key} must be numeric.")
-    return float(value)
+    return _to_float(value, key)
 
 
 def _optional_number(
@@ -95,7 +95,14 @@ def _optional_number(
         return default
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"Activity {key} must be numeric when provided.")
-    return float(value)
+    return _to_float(value, key)
+
+
+def _to_float(value: int | float, key: str) -> float:
+    try:
+        return float(value)
+    except OverflowError as error:
+        raise ValueError(f"Activity {key} must be finite.") from error
 
 
 def _number_or_default(

@@ -3,8 +3,9 @@ prueba.py
 analisys_zones.py
 prueba_supabase.py
 update_uv.sh
-streams_current_week.csv
-streams_previous_week.csv
+streams_current_week.*
+streams_previous_week.*
+json_zones_files/
 data/
 .importlinter
 logs.txt
@@ -145,6 +146,8 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/

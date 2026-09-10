@@ -1,13 +1,40 @@
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Sequence
 from contextlib import AbstractContextManager
 from typing import Protocol
 
+from src.application.results import ActivityZonesExportResult, StreamExportResult
+from src.domain.activity_stream import ActivityStream, StreamBatch
 from src.domain.activity_summary import WeeklyActivitySummary
+from src.domain.detailed_activity import DetailedActivity
+from src.domain.heart_rate_zones import HeartRateZones
 from src.presentation.menu.options import MenuOption
 
 
 class ResultPresenter(Protocol):
-    def print_result(self, option: MenuOption, result: object) -> None: ...
+    def present_heading(self, heading: str) -> None: ...
+
+    def present_activity_list(
+        self,
+        activities: Sequence[DetailedActivity],
+    ) -> None: ...
+
+    def present_detailed_activities(
+        self,
+        activities: Sequence[DetailedActivity],
+    ) -> None: ...
+
+    def present_activity_stream(self, stream: ActivityStream) -> None: ...
+
+    def present_stream_batch(self, batch: StreamBatch) -> None: ...
+
+    def present_stream_export(self, result: StreamExportResult) -> None: ...
+
+    def present_activity_zones(self, zones: HeartRateZones) -> None: ...
+
+    def present_activity_zones_export(
+        self,
+        result: ActivityZonesExportResult,
+    ) -> None: ...
 
 
 class ErrorPresenter(Protocol):
@@ -21,7 +48,7 @@ class WeeklySummaryPresenter(Protocol):
 
 
 class PromptReader(Protocol):
-    def ask_menu_option(self, valid_options: Mapping[str, str]) -> str: ...
+    def ask_menu_option(self) -> str: ...
 
     def ask_activity_id(self) -> int: ...
 

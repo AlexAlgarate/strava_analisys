@@ -29,7 +29,7 @@ class ConsoleSummaryPresenter:
             "Average max heart rate",
             _format_optional(summary.average_max_heartrate, "bpm"),
         )
-        metrics.add_row("Calories", f"{summary.total_calories} kcal")
+        metrics.add_row("Calories", _format_optional(summary.total_calories, "kcal"))
         metrics.add_row(
             "Perceived exertion",
             _format_optional(summary.average_perceived_exertion),

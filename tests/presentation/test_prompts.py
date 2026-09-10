@@ -19,19 +19,19 @@ def _prompts(*answers: str) -> tuple[ConsolePrompts, StringIO]:
     return ConsolePrompts(console, lambda _prompt: next(responses)), output
 
 
-def test_menu_prompt_retries_until_choice_is_valid() -> None:
-    prompts, output = _prompts("unknown", " 2 ")
+def test_menu_prompt_normalizes_input_without_owning_catalog_validation() -> None:
+    prompts, output = _prompts(" UNKNOWN ")
 
-    result = prompts.ask_menu_option({"1", "2"})
+    result = prompts.ask_menu_option()
 
-    assert result == "2"
-    assert "Invalid choice" in output.getvalue()
+    assert result == "unknown"
+    assert output.getvalue() == ""
 
 
 def test_menu_prompt_accepts_case_insensitive_quit() -> None:
     prompts, _ = _prompts(" Q ")
 
-    assert prompts.ask_menu_option({"1"}) == "q"
+    assert prompts.ask_menu_option() == "q"
 
 
 def test_activity_id_prompt_retries_invalid_values() -> None:

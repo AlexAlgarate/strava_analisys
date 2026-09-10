@@ -9,7 +9,7 @@ def test_maps_heart_rate_zone_payload() -> None:
 
     assert len(result.zones) == 5
     assert result.zones[0].time_seconds == 300
-    assert result.zones[4].maximum_bpm == -1
+    assert result.zones[4].maximum_bpm is None
 
 
 def test_selects_heart_rate_data_from_list_response() -> None:

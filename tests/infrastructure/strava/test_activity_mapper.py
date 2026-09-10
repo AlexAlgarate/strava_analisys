@@ -10,7 +10,9 @@ def test_maps_activity_payload() -> None:
     activity = map_activity(activity_payload(gear_id="g1"))
 
     assert activity.id == 1
-    assert activity.start_date_local == datetime.fromisoformat("2026-09-07T07:30:00")
+    assert activity.start_date_local == datetime.fromisoformat(
+        "2026-09-07T07:30:00+02:00"
+    )
     assert activity.gear_id == "g1"
 
 
@@ -45,6 +47,7 @@ def test_optional_metrics_default_to_missing() -> None:
         ("distance", "far", TypeError),
         ("moving_time", 1.5, TypeError),
         ("start_date_local", "not-a-date", ValueError),
+        ("start_date_local", "2026-09-07T07:30:00", ValueError),
         ("gear_id", 42, TypeError),
     ],
 )
@@ -69,3 +72,21 @@ def test_rejects_invalid_activity_collections(payload: object) -> None:
 def test_rejects_non_object_activity() -> None:
     with pytest.raises(TypeError, match="must be an object"):
         map_activity("invalid")
+
+
+@pytest.mark.parametrize("field", ["distance", "average_speed"])
+def test_rejects_numbers_too_large_for_float(field: str) -> None:
+    payload = activity_payload()
+    payload[field] = 10**400
+
+    with pytest.raises(ValueError, match=rf"Activity {field} must be finite") as error:
+        map_activity(payload)
+
+    assert isinstance(error.value.__cause__, OverflowError)
+
+
+def test_rejects_a_duration_too_large_for_domain_calculations() -> None:
+    with pytest.raises(ValueError, match="supported duration range") as error:
+        map_activity(activity_payload(moving_time=10**100, elapsed_time=10**100))
+
+    assert isinstance(error.value.__cause__, OverflowError)

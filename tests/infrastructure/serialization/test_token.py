@@ -21,6 +21,12 @@ def test_token_mapping_round_trip() -> None:
             "expires_at",
         ),
     ],
+    ids=[
+        "non-object",
+        "missing-access-token",
+        "missing-refresh-token",
+        "non-integer-expiry",
+    ],
 )
 def test_rejects_invalid_token_payload(payload: object, message: str) -> None:
     with pytest.raises(TypeError, match=message):
