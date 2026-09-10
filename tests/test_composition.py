@@ -75,7 +75,9 @@ def test_builds_default_export_adapters() -> None:
     services = composition.build_application_services(Mock())
 
     assert services.stream_export.supported_formats == ("csv",)
+    activity_zones_export = services.activity_zones_export
+    assert isinstance(activity_zones_export, ActivityZonesExportService)
     assert isinstance(
-        services.activity_zones_export._writer,
+        activity_zones_export._writer,
         JsonActivityZonesWriter,
     )

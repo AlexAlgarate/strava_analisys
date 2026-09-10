@@ -25,11 +25,8 @@ class MenuHandler:
     def __init__(self, dependencies: MenuDependencies) -> None:
         self.dependencies = dependencies
 
-    def get_menu_options(self) -> dict[str, str]:
-        return self.dependencies.commands.descriptions_by_id()
-
     def ask_option(self) -> str:
-        return self.dependencies.prompts.ask_menu_option(self.get_menu_options())
+        return self.dependencies.prompts.ask_menu_option()
 
     async def execute_option(self, option: str) -> object | None:
         try:
@@ -41,6 +38,8 @@ class MenuHandler:
         try:
             with self.dependencies.progress.track(command.option.description):
                 return await command.execute()
+        except EOFError:
+            raise
         except Exception as error:
             logger.exception("Menu operation failed: %s", command.option.description)
             self.dependencies.error_printer.print_operation_error(

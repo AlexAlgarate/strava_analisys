@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock, call
 
 import pytest
 
-from src.application.ports.activity_gateway import ActivityGateway
+from src.application.ports.activity_gateway import ActivityQueryGateway
 from src.application.use_cases.activities import ActivityService
 from src.domain.week_period import WeekPeriod, WeekSelection
 from tests.factories import activity_model
@@ -13,7 +13,7 @@ NOW = datetime(2026, 9, 9, 15, 30, tzinfo=UTC)
 
 @pytest.fixture
 def gateway() -> Mock:
-    result = Mock(spec=ActivityGateway)
+    result = Mock(spec=ActivityQueryGateway)
     result.list_activities = AsyncMock()
     result.get_activity_details = AsyncMock()
     return result
@@ -26,7 +26,7 @@ def service(gateway: Mock) -> ActivityService:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("week", list(WeekSelection))
-async def test_gets_activities_for_selected_week(
+async def test_lists_activities_for_selected_week(
     service: ActivityService,
     gateway: Mock,
     week: WeekSelection,
@@ -34,7 +34,7 @@ async def test_gets_activities_for_selected_week(
     activities = [activity_model()]
     gateway.list_activities.return_value = activities
 
-    result = await service.get_activity_range(week=week)
+    result = await service.list_activities(week=week)
 
     assert result == activities
     gateway.list_activities.assert_awaited_once_with(
@@ -43,7 +43,7 @@ async def test_gets_activities_for_selected_week(
 
 
 @pytest.mark.asyncio
-async def test_gets_details_for_every_weekly_activity(
+async def test_lists_details_for_every_weekly_activity(
     service: ActivityService,
     gateway: Mock,
 ) -> None:
@@ -51,7 +51,7 @@ async def test_gets_details_for_every_weekly_activity(
     details = [activity_model(1, "First"), activity_model(2, "Second")]
     gateway.get_activity_details.side_effect = details
 
-    result = await service.get_activity_details(week=WeekSelection.CURRENT)
+    result = await service.list_detailed_activities(week=WeekSelection.CURRENT)
 
     assert result == details
     assert gateway.get_activity_details.await_args_list == [call(1), call(2)]
@@ -64,7 +64,7 @@ async def test_details_return_an_empty_collection_when_the_week_has_no_activitie
 ) -> None:
     gateway.list_activities.return_value = []
 
-    assert await service.get_activity_details(week=WeekSelection.CURRENT) == []
+    assert await service.list_detailed_activities(week=WeekSelection.CURRENT) == []
     gateway.get_activity_details.assert_not_awaited()
 
 

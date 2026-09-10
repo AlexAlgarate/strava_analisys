@@ -43,9 +43,6 @@ def test_registry_can_expose_an_intentional_subset() -> None:
 
     assert registry.commands == (command,)
     assert registry.options == (MenuOption.ACTIVITY_ZONES,)
-    assert registry.descriptions_by_id() == {
-        "10": MenuOption.ACTIVITY_ZONES.description
-    }
     assert registry.resolve("10") is command
 
 
@@ -60,7 +57,7 @@ def test_registry_rejects_distinct_options_with_the_same_id(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        MenuOption.ACTIVITY_RANGE,
+        MenuOption.ACTIVITY_LIST,
         "_option_id",
         MenuOption.ACTIVITY_DETAILS.id,
     )
@@ -69,7 +66,7 @@ def test_registry_rejects_distinct_options_with_the_same_id(
         MenuCommandRegistry(
             (
                 _command(MenuOption.ACTIVITY_DETAILS),
-                _command(MenuOption.ACTIVITY_RANGE),
+                _command(MenuOption.ACTIVITY_LIST),
             )
         )
 

@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Sequence
 from contextlib import AbstractContextManager
 from typing import Protocol
 
@@ -48,7 +48,7 @@ class WeeklySummaryPresenter(Protocol):
 
 
 class PromptReader(Protocol):
-    def ask_menu_option(self, valid_options: Mapping[str, str]) -> str: ...
+    def ask_menu_option(self) -> str: ...
 
     def ask_activity_id(self) -> int: ...
 

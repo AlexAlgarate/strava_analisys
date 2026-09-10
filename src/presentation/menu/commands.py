@@ -63,12 +63,6 @@ class MenuCommandRegistry:
     def options(self) -> tuple[MenuOption, ...]:
         return tuple(command.option for command in self._commands)
 
-    def descriptions_by_id(self) -> dict[str, str]:
-        return {
-            option_id: command.option.description
-            for option_id, command in self._by_id.items()
-        }
-
     def resolve(self, option_id: str) -> RegisteredMenuCommand:
         try:
             return self._by_id[option_id]

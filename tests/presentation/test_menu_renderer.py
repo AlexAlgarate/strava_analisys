@@ -27,4 +27,7 @@ def test_renders_welcome_grouped_menu_and_goodbye() -> None:
     assert "Activities" in rendered
     assert "Streams & exports" in rendered
     assert "Insights" in rendered
+    assert "Export heart-rate zones to JSON" in rendered
+    option_positions = [rendered.index(option.description) for option in MenuOption]
+    assert option_positions == sorted(option_positions)
     assert "Session closed" in rendered

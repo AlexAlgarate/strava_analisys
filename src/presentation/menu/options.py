@@ -18,8 +18,8 @@ class MenuOption(Enum):
         MenuCategory.ACTIVITIES,
         "Detailed activities · previous week",
     )
-    ACTIVITY_RANGE = (3, MenuCategory.ACTIVITIES, "Activity list · current week")
-    ACTIVITY_RANGE_PREV_WEEK = (
+    ACTIVITY_LIST = (3, MenuCategory.ACTIVITIES, "Activity list · current week")
+    ACTIVITY_LIST_PREV_WEEK = (
         4,
         MenuCategory.ACTIVITIES,
         "Activity list · previous week",
@@ -38,6 +38,11 @@ class MenuOption(Enum):
     )
     WEEKLY_REPORT = (9, MenuCategory.INSIGHTS, "Weekly training summary")
     ACTIVITY_ZONES = (10, MenuCategory.INSIGHTS, "View heart-rate zones")
+    EXPORT_ACTIVITY_ZONES = (
+        11,
+        MenuCategory.INSIGHTS,
+        "Export heart-rate zones to JSON",
+    )
 
     def __init__(
         self,

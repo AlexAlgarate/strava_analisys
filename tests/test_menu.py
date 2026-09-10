@@ -82,20 +82,12 @@ def menu_handler(
     )
 
 
-def test_exposes_only_registered_menu_options(menu_handler: MenuHandler) -> None:
-    assert menu_handler.get_menu_options() == {
-        "1": MenuOption.ACTIVITY_DETAILS.description
-    }
-
-
-def test_asks_for_an_option_from_the_registered_catalog(
+def test_reads_an_option_from_the_prompt(
     menu_handler: MenuHandler,
     prompts: Mock,
 ) -> None:
     assert menu_handler.ask_option() == "1"
-    prompts.ask_menu_option.assert_called_once_with(
-        {"1": MenuOption.ACTIVITY_DETAILS.description}
-    )
+    prompts.ask_menu_option.assert_called_once_with()
 
 
 @pytest.mark.asyncio
@@ -165,6 +157,22 @@ async def test_reports_presenter_errors_through_the_same_operation_boundary(
         MenuOption.ACTIVITY_DETAILS.description,
         error,
     )
+
+
+@pytest.mark.asyncio
+async def test_propagates_end_of_input_from_a_command(
+    menu_handler: MenuHandler,
+    action: AsyncMock,
+    presenter: Mock,
+    error_presenter: Mock,
+) -> None:
+    action.side_effect = EOFError()
+
+    with pytest.raises(EOFError):
+        await menu_handler.execute_option("1")
+
+    presenter.assert_not_called()
+    error_presenter.print_operation_error.assert_not_called()
 
 
 def test_renders_only_registered_options_and_menu_chrome(

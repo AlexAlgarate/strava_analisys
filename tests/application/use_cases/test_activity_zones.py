@@ -2,14 +2,14 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from src.application.ports.activity_gateway import ActivityGateway
+from src.application.ports.activity_gateway import ActivityZonesGateway
 from src.application.use_cases.activity_zones import ActivityZonesService
 from tests.factories import heart_rate_zones
 
 
 @pytest.fixture
 def gateway() -> Mock:
-    result = Mock(spec=ActivityGateway)
+    result = Mock(spec=ActivityZonesGateway)
     result.get_activity_zones = AsyncMock(return_value=heart_rate_zones(123))
     return result
 

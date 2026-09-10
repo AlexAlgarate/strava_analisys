@@ -7,7 +7,15 @@ from dotenv import load_dotenv
 
 from src.application.concurrency import DEFAULT_MAX_CONCURRENCY
 from src.application.ports.export import ActivityZonesWriter, StreamExporter
-from src.application.results import StreamExportResult
+from src.application.ports.use_cases import (
+    ActivityStreamQueries,
+    ActivityZonesExportUseCase,
+    ActivityZonesUseCase,
+    StreamExportUseCase,
+    WeeklyActivityQueries,
+    WeeklySummaryUseCase,
+)
+from src.application.results import ActivityZonesExportResult, StreamExportResult
 from src.application.use_cases.activities import ActivityService
 from src.application.use_cases.activity_summary import ActivitySummaryService
 from src.application.use_cases.activity_zones import ActivityZonesService
@@ -50,12 +58,12 @@ from src.presentation.ports import PromptReader, ResultPresenter, WeeklySummaryP
 class ApplicationServices:
     """Fully wired application use cases exposed to delivery adapters."""
 
-    activities: ActivityService
-    streams: ActivityStreamService
-    stream_export: StreamExportService
-    activity_zones: ActivityZonesService
-    activity_zones_export: ActivityZonesExportService
-    summary: ActivitySummaryService
+    activities: WeeklyActivityQueries
+    streams: ActivityStreamQueries
+    stream_export: StreamExportUseCase
+    activity_zones: ActivityZonesUseCase
+    activity_zones_export: ActivityZonesExportUseCase
+    summary: WeeklySummaryUseCase
 
 
 def build_access_token_service(
@@ -127,6 +135,8 @@ def build_menu_commands(
     summary_presenter: WeeklySummaryPresenter,
 ) -> MenuCommandRegistry:
     """Compose the commands exposed by the default terminal interface."""
+    if "csv" not in services.stream_export.supported_formats:
+        raise ValueError("The default CLI requires a 'csv' stream exporter.")
 
     async def get_single_stream() -> ActivityStream:
         activity_id = prompts.ask_activity_id()
@@ -140,12 +150,16 @@ def build_menu_commands(
         activity_id = prompts.ask_activity_id()
         return await services.activity_zones.get_activity_zones(activity_id)
 
+    async def export_activity_zones() -> ActivityZonesExportResult:
+        activity_id = prompts.ask_activity_id()
+        return await services.activity_zones_export.export_activity_zones(activity_id)
+
     return MenuCommandRegistry(
         (
             MenuCommand[list[DetailedActivity]](
                 option=MenuOption.ACTIVITY_DETAILS,
                 action=partial(
-                    services.activities.get_activity_details,
+                    services.activities.list_detailed_activities,
                     week=WeekSelection.CURRENT,
                 ),
                 presenter=with_heading(
@@ -157,7 +171,7 @@ def build_menu_commands(
             MenuCommand[list[DetailedActivity]](
                 option=MenuOption.ACTIVITY_DETAILS_PREV_WEEK,
                 action=partial(
-                    services.activities.get_activity_details,
+                    services.activities.list_detailed_activities,
                     week=WeekSelection.PREVIOUS,
                 ),
                 presenter=with_heading(
@@ -167,25 +181,25 @@ def build_menu_commands(
                 ),
             ),
             MenuCommand[list[DetailedActivity]](
-                option=MenuOption.ACTIVITY_RANGE,
+                option=MenuOption.ACTIVITY_LIST,
                 action=partial(
-                    services.activities.get_activity_range,
+                    services.activities.list_activities,
                     week=WeekSelection.CURRENT,
                 ),
                 presenter=with_heading(
-                    MenuOption.ACTIVITY_RANGE.description,
+                    MenuOption.ACTIVITY_LIST.description,
                     result_presenter.present_heading,
                     result_presenter.present_activity_list,
                 ),
             ),
             MenuCommand[list[DetailedActivity]](
-                option=MenuOption.ACTIVITY_RANGE_PREV_WEEK,
+                option=MenuOption.ACTIVITY_LIST_PREV_WEEK,
                 action=partial(
-                    services.activities.get_activity_range,
+                    services.activities.list_activities,
                     week=WeekSelection.PREVIOUS,
                 ),
                 presenter=with_heading(
-                    MenuOption.ACTIVITY_RANGE_PREV_WEEK.description,
+                    MenuOption.ACTIVITY_LIST_PREV_WEEK.description,
                     result_presenter.present_heading,
                     result_presenter.present_activity_list,
                 ),
@@ -212,6 +226,7 @@ def build_menu_commands(
                 option=MenuOption.STREAMS_CURRENT_WEEK,
                 action=partial(
                     services.stream_export.export_streams_for_selected_week,
+                    selected_format="csv",
                     week=WeekSelection.CURRENT,
                 ),
                 presenter=with_heading(
@@ -224,6 +239,7 @@ def build_menu_commands(
                 option=MenuOption.STREAMS_PREV_WEEK,
                 action=partial(
                     services.stream_export.export_streams_for_selected_week,
+                    selected_format="csv",
                     week=WeekSelection.PREVIOUS,
                 ),
                 presenter=with_heading(
@@ -247,6 +263,15 @@ def build_menu_commands(
                     MenuOption.ACTIVITY_ZONES.description,
                     result_presenter.present_heading,
                     result_presenter.present_activity_zones,
+                ),
+            ),
+            MenuCommand[ActivityZonesExportResult](
+                option=MenuOption.EXPORT_ACTIVITY_ZONES,
+                action=export_activity_zones,
+                presenter=with_heading(
+                    MenuOption.EXPORT_ACTIVITY_ZONES.description,
+                    result_presenter.present_heading,
+                    result_presenter.present_activity_zones_export,
                 ),
             ),
         )

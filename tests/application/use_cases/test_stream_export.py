@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from src.application.ports.export import StreamExporter
-from src.application.ports.use_cases import ActivityStreamQueries
+from src.application.ports.use_cases import WeeklyStreamBatchProvider
 from src.application.use_cases.stream_export import StreamExportService
 from src.domain.activity_stream import StreamBatch
 from src.domain.week_period import WeekSelection
@@ -13,7 +13,7 @@ from tests.factories import activity_stream
 
 @pytest.fixture
 def streams() -> Mock:
-    result = Mock(spec=ActivityStreamQueries)
+    result = Mock(spec=WeeklyStreamBatchProvider)
     result.get_weekly_streams = AsyncMock()
     return result
 

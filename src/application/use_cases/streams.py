@@ -6,8 +6,8 @@ from src.application.concurrency import (
     require_concurrency_limit,
 )
 from src.application.errors import ExternalServiceError
-from src.application.ports.activity_gateway import ActivityGateway
-from src.application.ports.use_cases import ActivityQueries
+from src.application.ports.activity_gateway import ActivityStreamGateway
+from src.application.ports.use_cases import WeeklyActivityList
 from src.domain.activity_id import require_activity_id
 from src.domain.activity_stream import (
     ActivityStream,
@@ -22,8 +22,8 @@ class ActivityStreamService:
 
     def __init__(
         self,
-        gateway: ActivityGateway,
-        activities: ActivityQueries,
+        gateway: ActivityStreamGateway,
+        activities: WeeklyActivityList,
         *,
         max_concurrency: int = DEFAULT_MAX_CONCURRENCY,
     ) -> None:
@@ -47,21 +47,14 @@ class ActivityStreamService:
             self._fetch_one,
             max_concurrency=self._max_concurrency,
         )
-        return StreamBatch(
-            streams=tuple(
-                result for result in results if isinstance(result, ActivityStream)
-            ),
-            failures=tuple(
-                result for result in results if isinstance(result, StreamFetchFailure)
-            ),
-        )
+        return _to_stream_batch(results)
 
     async def get_weekly_streams(
         self,
         *,
         week: WeekSelection,
     ) -> StreamBatch:
-        activities = await self._activities.get_activity_range(week=week)
+        activities = await self._activities.list_activities(week=week)
         return await self.get_streams_for_multiple_activities(
             [activity.id for activity in activities]
         )
@@ -73,8 +66,25 @@ class ActivityStreamService:
         try:
             return await self.get_streams_for_activity(activity_id)
         except ExternalServiceError as error:
+            message = str(error).strip() or "Unknown stream fetch error"
             return StreamFetchFailure(
                 activity_id=activity_id,
                 error_type=type(error).__name__,
-                message=str(error) or "Unknown stream fetch error",
+                message=message,
             )
+
+
+def _to_stream_batch(results: Sequence[object]) -> StreamBatch:
+    streams: list[ActivityStream] = []
+    failures: list[StreamFetchFailure] = []
+    for result in results:
+        if isinstance(result, ActivityStream):
+            streams.append(result)
+        elif isinstance(result, StreamFetchFailure):
+            failures.append(result)
+        else:
+            raise TypeError(
+                "Stream retrieval returned neither an ActivityStream nor a "
+                "StreamFetchFailure."
+            )
+    return StreamBatch(streams=tuple(streams), failures=tuple(failures))

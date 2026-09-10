@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from src.application.results import StreamExportResult
-from src.application.use_cases.activities import ActivityService
+from src.application.ports.use_cases import WeeklyActivityQueries
+from src.application.results import ActivityZonesExportResult, StreamExportResult
 from src.application.use_cases.activity_summary import ActivitySummaryService
 from src.application.use_cases.activity_zones import ActivityZonesService
 from src.application.use_cases.activity_zones_export import ActivityZonesExportService
@@ -32,14 +32,15 @@ class CommandComposition:
     streams: Mock
     stream_export: Mock
     activity_zones: Mock
+    activity_zones_export: Mock
     summary: Mock
 
 
 @pytest.fixture
 def command_composition() -> CommandComposition:
-    activities = Mock(spec=ActivityService)
-    activities.get_activity_details = AsyncMock(return_value=[activity_model()])
-    activities.get_activity_range = AsyncMock(return_value=[activity_model()])
+    activities = Mock(spec=WeeklyActivityQueries)
+    activities.list_detailed_activities = AsyncMock(return_value=[activity_model()])
+    activities.list_activities = AsyncMock(return_value=[activity_model()])
 
     streams = Mock(spec=ActivityStreamService)
     streams.get_streams_for_activity = AsyncMock(return_value=activity_stream(123))
@@ -48,12 +49,21 @@ def command_composition() -> CommandComposition:
     )
 
     stream_export = Mock(spec=StreamExportService)
+    stream_export.supported_formats = ("csv",)
     stream_export.export_streams_for_selected_week = AsyncMock(
         return_value=StreamExportResult(StreamBatch(), Path("streams.csv"))
     )
 
     activity_zones = Mock(spec=ActivityZonesService)
     activity_zones.get_activity_zones = AsyncMock(return_value=heart_rate_zones(123))
+
+    activity_zones_export = Mock(spec=ActivityZonesExportService)
+    activity_zones_export.export_activity_zones = AsyncMock(
+        return_value=ActivityZonesExportResult(
+            heart_rate_zones(123),
+            Path("json_zones_files/zones_123.json"),
+        )
+    )
 
     summary = Mock(spec=ActivitySummaryService)
     summary.generate_summary = AsyncMock(
@@ -65,7 +75,7 @@ def command_composition() -> CommandComposition:
         streams=streams,
         stream_export=stream_export,
         activity_zones=activity_zones,
-        activity_zones_export=Mock(spec=ActivityZonesExportService),
+        activity_zones_export=activity_zones_export,
         summary=summary,
     )
     prompts = Mock(spec=PromptReader)
@@ -89,6 +99,7 @@ def command_composition() -> CommandComposition:
         streams=streams,
         stream_export=stream_export,
         activity_zones=activity_zones,
+        activity_zones_export=activity_zones_export,
         summary=summary,
     )
 
@@ -99,30 +110,44 @@ def test_builds_the_complete_default_command_catalog(
     assert command_composition.registry.options == tuple(MenuOption)
 
 
+def test_rejects_a_default_command_catalog_without_csv_export(
+    command_composition: CommandComposition,
+) -> None:
+    command_composition.stream_export.supported_formats = ("json",)
+
+    with pytest.raises(ValueError, match="requires a 'csv' stream exporter"):
+        build_menu_commands(
+            command_composition.services,
+            prompts=command_composition.prompts,
+            result_presenter=command_composition.result_presenter,
+            summary_presenter=command_composition.summary_presenter,
+        )
+
+
 @pytest.mark.parametrize(
     ("option", "method_name", "week", "presenter_name"),
     [
         (
             MenuOption.ACTIVITY_DETAILS,
-            "get_activity_details",
+            "list_detailed_activities",
             WeekSelection.CURRENT,
             "present_detailed_activities",
         ),
         (
             MenuOption.ACTIVITY_DETAILS_PREV_WEEK,
-            "get_activity_details",
+            "list_detailed_activities",
             WeekSelection.PREVIOUS,
             "present_detailed_activities",
         ),
         (
-            MenuOption.ACTIVITY_RANGE,
-            "get_activity_range",
+            MenuOption.ACTIVITY_LIST,
+            "list_activities",
             WeekSelection.CURRENT,
             "present_activity_list",
         ),
         (
-            MenuOption.ACTIVITY_RANGE_PREV_WEEK,
-            "get_activity_range",
+            MenuOption.ACTIVITY_LIST_PREV_WEEK,
+            "list_activities",
             WeekSelection.PREVIOUS,
             "present_activity_list",
         ),
@@ -165,7 +190,8 @@ async def test_stream_export_commands_select_week_and_typed_presenter(
     result = await command_composition.registry.resolve(str(option.id)).execute()
 
     command_composition.stream_export.export_streams_for_selected_week.assert_awaited_once_with(
-        week=week
+        selected_format="csv",
+        week=week,
     )
     command_composition.result_presenter.present_heading.assert_called_once_with(
         option.description
@@ -220,6 +246,25 @@ async def test_activity_zones_command_uses_prompted_id_and_typed_presenter(
 
     command_composition.activity_zones.get_activity_zones.assert_awaited_once_with(123)
     command_composition.result_presenter.present_activity_zones.assert_called_once_with(
+        result
+    )
+
+
+@pytest.mark.asyncio
+async def test_activity_zones_export_command_uses_prompted_id_and_typed_presenter(
+    command_composition: CommandComposition,
+) -> None:
+    option = MenuOption.EXPORT_ACTIVITY_ZONES
+
+    result = await command_composition.registry.resolve(str(option.id)).execute()
+
+    command_composition.activity_zones_export.export_activity_zones.assert_awaited_once_with(
+        123
+    )
+    command_composition.result_presenter.present_heading.assert_called_once_with(
+        option.description
+    )
+    command_composition.result_presenter.present_activity_zones_export.assert_called_once_with(
         result
     )
 

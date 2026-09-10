@@ -4,7 +4,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 from src.application.ports.export import StreamExporter
-from src.application.ports.use_cases import ActivityStreamQueries
+from src.application.ports.use_cases import WeeklyStreamBatchProvider
 from src.application.results import StreamExportResult
 from src.domain.week_period import WeekSelection
 
@@ -14,7 +14,7 @@ class StreamExportService:
 
     def __init__(
         self,
-        streams: ActivityStreamQueries,
+        streams: WeeklyStreamBatchProvider,
         exporters: Mapping[str, StreamExporter],
     ) -> None:
         normalized_exporters: dict[str, StreamExporter] = {}

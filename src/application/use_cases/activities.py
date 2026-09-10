@@ -6,7 +6,7 @@ from src.application.concurrency import (
     map_concurrently,
     require_concurrency_limit,
 )
-from src.application.ports.activity_gateway import ActivityGateway
+from src.application.ports.activity_gateway import ActivityQueryGateway
 from src.domain.detailed_activity import DetailedActivity
 from src.domain.week_period import WeekPeriod, WeekSelection
 
@@ -23,7 +23,7 @@ class ActivityService:
 
     def __init__(
         self,
-        gateway: ActivityGateway,
+        gateway: ActivityQueryGateway,
         *,
         clock: Clock = utc_now,
         max_concurrency: int = DEFAULT_MAX_CONCURRENCY,
@@ -32,7 +32,7 @@ class ActivityService:
         self._clock = clock
         self._max_concurrency = require_concurrency_limit(max_concurrency)
 
-    async def get_activity_range(
+    async def list_activities(
         self,
         *,
         week: WeekSelection,
@@ -44,13 +44,13 @@ class ActivityService:
         )
         return await self._gateway.list_activities(period)
 
-    async def get_activity_details(
+    async def list_detailed_activities(
         self,
         *,
         week: WeekSelection,
     ) -> list[DetailedActivity]:
         """Return full details for every activity in the selected week."""
-        activities = await self.get_activity_range(week=week)
+        activities = await self.list_activities(week=week)
         return await map_concurrently(
             [activity.id for activity in activities],
             self._gateway.get_activity_details,
