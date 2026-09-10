@@ -1,3 +1,4 @@
+import logging
 from contextlib import nullcontext
 from dataclasses import dataclass
 from io import StringIO
@@ -272,13 +273,19 @@ class TestMenuHandler:
         menu_handler: MenuHandler,
         use_cases: UseCaseMocks,
         mock_error_printer: Mock,
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         error = RuntimeError("Strava is unavailable")
         use_cases.activities.get_activity_details.side_effect = error
 
-        result = await menu_handler.execute_option(str(MenuOption.ACTIVITY_DETAILS.id))
+        with caplog.at_level(logging.ERROR, logger="src.presentation.cli_entrypoint"):
+            result = await menu_handler.execute_option(
+                str(MenuOption.ACTIVITY_DETAILS.id)
+            )
 
         assert result is None
+        assert "Menu operation failed" in caplog.text
+        assert caplog.records[-1].exc_info is not None
         mock_error_printer.print_operation_error.assert_called_once_with(
             MenuOption.ACTIVITY_DETAILS.description,
             error,

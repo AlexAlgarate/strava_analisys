@@ -12,6 +12,8 @@ silenciosamente.
 
 - Python 3.13
 - [uv](https://docs.astral.sh/uv/)
+- Una [suscripción activa de Strava](https://developers.strava.com/docs/getting-started/)
+  para registrar la aplicación API
 
 ## Instalación
 

@@ -14,6 +14,10 @@ class RateLimitExceededError(ExternalServiceError):
     """Raised when an external service rejects a request due to its rate limit."""
 
 
+class InactiveApplicationError(ExternalServiceError):
+    """Raised when Strava has marked the configured API application inactive."""
+
+
 class UnauthorizedError(ExternalServiceError):
     """Raised when an external service rejects the supplied credentials."""
 

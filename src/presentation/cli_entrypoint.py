@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from functools import partial
@@ -20,6 +21,8 @@ from src.presentation.ports import (
 )
 
 type MenuAction = Callable[[], Awaitable[object]]
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,7 +113,8 @@ class MenuHandler:
         try:
             with self.dependencies.progress.track(menu_option.description):
                 result = await self._menu_options[menu_option]()
-        except Exception as error:  # noqa: BLE001 - terminal boundary stays alive
+        except Exception as error:
+            logger.exception("Menu operation failed: %s", menu_option.description)
             self.dependencies.error_printer.print_operation_error(
                 menu_option.description,
                 error,

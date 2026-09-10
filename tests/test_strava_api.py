@@ -5,7 +5,11 @@ from unittest.mock import AsyncMock, Mock, patch
 import aiohttp
 import pytest
 
-from src.application.errors import RateLimitExceededError, UnauthorizedError
+from src.application.errors import (
+    InactiveApplicationError,
+    RateLimitExceededError,
+    UnauthorizedError,
+)
 from src.infrastructure.api_clients.async_http_client import (
     AsyncHTTPClient,
     HTTPClientConfig,
@@ -162,6 +166,39 @@ async def test_http_client_translates_strava_statuses(
 
     with pytest.raises(error_type):
         await client.make_async_request("https://example.test", {})
+
+
+@pytest.mark.asyncio
+async def test_http_client_explains_inactive_strava_application() -> None:
+    response = MockResponse(
+        {
+            "message": "Forbidden",
+            "errors": [
+                {
+                    "resource": "Application",
+                    "field": "Status",
+                    "code": "Inactive",
+                }
+            ],
+        },
+        status=403,
+    )
+    session = _session(response)
+    client = AsyncHTTPClient(session=cast(aiohttp.ClientSession, session))
+
+    with pytest.raises(InactiveApplicationError, match="status and subscription"):
+        await client.make_async_request("https://example.test", {})
+
+
+@pytest.mark.asyncio
+async def test_http_client_preserves_unknown_forbidden_error() -> None:
+    session = _session(MockResponse({"message": "Forbidden"}, status=403))
+    client = AsyncHTTPClient(session=cast(aiohttp.ClientSession, session))
+
+    with pytest.raises(aiohttp.ClientResponseError) as error:
+        await client.make_async_request("https://example.test", {})
+
+    assert error.value.status == 403
 
 
 @pytest.mark.asyncio

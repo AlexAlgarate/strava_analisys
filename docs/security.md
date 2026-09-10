@@ -58,6 +58,24 @@ ausente inicia la autorización; un archivo corrupto, una clave incorrecta o un
 payload inválido producen un error explícito y no se interpretan como si no
 hubiera credenciales.
 
+## Aplicación inactiva en Strava
+
+Si todas las consultas devuelven `403 Forbidden` y Strava informa de
+`Application / Status / Inactive`, el token, los periodos y las opciones del
+menú no son la causa: Strava ha desactivado la aplicación asociada al
+`STRAVA_CLIENT_ID`.
+
+Hay que comprobar su estado en <https://www.strava.com/settings/api>, confirmar
+que el identificador y el secreto del `.env` pertenecen a esa aplicación y
+completar cualquier paso de reactivación que solicite Strava. La
+[guía oficial](https://developers.strava.com/docs/getting-started/) indica que
+una suscripción de Strava es un requisito previo para registrar una aplicación
+API. Si el panel no permite reactivarla aun teniendo la suscripción activa,
+debe consultarse con el soporte para desarrolladores de Strava. Una vez activa,
+puede ser necesario eliminar únicamente
+`~/.local/share/strava-analysis/tokens.enc` y autorizar de nuevo. Eliminar o
+mover el token antes de reactivar la aplicación no resuelve este error.
+
 ## Alcance de la protección
 
 Fernet aporta confidencialidad e integridad al archivo de tokens. Evita que el

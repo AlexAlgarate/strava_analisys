@@ -6,10 +6,20 @@ from typing import Self, cast
 
 import aiohttp
 
-from src.application.errors import RateLimitExceededError, UnauthorizedError
+from src.application.errors import (
+    InactiveApplicationError,
+    RateLimitExceededError,
+    UnauthorizedError,
+)
 
 UNAUTHORIZED_USER = 401
+FORBIDDEN = 403
 REACH_REQUEST_LIMIT = 429
+INACTIVE_APPLICATION_ERROR = {
+    "resource": "Application",
+    "field": "Status",
+    "code": "Inactive",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -96,6 +106,15 @@ class AsyncHTTPClient:
                 raise UnauthorizedError(
                     "Strava rejected the access token. Reauthorize the application."
                 )
+            if response.status == FORBIDDEN and await _reports_inactive_application(
+                response
+            ):
+                raise InactiveApplicationError(
+                    "Strava reports that this API application is inactive. Check its "
+                    "status and subscription at https://www.strava.com/settings/api, "
+                    "then reactivate it or contact Strava support. Reauthorize after "
+                    "it is active."
+                )
             response.raise_for_status()
             return cast(object, await response.json())
 
@@ -106,3 +125,26 @@ class AsyncHTTPClient:
             )
             self._owns_session = True
         return self._session
+
+
+async def _reports_inactive_application(response: aiohttp.ClientResponse) -> bool:
+    try:
+        payload = await response.json()
+    except (aiohttp.ContentTypeError, ValueError):
+        return False
+
+    if not isinstance(payload, Mapping):
+        return False
+
+    errors = payload.get("errors")
+    if not isinstance(errors, list):
+        return False
+
+    return any(_is_inactive_application_error(error) for error in errors)
+
+
+def _is_inactive_application_error(error: object) -> bool:
+    return isinstance(error, Mapping) and all(
+        error.get(field) == expected
+        for field, expected in INACTIVE_APPLICATION_ERROR.items()
+    )
