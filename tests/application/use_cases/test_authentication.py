@@ -1,3 +1,4 @@
+from typing import cast
 from unittest.mock import Mock
 
 import pytest
@@ -32,12 +33,14 @@ def make_service(
     code_provider: Mock,
     *,
     now: float = 100.0,
+    expiry_leeway_seconds: int = 60,
 ) -> AccessTokenService:
     return AccessTokenService(
         token_store=token_store,
         token_gateway=token_gateway,
         authorization_code_provider=code_provider,
         clock=lambda: now,
+        expiry_leeway_seconds=expiry_leeway_seconds,
     )
 
 
@@ -46,7 +49,7 @@ def test_returns_stored_token_when_valid(
     token_gateway: Mock,
     code_provider: Mock,
 ) -> None:
-    token_store.load.return_value = TokenSet("stored", "refresh", 101)
+    token_store.load.return_value = TokenSet("stored", "refresh", 161)
 
     result = make_service(token_store, token_gateway, code_provider).get_access_token()
 
@@ -69,6 +72,24 @@ def test_refreshes_and_persists_expired_token(
     assert result == "new"
     token_gateway.refresh_access_token.assert_called_once_with("old-refresh")
     token_store.save.assert_called_once_with(refreshed)
+
+
+def test_refreshes_before_expiry_using_configured_leeway(
+    token_store: Mock,
+    token_gateway: Mock,
+    code_provider: Mock,
+) -> None:
+    token_store.load.return_value = TokenSet("old", "old-refresh", 160)
+    token_gateway.refresh_access_token.return_value = TokenSet(
+        "new",
+        "new-refresh",
+        300,
+    )
+
+    result = make_service(token_store, token_gateway, code_provider).get_access_token()
+
+    assert result == "new"
+    token_gateway.refresh_access_token.assert_called_once_with("old-refresh")
 
 
 def test_authorizes_and_persists_when_token_is_missing(
@@ -97,3 +118,20 @@ def test_invalidate_clears_store(
     make_service(token_store, token_gateway, code_provider).invalidate()
 
     token_store.clear.assert_called_once_with()
+
+
+@pytest.mark.parametrize("leeway", [-1, True])
+def test_rejects_invalid_expiry_leeway(
+    token_store: Mock,
+    token_gateway: Mock,
+    code_provider: Mock,
+    leeway: object,
+) -> None:
+    error_type = TypeError if leeway is True else ValueError
+    with pytest.raises(error_type, match="leeway"):
+        make_service(
+            token_store,
+            token_gateway,
+            code_provider,
+            expiry_leeway_seconds=cast(int, leeway),
+        )
