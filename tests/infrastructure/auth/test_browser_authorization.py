@@ -34,9 +34,7 @@ def test_reads_code_from_browser_redirect(
         "builtins.input",
         lambda: "http://localhost/exchange_token?state=x&code=secret-code",
     )
-    provider = BrowserAuthorizationCodeProvider(
-        StravaAuthorizationConfig("client-id")
-    )
+    provider = BrowserAuthorizationCodeProvider(StravaAuthorizationConfig("client-id"))
 
     assert provider.get_authorization_code() == "secret-code"
     opened_url = browser_open.call_args.args[0]
