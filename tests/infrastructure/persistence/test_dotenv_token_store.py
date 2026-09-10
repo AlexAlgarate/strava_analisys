@@ -67,6 +67,41 @@ def test_load_restricts_existing_env_file_permissions(
     assert stat.S_IMODE(env_path.stat().st_mode) == 0o600
 
 
+def test_secure_restricts_file_before_other_components_read_it(
+    store: DotenvTokenStore,
+    env_path: Path,
+) -> None:
+    env_path.parent.mkdir()
+    env_path.write_text("STRAVA_SECRET_KEY=secret\n", encoding="utf-8")
+    env_path.chmod(0o664)
+
+    store.secure()
+
+    assert stat.S_IMODE(env_path.stat().st_mode) == 0o600
+
+
+def test_refuses_symbolic_link_token_file(
+    store: DotenvTokenStore,
+    env_path: Path,
+) -> None:
+    env_path.parent.mkdir()
+    target = env_path.parent / "target.env"
+    target.write_text("STRAVA_SECRET_KEY=keep-me\n", encoding="utf-8")
+    env_path.symlink_to(target)
+
+    operations = (
+        store.secure,
+        store.load,
+        lambda: store.save(TokenSet("access", "refresh", 100)),
+        store.clear,
+    )
+    for operation in operations:
+        with pytest.raises(TokenStorageError):
+            operation()
+
+    assert target.read_text(encoding="utf-8") == "STRAVA_SECRET_KEY=keep-me\n"
+
+
 def test_save_preserves_existing_environment_values(
     store: DotenvTokenStore,
     env_path: Path,

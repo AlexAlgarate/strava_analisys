@@ -3,8 +3,10 @@ import os
 
 def get_env_variable(var_name: str, default_value: str | None = None) -> str:
     value = os.environ.get(var_name, default_value)
-    if value is None:
-        raise ValueError(f"Environment variable {var_name} is required but not set.")
+    if value is None or not value.strip():
+        raise ValueError(
+            f"Environment variable {var_name} is required and cannot be blank."
+        )
     return value
 
 

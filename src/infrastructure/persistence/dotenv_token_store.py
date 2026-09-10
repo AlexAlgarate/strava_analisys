@@ -19,8 +19,18 @@ class DotenvTokenStore:
     def __init__(self, path: Path) -> None:
         self._path = path
 
+    def secure(self) -> None:
+        """Restrict an existing dotenv file before another component reads it."""
+        try:
+            self._secure_existing_file()
+        except OSError as exc:
+            raise TokenStorageError(
+                f"Could not secure the OAuth token file {self._path}."
+            ) from exc
+
     def load(self) -> TokenSet | None:
         try:
+            self._secure_existing_file()
             serialized_token = self._read_token_value()
             if serialized_token is None:
                 return None
@@ -43,6 +53,7 @@ class DotenvTokenStore:
         )
         try:
             self._path.parent.mkdir(parents=True, exist_ok=True)
+            self._prepare_private_file()
             success, _, _ = set_key(
                 self._path,
                 TOKEN_ENV_VARIABLE,
@@ -58,6 +69,7 @@ class DotenvTokenStore:
 
     def clear(self) -> None:
         try:
+            self._secure_existing_file()
             if self._path.exists():
                 values = dotenv_values(self._path, interpolate=False)
                 if TOKEN_ENV_VARIABLE in values:
@@ -75,8 +87,30 @@ class DotenvTokenStore:
 
     def _read_token_value(self) -> str | None:
         if self._path.exists():
-            self._path.chmod(_PRIVATE_FILE_MODE)
             values = dotenv_values(self._path, interpolate=False)
             if TOKEN_ENV_VARIABLE in values:
                 return values[TOKEN_ENV_VARIABLE] or None
         return os.environ.get(TOKEN_ENV_VARIABLE) or None
+
+    def _prepare_private_file(self) -> None:
+        if self._path.is_symlink():
+            raise OSError("Refusing to use a symbolic link as OAuth token file.")
+        try:
+            descriptor = os.open(
+                self._path,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                _PRIVATE_FILE_MODE,
+            )
+        except FileExistsError:
+            self._secure_existing_file()
+        else:
+            os.close(descriptor)
+
+    def _secure_existing_file(self) -> None:
+        if self._path.is_symlink():
+            raise OSError("Refusing to use a symbolic link as OAuth token file.")
+        if not self._path.exists():
+            return
+        if not self._path.is_file():
+            raise OSError("OAuth token path must be a regular file.")
+        self._path.chmod(_PRIVATE_FILE_MODE)

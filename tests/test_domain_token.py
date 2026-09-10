@@ -17,6 +17,14 @@ def test_token_set_is_not_expired_before_expiry() -> None:
     assert not TokenSet("access", "refresh", 101).is_expired(now=100)
 
 
+def test_token_set_repr_does_not_expose_credentials() -> None:
+    representation = repr(TokenSet("secret-access", "secret-refresh", 100))
+
+    assert "secret-access" not in representation
+    assert "secret-refresh" not in representation
+    assert "expires_at=100" in representation
+
+
 @pytest.mark.parametrize(
     ("access_token", "refresh_token", "expires_at", "message"),
     [

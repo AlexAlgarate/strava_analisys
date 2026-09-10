@@ -1,3 +1,4 @@
+import stat
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -29,6 +30,27 @@ def test_builds_local_token_service(
 
     assert isinstance(service, AccessTokenService)
     load_dotenv.assert_called_once_with(dotenv_path=env_path, interpolate=False)
+
+
+def test_secures_local_env_before_loading_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    env_path = tmp_path / ".env"
+    env_path.write_text(
+        "STRAVA_CLIENT_ID=client-id\nSTRAVA_SECRET_KEY=secret\n",
+        encoding="utf-8",
+    )
+    env_path.chmod(0o664)
+
+    def assert_private_file_before_loading(**_kwargs: object) -> None:
+        assert stat.S_IMODE(env_path.stat().st_mode) == 0o600
+
+    monkeypatch.setattr(composition, "load_dotenv", assert_private_file_before_loading)
+    monkeypatch.setenv("STRAVA_CLIENT_ID", "client-id")
+    monkeypatch.setenv("STRAVA_SECRET_KEY", "secret")
+
+    composition.build_access_token_service(env_path)
 
 
 def test_builds_application_services() -> None:

@@ -25,6 +25,17 @@ class TestGetEnvVariable:
         with pytest.raises(ValueError, match="MISSING_TEST_VAR"):
             get_env_variable("MISSING_TEST_VAR")
 
+    @pytest.mark.parametrize("value", ["", " ", "\t"])
+    def test_rejects_blank_required_value(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        value: str,
+    ) -> None:
+        monkeypatch.setenv("BLANK_TEST_VAR", value)
+
+        with pytest.raises(ValueError, match="cannot be blank"):
+            get_env_variable("BLANK_TEST_VAR")
+
 
 def test_strava_secrets_load_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("STRAVA_CLIENT_ID", "client-id")

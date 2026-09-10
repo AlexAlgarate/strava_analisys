@@ -13,10 +13,18 @@ FROM python:3.13-slim-trixie
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
+
+RUN groupadd --gid 10001 strava \
+    && useradd --uid 10001 --gid strava --create-home \
+        --home-dir /home/strava --shell /usr/sbin/nologin strava \
+    && install -d --owner=strava --group=strava --mode=0750 /app
+
 WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
 COPY main.py ./
 COPY src ./src
+
+USER 10001:10001
 
 CMD ["/app/.venv/bin/python", "main.py"]

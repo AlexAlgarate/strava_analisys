@@ -45,9 +45,10 @@ def build_access_token_service(
 ) -> AccessTokenService:
     """Build the OAuth use case and all of its driven adapters."""
     resolved_env_path = env_path or Path(".env")
+    token_store = DotenvTokenStore(resolved_env_path)
+    token_store.secure()
     load_dotenv(dotenv_path=resolved_env_path, interpolate=False)
     credentials = StravaSecrets()
-    token_store = DotenvTokenStore(resolved_env_path)
     return AccessTokenService(
         token_store=token_store,
         token_gateway=StravaTokenGateway(
