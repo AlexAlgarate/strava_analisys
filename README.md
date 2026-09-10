@@ -80,11 +80,10 @@ Consulta el [índice de documentación](docs/README.md) para una vista general.
 ```text
 src/
 ├── domain/          # Entidades y reglas de negocio puras
-├── core/            # Casos de uso y puertos (Protocol)
+├── application/     # Casos de uso, puertos y resultados
 ├── infrastructure/  # HTTP, OAuth, persistencia local y exportadores
 ├── presentation/    # Menú y salida de consola
-├── access_token.py  # Composición del flujo OAuth
-└── utils/           # Constantes, errores y utilidades compartidas
+└── composition.py   # Construcción e inyección de implementaciones
 ```
 
 Las dependencias entre capas están verificadas mediante import-linter.
