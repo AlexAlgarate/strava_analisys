@@ -81,15 +81,23 @@ proceso con ejemplos completos.
 3. Implementa la orquestación en `src/application/use_cases`, recibiendo sus
    puertos por constructor.
 4. Traduce payloads y excepciones en un adaptador de `src/infrastructure`.
-5. Si lo usa la CLI, declara un puerto de entrada pequeño en
-   `application/ports/use_cases.py` y añádelo a `MenuDependencies`.
-6. Conecta implementaciones en `src/composition.py`; deja en `main.py` solo
-   bootstrap, ciclo de vida y adaptadores de presentación.
-7. Añade tests por capa y refuerza `.importlinter` si aparece una relación
+5. Expón un puerto de entrada pequeño cuando una frontera lo necesite y conecta
+   el servicio en `ApplicationServices` y `build_application_services`.
+6. Si lo usa la CLI, añade el `MenuOption` y registra un
+   `MenuCommand[T]` en `build_menu_commands`, eligiendo allí su acción y
+   presenter tipado. Amplía prompts o presenters solo si el contrato es nuevo.
+7. Deja `MenuDependencies` estable: no contiene casos de uso, sino el registro
+   de comandos y los servicios transversales de terminal.
+8. Mantén en `main.py` únicamente bootstrap, ciclo de vida y adaptadores de
+   presentación.
+9. Añade tests por capa y refuerza `.importlinter` si aparece una relación
    nueva.
 
 Presentación nunca importa ni instancia clientes HTTP, stores o exportadores
-concretos. Aplicación tampoco importa infraestructura o presentación.
+concretos. Aplicación tampoco importa infraestructura o presentación. Los tests
+de composición de comandos verifican opción, argumentos y presenter; los de
+`MenuHandler` verifican resolución, progreso y contención de errores sin
+duplicar la lógica de cada caso de uso.
 
 ## Cómo añadir un exportador
 
