@@ -68,12 +68,37 @@ def test_missing_optional_metrics_do_not_count_as_zero_in_averages() -> None:
     assert summary.average_perceived_exertion == complete.perceived_exertion
 
 
+def test_rejects_duplicate_activity_ids() -> None:
+    activity = activity_model()
+
+    with pytest.raises(ValueError, match="must have unique IDs"):
+        WeeklyActivitySummary.from_activities([activity, activity])
+
+
+def test_rejects_a_total_duration_that_cannot_be_represented() -> None:
+    maximum_seconds = timedelta.max.days * 86_400 + timedelta.max.seconds
+    activities = [
+        activity_model(moving_time=maximum_seconds, elapsed_time=maximum_seconds),
+        activity_model(
+            2,
+            moving_time=maximum_seconds,
+            elapsed_time=maximum_seconds,
+        ),
+    ]
+
+    with pytest.raises(ValueError, match="moving time exceeds") as error:
+        WeeklyActivitySummary.from_activities(activities)
+
+    assert isinstance(error.value.__cause__, OverflowError)
+
+
 @pytest.mark.parametrize(
     ("changes", "error_type", "message"),
     [
         ({"activity_count": True}, TypeError, "count must be an integer"),
         ({"activity_count": -1}, ValueError, "count cannot be negative"),
         ({"total_distance_km": float("nan")}, ValueError, "finite"),
+        ({"total_distance_km": 10**10_000}, ValueError, "finite"),
         ({"total_moving_time": timedelta(seconds=-1)}, ValueError, "negative"),
         ({"total_calories": -1}, ValueError, "non-negative"),
         (
@@ -81,6 +106,15 @@ def test_missing_optional_metrics_do_not_count_as_zero_in_averages() -> None:
             ValueError,
             "cannot exceed ten",
         ),
+    ],
+    ids=[
+        "boolean-count",
+        "negative-count",
+        "non-finite-distance",
+        "unrepresentable-distance",
+        "negative-moving-time",
+        "negative-calories",
+        "exertion-over-ten",
     ],
 )
 def test_summary_rejects_invalid_aggregate_values(

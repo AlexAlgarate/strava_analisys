@@ -12,12 +12,12 @@ class TokenSet:
     def __post_init__(self) -> None:
         if not isinstance(self.access_token, str):
             raise TypeError("Access token must be a string.")
-        if not self.access_token:
-            raise ValueError("Access token cannot be empty.")
+        if not self.access_token.strip():
+            raise ValueError("Access token cannot be blank.")
         if not isinstance(self.refresh_token, str):
             raise TypeError("Refresh token must be a string.")
-        if not self.refresh_token:
-            raise ValueError("Refresh token cannot be empty.")
+        if not self.refresh_token.strip():
+            raise ValueError("Refresh token cannot be blank.")
         if isinstance(self.expires_at, bool) or not isinstance(self.expires_at, int):
             raise TypeError("Token expiration must be an integer Unix timestamp.")
         if self.expires_at <= 0:

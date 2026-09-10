@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Self
+from typing import Self, assert_never
 
 
 class WeekSelection(Enum):
@@ -9,6 +9,16 @@ class WeekSelection(Enum):
 
     CURRENT = "current"
     PREVIOUS = "previous"
+
+    @property
+    def weeks_before_current(self) -> int:
+        """Return the explicit calendar offset represented by this selection."""
+        match self:
+            case WeekSelection.CURRENT:
+                return 0
+            case WeekSelection.PREVIOUS:
+                return 1
+        assert_never(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,8 +63,7 @@ class WeekPeriod:
         utc_instant = instant.astimezone(UTC)
         start = utc_instant - timedelta(days=utc_instant.weekday())
         start = start.replace(hour=0, minute=0, second=0, microsecond=0)
-        if week is WeekSelection.PREVIOUS:
-            start -= timedelta(weeks=1)
+        start -= timedelta(weeks=week.weeks_before_current)
         return cls(start=start, end=start + timedelta(weeks=1))
 
     @property

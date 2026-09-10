@@ -110,5 +110,11 @@ def _validate_optional_float(name: str, value: object) -> None:
         return
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"Stream sample {name} must be numeric.")
-    if not isfinite(value) or value < 0:
+    try:
+        finite = isfinite(value)
+    except OverflowError as error:
+        raise ValueError(
+            f"Stream sample {name} must be finite and non-negative."
+        ) from error
+    if not finite or value < 0:
         raise ValueError(f"Stream sample {name} must be finite and non-negative.")

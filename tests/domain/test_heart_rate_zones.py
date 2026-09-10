@@ -70,6 +70,12 @@ def test_requires_typed_zone_tuple() -> None:
         ((1, 120, 120, 1), "maximum must exceed"),
         ((1, 0, 100, -1), "time cannot be negative"),
     ],
+    ids=[
+        "number-out-of-range",
+        "negative-minimum",
+        "non-increasing-range",
+        "negative-time",
+    ],
 )
 def test_zone_enforces_business_invariants(
     values: tuple[int, int, int, int],

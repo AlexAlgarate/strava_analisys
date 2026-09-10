@@ -52,15 +52,17 @@ class WeeklyActivitySummary:
     def from_activities(
         cls, activities: Sequence[DetailedActivity]
     ) -> "WeeklyActivitySummary":
+        activity_ids = [activity.id for activity in activities]
+        if len(activity_ids) != len(set(activity_ids)):
+            raise ValueError("Activities in a weekly summary must have unique IDs.")
+
         return cls(
             activity_count=len(activities),
             total_distance_km=round(
                 sum(activity.distance for activity in activities) / 1000,
                 2,
             ),
-            total_moving_time=timedelta(
-                seconds=sum(activity.moving_time for activity in activities)
-            ),
+            total_moving_time=_total_moving_time(activities),
             total_elevation_gain=round(
                 sum(activity.total_elevation_gain for activity in activities),
                 1,
@@ -92,8 +94,20 @@ def _complete_calorie_total(
     return round(sum(value for value in values if value is not None), 1)
 
 
+def _total_moving_time(activities: Sequence[DetailedActivity]) -> timedelta:
+    total_seconds = sum(activity.moving_time for activity in activities)
+    try:
+        return timedelta(seconds=total_seconds)
+    except OverflowError as error:
+        raise ValueError("Summary moving time exceeds the supported range.") from error
+
+
 def _require_non_negative(name: str, value: object) -> None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"Summary {name} must be numeric.")
-    if not isfinite(value) or value < 0:
+    try:
+        finite = isfinite(value)
+    except OverflowError as error:
+        raise ValueError(f"Summary {name} must be finite and non-negative.") from error
+    if not finite or value < 0:
         raise ValueError(f"Summary {name} must be finite and non-negative.")

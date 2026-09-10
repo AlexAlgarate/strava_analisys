@@ -6,6 +6,15 @@ import pytest
 from src.domain.week_period import WeekPeriod, WeekSelection
 
 
+def test_week_selections_define_explicit_calendar_offsets() -> None:
+    assert {
+        selection: selection.weeks_before_current for selection in WeekSelection
+    } == {
+        WeekSelection.CURRENT: 0,
+        WeekSelection.PREVIOUS: 1,
+    }
+
+
 def test_builds_current_utc_week() -> None:
     instant = datetime(2026, 9, 9, 15, 30, tzinfo=UTC)
 
@@ -69,6 +78,13 @@ def test_exposes_epoch_boundaries() -> None:
             ValueError,
             "exactly seven days",
         ),
+    ],
+    ids=[
+        "naive-boundary",
+        "reversed-boundaries",
+        "non-utc-boundaries",
+        "non-monday-start",
+        "not-seven-days",
     ],
 )
 def test_rejects_invalid_periods(

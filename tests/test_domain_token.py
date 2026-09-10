@@ -29,7 +29,9 @@ def test_token_set_repr_does_not_expose_credentials() -> None:
     ("access_token", "refresh_token", "expires_at", "message"),
     [
         ("", "refresh", 100, "Access token"),
+        ("  ", "refresh", 100, "Access token"),
         ("access", "", 100, "Refresh token"),
+        ("access", "\t", 100, "Refresh token"),
         ("access", "refresh", 0, "expiration"),
     ],
 )

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import isfinite
 
 from src.domain.activity_id import require_activity_id
@@ -41,8 +41,8 @@ class DetailedActivity:
             raise ValueError("Elapsed time cannot be shorter than moving time.")
 
         self._validate_optional_metrics()
-        if self.gear_id is not None and not isinstance(self.gear_id, str):
-            raise TypeError("Activity gear id must be a string when provided.")
+        if self.gear_id is not None:
+            _require_non_empty_text("gear id", self.gear_id)
         self._validate_perceived_exertion()
         if (
             self.average_heartrate is not None
@@ -75,7 +75,13 @@ class DetailedActivity:
     def _require_non_negative(name: str, value: object) -> None:
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError(f"Activity {name} must be numeric.")
-        if not isfinite(value) or value < 0:
+        try:
+            finite = isfinite(value)
+        except OverflowError as error:
+            raise ValueError(
+                f"Activity {name} must be a finite non-negative value."
+            ) from error
+        if not finite or value < 0:
             raise ValueError(f"Activity {name} must be a finite non-negative value.")
 
     @staticmethod
@@ -84,6 +90,12 @@ class DetailedActivity:
             raise TypeError(f"Activity {name} must be an integer.")
         if value < 0:
             raise ValueError(f"Activity {name} cannot be negative.")
+        try:
+            timedelta(seconds=value)
+        except OverflowError as error:
+            raise ValueError(
+                f"Activity {name} exceeds the supported duration range."
+            ) from error
 
 
 def _require_non_empty_text(name: str, value: object) -> None:
