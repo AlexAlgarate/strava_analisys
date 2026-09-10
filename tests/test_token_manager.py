@@ -3,13 +3,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
+from src.application.errors import TokenError
 from src.domain.token import TokenSet
 from src.infrastructure.auth.strava_token_gateway import (
     TOKEN_URL,
     GrantType,
     StravaTokenGateway,
 )
-from src.utils.exceptions import TokenError
 
 TEST_CLIENT_ID = "test-client-id"
 TEST_SECRET = "test-secret"

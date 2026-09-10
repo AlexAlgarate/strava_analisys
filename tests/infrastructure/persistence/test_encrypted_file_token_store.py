@@ -6,11 +6,11 @@ from unittest.mock import Mock
 import pytest
 from cryptography.fernet import Fernet
 
+from src.application.errors import TokenStorageError
 from src.domain.token import TokenSet
 from src.infrastructure.persistence.encrypted_file_token_store import (
     EncryptedFileTokenStore,
 )
-from src.utils.exceptions import TokenStorageError
 
 
 @pytest.fixture

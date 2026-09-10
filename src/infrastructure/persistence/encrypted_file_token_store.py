@@ -6,9 +6,9 @@ from typing import Final
 
 from cryptography.fernet import Fernet, InvalidToken
 
+from src.application.errors import TokenStorageError
 from src.domain.token import TokenSet
 from src.infrastructure.serialization.token import token_from_mapping, token_to_mapping
-from src.utils.exceptions import TokenStorageError
 
 _PRIVATE_DIRECTORY_MODE: Final = 0o700
 _PRIVATE_FILE_MODE: Final = 0o600

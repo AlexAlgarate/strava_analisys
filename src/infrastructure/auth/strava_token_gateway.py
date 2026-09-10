@@ -3,9 +3,9 @@ from enum import StrEnum
 
 import requests
 
+from src.application.errors import TokenError
 from src.domain.token import TokenSet
 from src.infrastructure.serialization.token import token_from_mapping
-from src.utils.exceptions import TokenError
 
 logger = logging.getLogger(__name__)
 TOKEN_URL = "https://www.strava.com/oauth/token"
