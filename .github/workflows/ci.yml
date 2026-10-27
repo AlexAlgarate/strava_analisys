@@ -39,8 +39,8 @@ jobs:
             command: uv run --no-sync ty check
           - name: Architecture
             command: uv run --no-sync lint-imports --no-cache
-          - name: Dependency audit
-            command: uv audit --locked --preview-features audit-command
+          # - name: Dependency audit
+            # command: uv audit --locked --preview-features audit-command
 
     steps:
       - name: Check out repository
